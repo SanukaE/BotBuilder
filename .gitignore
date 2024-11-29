@@ -1,0 +1,9 @@
+#Production
+dist
+node_modules
+
+#Environment Variables
+.env
+
+#Config
+config.json
