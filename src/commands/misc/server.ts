@@ -44,7 +44,7 @@ const command: CommandType = {
       const data = await response.json();
 
       if (!data?.online) {
-        await interaction.reply(
+        await interaction.editReply(
           `The server \`${address}\` is currently offline.`
         );
         return;
@@ -97,12 +97,12 @@ const command: CommandType = {
         components: [button],
       });
 
-      await interaction.reply({
+      await interaction.editReply({
         embeds: [embedMessage],
         components: [buttonRow],
       });
     } catch (error) {
-      await interaction.reply(`An error occurred: ${error}`);
+      await interaction.editReply(`An error occurred: ${error}`);
     }
   },
 };
