@@ -4,6 +4,7 @@ import {
   ApplicationCommandOptionType,
 } from 'discord.js';
 import CommandType from '../../utils/CommandType.js';
+import { Location, makeAPICall } from '../../utils/makeAPICall.js';
 import 'dotenv/config';
 
 const command: CommandType = {
@@ -23,7 +24,6 @@ const command: CommandType = {
       type: ApplicationCommandOptionType.String,
     },
   ],
-  isDevOnly: true,
 
   script: async (client: Client, interaction: ChatInputCommandInteraction) => {
     await interaction.deferReply({ ephemeral: true });
@@ -43,18 +43,21 @@ const command: CommandType = {
       },
     };
 
-    const apiURL = process.env.NAMELESSMC_API_URL + '/users/register';
+    const options: RequestInit = {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/JSON',
+        Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
+      },
+    };
 
     try {
-      const response = await fetch(apiURL, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/JSON',
-          Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
-        },
-      });
-
+      const response = await makeAPICall(
+        Location.NamelessMC,
+        '/users/register',
+        options
+      );
       const responseData = await response.json();
 
       if (!response.ok || responseData.error)

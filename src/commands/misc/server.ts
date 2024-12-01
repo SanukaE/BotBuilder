@@ -8,6 +8,7 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 import CommandType from '../../utils/CommandType.js';
+import { Location, makeAPICall } from '../../utils/makeAPICall.js';
 
 const command: CommandType = {
   name: 'server',
@@ -32,18 +33,19 @@ const command: CommandType = {
     const address = interaction.options.getString('address');
     const isBedrock = interaction.options.getBoolean('bedrock');
 
-    const apiURL = isBedrock
-      ? `https://api.mcsrvstat.us/bedrock/3/${address}`
-      : `https://api.mcsrvstat.us/3/${address}`;
+    const apiEndPoint = isBedrock ? `/bedrock/3/${address}` : `/3/${address}`;
 
     try {
-      const response = await fetch(apiURL);
+      const response = await makeAPICall(
+        Location.MinecraftServerStats,
+        apiEndPoint
+      );
 
       if (!response.ok) throw new Error('Server response was not ok.');
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      if (!data?.online) {
+      if (!responseData?.online) {
         await interaction.editReply(
           `The server \`${address}\` is currently offline.`
         );
@@ -51,39 +53,51 @@ const command: CommandType = {
       }
 
       const embedMessage = new EmbedBuilder({
-        color: 0o7770,
-        title: data.hostname || address,
+        color: 0x00ff00,
+        title: responseData.hostname || address,
         description:
-          data.motd?.clean[0]?.trim() + data.motd?.clean[1]?.trim() || '',
+          responseData.motd?.clean[0]?.trim() +
+            responseData.motd?.clean[1]?.trim() || '',
         thumbnail: { url: `https://api.mcsrvstat.us/icon/${address}` },
         footer: {
           text: 'Made with ❤ by ItzSanuka',
           iconURL: 'https://i.postimg.cc/htzSdpnj/current-pfp.jpg',
         },
         fields: [
-          { name: 'IP:', value: data.ip + ':' + data.port },
-          { name: 'Version:', value: data.version },
+          {
+            name: 'IP:',
+            value: responseData.ip + ':' + responseData.port,
+            inline: true,
+          },
+          { name: 'Version:', value: responseData.version, inline: true },
           {
             name: 'Player Count:',
-            value: data.players.online + '/' + data.players.max,
+            value: responseData.players.online + '/' + responseData.players.max,
+            inline: true,
           },
         ],
       });
 
-      if (data.software)
-        embedMessage.addFields([{ name: 'Software:', value: data.software }]);
-      if (data.plugins)
+      if (responseData.software)
         embedMessage.addFields([
-          { name: 'Plugins Used:', value: data.plugins.length },
+          { name: 'Software:', value: responseData.software, inline: true },
         ]);
-      if (data.mods)
+      if (responseData.plugins)
         embedMessage.addFields([
-          { name: 'Mods Used:', value: data.mods.length },
+          {
+            name: 'Plugins Used:',
+            value: responseData.plugins.length,
+            inline: true,
+          },
+        ]);
+      if (responseData.mods)
+        embedMessage.addFields([
+          { name: 'Mods Used:', value: responseData.mods.length, inline: true },
         ]);
       if (isBedrock)
         embedMessage.addFields([
-          { name: 'Gamemode:', value: data.gamemode },
-          { name: 'Server ID:', value: data.serverid },
+          { name: 'Gamemode:', value: responseData.gamemode, inline: true },
+          { name: 'Server ID:', value: responseData.serverid, inline: true },
         ]);
 
       const button = new ButtonBuilder({
