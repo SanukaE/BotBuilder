@@ -9,6 +9,7 @@ import {
 } from 'discord.js';
 import CommandType from '../../utils/CommandType.js';
 import { Location, makeAPICall } from '../../utils/makeAPICall.js';
+import config from '../../../config.json' assert { type: 'json' };
 
 const command: CommandType = {
   name: 'server',
@@ -18,7 +19,6 @@ const command: CommandType = {
       name: 'address',
       description: 'Address of the server.',
       type: ApplicationCommandOptionType.String,
-      required: true,
     },
     {
       name: 'bedrock',
@@ -29,11 +29,21 @@ const command: CommandType = {
 
   script: async (client: Client, interaction: ChatInputCommandInteraction) => {
     await interaction.deferReply({ ephemeral: true });
+    const { minecraftServerIP, isMinecraftServerBedrock } = config;
 
-    const address = interaction.options.getString('address');
-    const isBedrock = interaction.options.getBoolean('bedrock');
+    const address =
+      interaction.options.getString('address') || minecraftServerIP;
+    let isBedrock = interaction.options.getBoolean('bedrock');
 
-    const apiEndPoint = isBedrock ? `/bedrock/3/${address}` : `/3/${address}`;
+    if (!address) {
+      await interaction.editReply('Please mention an address.');
+      return;
+    }
+
+    if (isBedrock === null && address === minecraftServerIP)
+      isBedrock = isMinecraftServerBedrock;
+
+    const apiEndPoint = (isBedrock ? `/bedrock/3/` : `/3/`) + address;
 
     try {
       const response = await makeAPICall(
