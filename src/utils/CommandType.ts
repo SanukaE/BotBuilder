@@ -1,9 +1,7 @@
 import {
-  ApplicationCommandOptionType,
   Client,
   ChatInputCommandInteraction,
   APIApplicationCommandOption,
-  APIApplicationCommandOptionChoice,
 } from 'discord.js';
 
 type CommandType = {

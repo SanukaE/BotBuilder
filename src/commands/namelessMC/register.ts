@@ -52,28 +52,24 @@ const command: CommandType = {
       },
     };
 
-    try {
-      const response = await makeAPICall(
-        Location.NamelessMC,
-        '/users/register',
-        options
+    const response = await makeAPICall(
+      Location.NamelessMC,
+      '/users/register',
+      options
+    );
+    const responseData = await response.json();
+
+    if (!response.ok || responseData.error)
+      throw new Error(responseData.error || 'Failed to register.');
+
+    if (responseData.link) {
+      await interaction.editReply(
+        `Almost done. Please set a password using this link: ${responseData.link}.`
       );
-      const responseData = await response.json();
-
-      if (!response.ok || responseData.error)
-        throw new Error(responseData.error || 'Failed to register.');
-
-      if (responseData.link) {
-        await interaction.editReply(
-          `Almost done. Please set a password using this link: ${responseData.link}.`
-        );
-      } else {
-        await interaction.editReply(
-          `Almost done. Please check your email (\`${emailAddress}\`) for a link to set your password.`
-        );
-      }
-    } catch (error) {
-      await interaction.editReply(`An error occurred: ${error}`);
+    } else {
+      await interaction.editReply(
+        `Almost done. Please check your email (\`${emailAddress}\`) for a link to set your password.`
+      );
     }
   },
 };

@@ -51,9 +51,9 @@ export default async function (client: Client, interaction: Interaction) {
     const chatInteraction = interaction as ChatInputCommandInteraction;
     await command.script!(client, chatInteraction);
   } catch (error) {
-    console.log(
-      `There was an error while running the command ${interaction.commandName}:`,
-      error
-    );
+    await interaction.followUp({
+      content: `There was an error while running the command:\`\`\`${error}\`\`\``,
+      ephemeral: true,
+    });
   }
 }

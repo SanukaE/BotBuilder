@@ -1,7 +1,6 @@
 import {
   Client,
   ChatInputCommandInteraction,
-  PermissionsBitField,
   EmbedBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -15,9 +14,7 @@ import 'dotenv/config';
 
 const command: CommandType = {
   name: 'info',
-  description:
-    'Get all the information about the application, the server and more.',
-  permissions: [PermissionsBitField.Flags.Administrator],
+  description: 'Get all the information about the bot, the server and more.',
   options: [
     {
       name: 'on',
@@ -68,163 +65,157 @@ const command: CommandType = {
     let response: Response;
     let data: any;
 
-    try {
-      switch (userChoice) {
-        case 'namelessmc':
-          embedMessage.setTitle('NamelessMC Stats:');
-          embedMessage.setColor('DarkGold');
-          embedMessage.setThumbnail('https://i.postimg.cc/Kz6WKb69/image.png');
-          embedMessage.setImage('https://i.postimg.cc/VLbtcT8L/image.png');
+    switch (userChoice) {
+      case 'namelessmc':
+        embedMessage.setTitle('NamelessMC Stats:');
+        embedMessage.setColor('DarkGold');
+        embedMessage.setThumbnail('https://i.postimg.cc/Kz6WKb69/image.png');
+        embedMessage.setImage('https://i.postimg.cc/VLbtcT8L/image.png');
 
-          description =
-            'NamelessMC is a free, easy to use & powerful website software for your Minecraft server, which includes a large range of features.';
+        description =
+          'NamelessMC is a free, easy to use & powerful website software for your Minecraft server, which includes a large range of features.';
 
-          response = await makeAPICall(Location.NamelessMC, '/info', {
-            headers: {
-              Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
-            },
-          });
-          data = await response.json();
+        response = await makeAPICall(Location.NamelessMC, '/info', {
+          headers: {
+            Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
+          },
+        });
+        data = await response.json();
 
-          embedMessage.addFields([
-            {
-              name: 'Version:',
-              value: `\`${data.nameless_version}\``,
-              inline: true,
-            },
-            {
-              name: 'Default Language:',
-              value: `\`${data.locale}\``,
-              inline: true,
-            },
-            {
-              name: 'Modules:',
-              value: `\`${data.modules.join(',')}\``,
-              inline: true,
-            },
-          ]);
+        embedMessage.addFields([
+          {
+            name: 'Version:',
+            value: `\`${data.nameless_version}\``,
+            inline: true,
+          },
+          {
+            name: 'Default Language:',
+            value: `\`${data.locale}\``,
+            inline: true,
+          },
+          {
+            name: 'Modules:',
+            value: `\`${data.modules.join()}\``,
+            inline: true,
+          },
+        ]);
 
-          break;
+        break;
 
-        case 'bot':
-          embedMessage.setTitle('About the Bot:');
-          embedMessage.setColor('Blurple');
-          embedMessage.setThumbnail(client.user?.avatarURL() as string | null);
-          embedMessage.setImage(client.user?.bannerURL() as string | null);
+      case 'bot':
+        embedMessage.setTitle('About the Bot:');
+        embedMessage.setColor('Blurple');
+        embedMessage.setThumbnail(client.user?.avatarURL() as string | null);
+        embedMessage.setImage(client.user?.bannerURL() as string | null);
 
-          embedMessage.addFields([
-            {
-              name: 'GitHub:',
-              value: 'https://github.com/SanukaE/AIO-Discord',
-            },
-            { name: 'Support:', value: 'Soon...' }, //TODO
-          ]);
+        embedMessage.addFields([
+          {
+            name: 'GitHub:',
+            value: 'https://github.com/SanukaE/AIO-Discord',
+          },
+          { name: 'Support:', value: 'Soon...' }, //TODO
+        ]);
 
-          description =
-            'Introducing AIO (All In One)—your ultimate Discord bot tailor-made for server owners, especially for those managing Minecraft servers! With AIO, you get a comprehensive suite of features designed to make your server management smooth, efficient, and fun—all while being fully open-sourced and absolutely free to use.';
+        description =
+          'Introducing AIO (All In One)—your ultimate Discord bot tailor-made for server owners, especially for those managing Minecraft servers! With AIO, you get a comprehensive suite of features designed to make your server management smooth, efficient, and fun—all while being fully open-sourced and absolutely free to use.';
 
-          break;
+        break;
 
-        case 'server':
-          embedMessage.setTitle('Discord Server Stats:');
-          embedMessage.setColor('DarkBlue');
-          embedMessage.setThumbnail(
-            interaction.guild?.iconURL() as string | null
-          );
-          embedMessage.setImage(
-            interaction.guild?.bannerURL() as string | null
-          );
+      case 'server':
+        embedMessage.setTitle('Discord Server Stats:');
+        embedMessage.setColor('DarkBlue');
+        embedMessage.setThumbnail(
+          interaction.guild?.iconURL() as string | null
+        );
+        embedMessage.setImage(interaction.guild?.bannerURL() as string | null);
 
-          description = interaction.guild?.description as string | null;
+        description = interaction.guild?.description as string | null;
 
-          embedMessage.addFields([
-            {
-              name: '📍 Server ID:',
-              value: `\`${interaction.guildId}\``,
-              inline: true,
-            },
-            {
-              name: '👥 Members:',
-              value:
-                `\`${interaction.guild?.memberCount || 'Unknown'} Total\n` +
-                `👤 ${
-                  interaction.guild?.members.cache.filter((m) => !m.user.bot)
-                    .size || 'Unknown'
-                } Humans\n` +
-                `🤖 ${
-                  interaction.guild?.members.cache.filter((m) => m.user.bot)
-                    .size || 'Unknown'
-                } Bots\``,
-              inline: true,
-            },
-            {
-              name: '📅 Created:',
-              value: `<t:${Math.floor(
-                (interaction.guild?.createdTimestamp || 0) / 1000
-              )}:R>`,
-              inline: true,
-            },
-            {
-              name: '🛡️ Security:',
-              value:
-                `\`Verification: ${
-                  interaction.guild?.verificationLevel || 'Unknown'
-                }\n` +
-                `MFA Level: ${
-                  interaction.guild?.mfaLevel === 1 ? 'Enabled' : 'Disabled'
-                }\n` +
-                `Explicit Filter: ${interaction.guild?.explicitContentFilter}\``,
-              inline: true,
-            },
-            {
-              name: '👑 Owner:',
-              value: interaction.guild?.ownerId
-                ? `<@${interaction.guild.ownerId}> (\`${interaction.guild.ownerId}\`)`
-                : 'Unknown',
-              inline: true,
-            },
-            {
-              name: '🏷️ Roles:',
-              value: `\`${
-                interaction.guild?.roles.cache.size || 'Unknown'
-              } Total\``,
-              inline: true,
-            },
-            {
-              name: '💬 Channels:',
-              value:
-                `\`📊 Total: ${
-                  interaction.guild?.channels.cache.size || 'Unknown'
-                }\n` +
-                `💬 Text: ${
-                  interaction.guild?.channels.cache.filter(
-                    (c) => c.type === ChannelType.GuildText
-                  ).size || 'Unknown'
-                }\n` +
-                `🔊 Voice: ${
-                  interaction.guild?.channels.cache.filter(
-                    (c) => c.type === ChannelType.GuildVoice
-                  ).size || 'Unknown'
-                }\``,
-              inline: true,
-            },
-          ]);
+        embedMessage.addFields([
+          {
+            name: '📍 Server ID:',
+            value: `\`${interaction.guildId}\``,
+            inline: true,
+          },
+          {
+            name: '👥 Members:',
+            value:
+              `\`${interaction.guild?.memberCount || 'Unknown'} Total\n` +
+              `👤 ${
+                interaction.guild?.members.cache.filter((m) => !m.user.bot)
+                  .size || 'Unknown'
+              } Humans\n` +
+              `🤖 ${
+                interaction.guild?.members.cache.filter((m) => m.user.bot)
+                  .size || 'Unknown'
+              } Bots\``,
+            inline: true,
+          },
+          {
+            name: '📅 Created:',
+            value: `<t:${Math.floor(
+              (interaction.guild?.createdTimestamp || 0) / 1000
+            )}:R>`,
+            inline: true,
+          },
+          {
+            name: '🛡️ Security:',
+            value:
+              `\`Verification: ${
+                interaction.guild?.verificationLevel || 'Unknown'
+              }\n` +
+              `MFA Level: ${
+                interaction.guild?.mfaLevel === 1 ? 'Enabled' : 'Disabled'
+              }\n` +
+              `Explicit Filter: ${interaction.guild?.explicitContentFilter}\``,
+            inline: true,
+          },
+          {
+            name: '👑 Owner:',
+            value: interaction.guild?.ownerId
+              ? `<@${interaction.guild.ownerId}> (\`${interaction.guild.ownerId}\`)`
+              : 'Unknown',
+            inline: true,
+          },
+          {
+            name: '🏷️ Roles:',
+            value: `\`${
+              interaction.guild?.roles.cache.size || 'Unknown'
+            } Total\``,
+            inline: true,
+          },
+          {
+            name: '💬 Channels:',
+            value:
+              `\`📊 Total: ${
+                interaction.guild?.channels.cache.size || 'Unknown'
+              }\n` +
+              `💬 Text: ${
+                interaction.guild?.channels.cache.filter(
+                  (c) => c.type === ChannelType.GuildText
+                ).size || 'Unknown'
+              }\n` +
+              `🔊 Voice: ${
+                interaction.guild?.channels.cache.filter(
+                  (c) => c.type === ChannelType.GuildVoice
+                ).size || 'Unknown'
+              }\``,
+            inline: true,
+          },
+        ]);
 
-          break;
+        break;
 
-        default:
-          await interaction.editReply(`Unknown option. Please pick again.`);
-          return;
-      }
-
-      embedMessage.setDescription(description);
-      await interaction.editReply({
-        embeds: [embedMessage],
-        components: userChoice === 'bot' ? [buttonActionRow] : [],
-      });
-    } catch (error) {
-      await interaction.editReply(`An error occurred: \`\`\`${error}\`\`\``);
+      default:
+        await interaction.editReply(`Unknown option. Please pick again.`);
+        return;
     }
+
+    embedMessage.setDescription(description);
+    await interaction.editReply({
+      embeds: [embedMessage],
+      components: userChoice === 'bot' ? [buttonActionRow] : [],
+    });
   },
 };
 

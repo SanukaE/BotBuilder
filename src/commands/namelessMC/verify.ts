@@ -40,21 +40,17 @@ const command: CommandType = {
       },
     };
 
-    try {
-      const response = await makeAPICall(
-        Location.NamelessMC,
-        '/integration/verify',
-        options
-      );
-      const responseData = await response.json();
+    const response = await makeAPICall(
+      Location.NamelessMC,
+      '/integration/verify',
+      options
+    );
+    const responseData = await response.json();
 
-      if (!response.ok || responseData.error)
-        throw new Error(responseData.error || 'Failed to verify.');
+    if (!response.ok || responseData.error)
+      throw new Error(responseData.error || 'Failed to verify.');
 
-      await interaction.editReply('Successfully verified.');
-    } catch (error) {
-      await interaction.editReply(`An error occurred: ${error}`);
-    }
+    await interaction.editReply('Successfully verified.');
   },
 };
 
