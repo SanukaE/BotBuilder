@@ -13,8 +13,6 @@ export default function (client: Client) {
     const eventName = eventFolder.replace(/\\/g, '/').split('/').pop()!;
     const eventFiles = getAllFiles(eventFolder);
 
-    eventFiles.sort((a, b) => a.localeCompare(b));
-
     client.on(eventName, (arg) => {
       eventFiles.forEach(async (eventFile) => {
         const fileUrl = pathToFileURL(eventFile).href;

@@ -1,7 +1,6 @@
 import {
   Client,
   ChatInputCommandInteraction,
-  EmbedBuilder,
   ButtonBuilder,
   ButtonStyle,
   ActionRowBuilder,
@@ -10,6 +9,7 @@ import {
 } from 'discord.js';
 import CommandType from '../../utils/CommandType.js';
 import { Location, makeAPICall } from '../../utils/makeAPICall.js';
+import createEmbed from '../../utils/createEmbed.js';
 import 'dotenv/config';
 
 const command: CommandType = {
@@ -43,12 +43,7 @@ const command: CommandType = {
 
     const userChoice = interaction.options.getString('on');
 
-    const embedMessage = new EmbedBuilder({
-      footer: {
-        text: 'Made with ❤ by ItzSanuka',
-        iconURL: 'https://i.postimg.cc/htzSdpnj/current-pfp.jpg',
-      },
-    });
+    const embedMessage = createEmbed();
 
     const donateButton = new ButtonBuilder({
       label: 'Support The Project',

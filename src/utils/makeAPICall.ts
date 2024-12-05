@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 export enum Location {
   MinecraftServerStats = 1,
   NamelessMC,

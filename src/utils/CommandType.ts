@@ -3,6 +3,7 @@ import {
   ChatInputCommandInteraction,
   APIApplicationCommandOption,
 } from 'discord.js';
+import { LoggerType } from './createLogger.js';
 
 type CommandType = {
   id?: string;
@@ -11,8 +12,13 @@ type CommandType = {
   options?: APIApplicationCommandOption[];
   permissions?: bigint[];
   isDevOnly?: boolean;
+  enableDebug?: boolean;
   isToDelete?: boolean;
-  script?: (client: Client, interaction: ChatInputCommandInteraction) => void;
+  script?: (
+    client: Client,
+    interaction: ChatInputCommandInteraction,
+    debugStream: LoggerType
+  ) => void;
 };
 
 export default CommandType;
