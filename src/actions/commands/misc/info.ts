@@ -7,9 +7,9 @@ import {
   ApplicationCommandOptionType,
   ChannelType,
 } from 'discord.js';
-import CommandType from '../../utils/CommandType.js';
-import { Location, makeAPICall } from '../../utils/makeAPICall.js';
-import createEmbed from '../../utils/createEmbed.js';
+import CommandType from '../../../utils/CommandType.js';
+import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
+import createEmbed from '../../../utils/createEmbed.js';
 import 'dotenv/config';
 
 const command: CommandType = {
@@ -42,6 +42,11 @@ const command: CommandType = {
     await interaction.deferReply({ ephemeral: true });
 
     const userChoice = interaction.options.getString('on');
+
+    if (userChoice === 'server' && !interaction.inGuild()) {
+      await interaction.reply('This choice can only be used in a server.');
+      return;
+    }
 
     const embedMessage = createEmbed();
 

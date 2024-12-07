@@ -3,8 +3,8 @@ import {
   ChatInputCommandInteraction,
   ApplicationCommandOptionType,
 } from 'discord.js';
-import CommandType from '../../utils/CommandType.js';
-import { Location, makeAPICall } from '../../utils/makeAPICall.js';
+import CommandType from '../../../utils/CommandType.js';
+import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
 import 'dotenv/config';
 
 const command: CommandType = {

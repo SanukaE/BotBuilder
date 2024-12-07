@@ -5,8 +5,8 @@ import { EmbedBuilder } from 'discord.js';
 export default function () {
   return new EmbedBuilder({
     author: {
-      name: 'Powered by AIO Discord',
-      url: 'https://github.com/SanukaE/AIO-Discord',
+      name: 'Powered by BotBuilder',
+      url: 'https://github.com/SanukaE/BotBuilder',
       //iconURL: ""
     },
 

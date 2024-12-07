@@ -13,11 +13,11 @@ export default function (client: Client) {
     const eventName = eventFolder.replace(/\\/g, '/').split('/').pop()!;
     const eventFiles = getAllFiles(eventFolder);
 
-    client.on(eventName, (arg) => {
+    client.on(eventName, (...args) => {
       eventFiles.forEach(async (eventFile) => {
         const fileUrl = pathToFileURL(eventFile).href;
         const eventFunction = await import(fileUrl);
-        await eventFunction.default(client, arg);
+        await eventFunction.default(client, ...args);
       });
     });
   });

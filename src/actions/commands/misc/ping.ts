@@ -1,5 +1,5 @@
 import { Client, ChatInputCommandInteraction } from 'discord.js';
-import CommandType from '../../utils/CommandType.js';
+import CommandType from '../../../utils/CommandType.js';
 
 const command: CommandType = {
   name: 'ping',

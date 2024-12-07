@@ -6,7 +6,7 @@ import {
   CacheType,
   AttachmentBuilder,
 } from 'discord.js';
-import CommandType from '../../utils/CommandType.js';
+import CommandType from '../../../utils/CommandType.js';
 import Replicate from 'replicate';
 import 'dotenv/config';
 

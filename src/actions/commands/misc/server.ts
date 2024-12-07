@@ -6,11 +6,11 @@ import {
   ButtonStyle,
   ActionRowBuilder,
 } from 'discord.js';
-import CommandType from '../../utils/CommandType.js';
-import { Location, makeAPICall } from '../../utils/makeAPICall.js';
-import config from '../../../config.json' assert { type: 'json' };
-import { LoggerType } from '../../utils/createLogger.js';
-import createEmbed from '../../utils/createEmbed.js';
+import CommandType from '../../../utils/CommandType.js';
+import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
+import config from '../../../../config.json' assert { type: 'json' };
+import { LoggerType } from '../../../utils/createLogger.js';
+import createEmbed from '../../../utils/createEmbed.js';
 
 const command: CommandType = {
   name: 'server',

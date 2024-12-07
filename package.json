@@ -11,8 +11,10 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "bing-translate-api": "^4.0.2",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
-    "mongoose": "^8.8.2"
+    "mongoose": "^8.8.2",
+    "replicate": "^1.0.1"
   }
 }

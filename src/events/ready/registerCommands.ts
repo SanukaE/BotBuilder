@@ -1,11 +1,14 @@
 import { Client } from 'discord.js';
-import getLocalCommands from '../../utils/getLocalCommands.js';
+import { getActions, ActionTypes } from '../../utils/getActions.js';
 import getRegisteredCommands from '../../utils/getRegisteredCommands.js';
 import areCommandsDifferent from '../../utils/areCommandsDifferent.js';
+import CommandType from '../../utils/CommandType.js';
 
 export default async function (client: Client) {
   try {
-    const localCommands = await getLocalCommands();
+    const localCommands = (await getActions(
+      ActionTypes.Commands
+    )) as CommandType[];
     const registeredCommands = await getRegisteredCommands(client);
 
     for (const localCommand of localCommands) {
