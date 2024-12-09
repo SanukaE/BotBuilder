@@ -17,7 +17,7 @@ export default async function (client: Client) {
       );
 
       if (registeredCommand) {
-        if (localCommand.isToDelete) {
+        if (localCommand.isDisabled) {
           await client.application!.commands.delete(registeredCommand.id!);
           continue;
         }
@@ -29,10 +29,22 @@ export default async function (client: Client) {
           );
         }
       } else {
-        if (localCommand.isToDelete) continue;
+        if (localCommand.isDisabled) continue;
 
         await client.application!.commands.create(localCommand);
       }
+    }
+
+    const deletedCommands = registeredCommands.filter((registeredCommand) => {
+      if (
+        localCommands.find((command) => command.name === registeredCommand.name)
+      )
+        return false;
+      return true;
+    });
+
+    for (const deletedCommand of deletedCommands) {
+      await client.application!.commands.delete(deletedCommand.id!);
     }
 
     console.log('All slash commands are up to date!');

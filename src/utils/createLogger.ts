@@ -40,6 +40,7 @@ export function createLogger(
   const timeStamp = date.toISOString();
   if (logger === 'debugs')
     fileWriteStream.write(`[${timeStamp}] START OF DEBUG\n`);
+  else fileWriteStream.write(`[${timeStamp}] START OF ERROR\n`);
 
   return {
     write: (message: string) => {
@@ -50,6 +51,7 @@ export function createLogger(
     close: () => {
       if (logger === 'debugs')
         fileWriteStream.end(`[${timeStamp}] END OF DEBUG`);
+      else fileWriteStream.end(`[${timeStamp}] END OF ERROR`);
     },
   };
 }

@@ -1,8 +1,4 @@
-import {
-  Client,
-  ChatInputCommandInteraction,
-  ApplicationCommandOptionType,
-} from 'discord.js';
+import { ApplicationCommandOptionType } from 'discord.js';
 import CommandType from '../../../utils/CommandType.js';
 import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
 import 'dotenv/config';
@@ -25,7 +21,7 @@ const command: CommandType = {
     },
   ],
 
-  script: async (client: Client, interaction: ChatInputCommandInteraction) => {
+  async script(client, interaction) {
     await interaction.deferReply({ ephemeral: true });
 
     const emailAddress = interaction.options.getString('email');

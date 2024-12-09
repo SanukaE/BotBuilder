@@ -1,6 +1,6 @@
 import { EmbedBuilder } from 'discord.js';
 
-//TODO: add icon to author & remove branding if premium
+//TODO: add icon & remove branding if premium
 
 export default function () {
   return new EmbedBuilder({
@@ -11,8 +11,8 @@ export default function () {
     },
 
     footer: {
-      text: 'Made with ❤️ by ItzSanuka',
-      iconURL: 'https://i.postimg.cc/htzSdpnj/current-pfp.jpg',
+      text: 'BotBuilder, the future of Discord Bots.',
+      //iconURL: '',
     },
   });
 }

@@ -1,6 +1,4 @@
 import {
-  Client,
-  ChatInputCommandInteraction,
   ApplicationCommandOptionType,
   ButtonBuilder,
   ButtonStyle,
@@ -28,11 +26,7 @@ const command: CommandType = {
     },
   ],
 
-  script: async (
-    client: Client,
-    interaction: ChatInputCommandInteraction,
-    debugLogger: LoggerType
-  ) => {
+  async script(client, interaction, debugLogger) {
     debugLogger.write('Deferring reply...');
     await interaction.deferReply({ ephemeral: true });
     debugLogger.write('Reply deferred!');

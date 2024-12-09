@@ -1,6 +1,4 @@
 import {
-  Client,
-  ChatInputCommandInteraction,
   ApplicationCommandOptionType,
   CommandInteractionOption,
   CacheType,
@@ -56,7 +54,7 @@ const command: CommandType = {
     },
   ],
 
-  script: async (client: Client, interaction: ChatInputCommandInteraction) => {
+  async script(client, interaction) {
     await interaction.deferReply({ ephemeral: true });
 
     const usersChoice = interaction.options.getString('type');

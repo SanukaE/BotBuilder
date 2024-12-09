@@ -18,7 +18,7 @@ type ReactionType = {
     user: User | PartialUser,
     details: MessageReactionEventDetails,
     debugStream: LoggerType
-  ) => void;
+  ) => Promise<void>;
 };
 
 export default ReactionType;

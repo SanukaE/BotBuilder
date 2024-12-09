@@ -13,12 +13,12 @@ type CommandType = {
   permissions?: bigint[];
   isDevOnly?: boolean;
   enableDebug?: boolean;
-  isToDelete?: boolean;
+  isDisabled?: boolean;
   script?: (
     client: Client,
     interaction: ChatInputCommandInteraction,
     debugStream: LoggerType
-  ) => void;
+  ) => Promise<void>;
 };
 
 export default CommandType;

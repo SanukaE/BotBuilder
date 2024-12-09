@@ -1,8 +1,4 @@
-import {
-  Client,
-  ChatInputCommandInteraction,
-  ApplicationCommandOptionType,
-} from 'discord.js';
+import { ApplicationCommandOptionType } from 'discord.js';
 import CommandType from '../../../utils/CommandType.js';
 import Replicate from 'replicate';
 import 'dotenv/config';
@@ -23,7 +19,7 @@ const command: CommandType = {
     },
   ],
 
-  script: async (client: Client, interaction: ChatInputCommandInteraction) => {
+  async script(client, interaction) {
     await interaction.deferReply({ ephemeral: true });
 
     const usersQuestion = interaction.options.getString('question');
