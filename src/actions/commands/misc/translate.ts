@@ -30,10 +30,6 @@ const command: CommandType = {
     interaction: ChatInputCommandInteraction,
     debugStream: LoggerType
   ) => {
-    debugStream.write('Deferring reply...');
-    await interaction.deferReply({ ephemeral: true });
-    debugStream.write('Reply differed!');
-
     debugStream.write('Getting language from config.json...');
     const { language } = config;
     debugStream.write(`language: ${language}`);
@@ -53,9 +49,10 @@ const command: CommandType = {
     debugStream.write(`translation: ${translationData?.translation}`);
 
     debugStream.write('Sending reply...');
-    await interaction.editReply(
-      `${usersText}\n> *${translationData?.translation}*`
-    );
+    await interaction.followUp({
+      content: `${usersText}\n> *${translationData?.translation}*`,
+      ephemeral: true,
+    });
     debugStream.write('Reply sent!');
   },
 };

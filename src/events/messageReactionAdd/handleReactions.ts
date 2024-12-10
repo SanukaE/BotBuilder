@@ -20,7 +20,19 @@ export default async function (
   const { developmentGuildID, isMaintenanceEnabled } = config;
   const message = messageReaction.message;
 
-  if (!message.inGuild() || messageReaction.emoji.animated) return;
+  if (messageReaction.count && messageReaction.count > 1) {
+    const messageReply = await message.reply({
+      content: 'You can only react to a message once.',
+      allowedMentions: { repliedUser: false },
+    });
+    await messageReaction.remove();
+
+    setTimeout(async () => {
+      await messageReply.delete();
+    }, 60_000);
+
+    return;
+  }
 
   if (isMaintenanceEnabled && message.guildId !== developmentGuildID) {
     const messageReply = await message.reply({
@@ -47,6 +59,20 @@ export default async function (
   )
     return;
 
+  if (reaction.isGuildOnly && !message.inGuild()) {
+    const messageReply = await message.reply({
+      content: 'This reaction can only be used in a server.',
+      allowedMentions: { repliedUser: false },
+    });
+    await messageReaction.remove();
+
+    setTimeout(async () => {
+      await messageReply.delete();
+    }, 60_000);
+
+    return;
+  }
+
   const debugLogger = createLogger(
     `${reaction.name}-reaction`,
     LoggerOptions.Debug,
@@ -55,10 +81,15 @@ export default async function (
   try {
     await reaction.script!(client, messageReaction, user, details, debugLogger);
   } catch (error) {
-    await message.reply({
+    const errorMessageReply = await message.reply({
       content: `There was an error while running the command:\`\`\`${error}\`\`\``,
       allowedMentions: { repliedUser: false },
     });
+    await messageReaction.remove();
+
+    setTimeout(async () => {
+      await errorMessageReply.delete();
+    }, 60_000);
 
     const errorLogger = createLogger(`${reaction}`, LoggerOptions.Error, true);
     errorLogger.write(error as string);

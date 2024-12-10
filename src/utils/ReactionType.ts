@@ -11,6 +11,7 @@ import { LoggerType } from './createLogger.js';
 type ReactionType = {
   name: string;
   isDevOnly?: boolean;
+  isGuildOnly?: boolean;
   enableDebug?: boolean;
   script?: (
     client: Client,

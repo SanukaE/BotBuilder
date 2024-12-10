@@ -5,7 +5,7 @@ const command: CommandType = {
   description: 'Gets bots ping.',
 
   async script(client, interaction) {
-    await interaction.reply(`Pong! ${client.ws.ping}ms.`);
+    await interaction.followUp(`Pong! ${client.ws.ping}ms.`);
   },
 };
 

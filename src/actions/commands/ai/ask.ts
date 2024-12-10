@@ -20,8 +20,6 @@ const command: CommandType = {
   ],
 
   async script(client, interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
     const usersQuestion = interaction.options.getString('question');
 
     const input = {
@@ -43,7 +41,7 @@ const command: CommandType = {
     aiAnswer +=
       "\n\n-# AI can make mistakes too. It's always good to double check any impotent information.";
 
-    await interaction.editReply(aiAnswer);
+    await interaction.followUp({ content: aiAnswer, ephemeral: true });
   },
 };
 

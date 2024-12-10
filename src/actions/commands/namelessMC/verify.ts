@@ -16,8 +16,6 @@ const command: CommandType = {
   ],
 
   async script(client, interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
     const verificationCode = interaction.options.getString('code');
 
     const data = {
@@ -46,7 +44,10 @@ const command: CommandType = {
     if (!response.ok || responseData.error)
       throw new Error(responseData.error || 'Failed to verify.');
 
-    await interaction.editReply('Successfully verified.');
+    await interaction.followUp({
+      content: 'Successfully verified.',
+      ephemeral: true,
+    });
   },
 };
 

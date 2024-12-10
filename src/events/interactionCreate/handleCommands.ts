@@ -8,11 +8,10 @@ export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isChatInputCommand()) return;
   const { developmentGuildID, isMaintenanceEnabled } = config;
 
+  await interaction.deferReply({ ephemeral: true });
+
   if (isMaintenanceEnabled && interaction.guildId !== developmentGuildID) {
-    await interaction.reply({
-      content: 'The bot is under maintenance.',
-      ephemeral: true,
-    });
+    await interaction.editReply('The bot is under maintenance.');
     return;
   }
 
@@ -23,16 +22,21 @@ export default async function (client: Client, interaction: Interaction) {
   const command = localCommands.find(
     (command) => command.name === interaction.commandName
   );
+
   if (!command) {
-    await interaction.reply({ content: 'Unknown command.', ephemeral: true });
+    await interaction.editReply('Unknown command.');
+    return;
+  }
+
+  if (command.isGuildOnly && !interaction.inGuild()) {
+    await interaction.editReply('This command can only be used in a server.');
     return;
   }
 
   if (command.isDevOnly && interaction.guildId !== developmentGuildID) {
-    await interaction.reply({
-      content: 'The command is under development.',
-      ephemeral: true,
-    });
+    await interaction.editReply(
+      'This command is currently under development. Please try again later.'
+    );
     return;
   }
 
@@ -43,11 +47,9 @@ export default async function (client: Client, interaction: Interaction) {
         typeof interaction.member.permissions === 'string' ||
         !interaction.member.permissions.has(permission)
       ) {
-        await interaction.reply({
-          content:
-            'You do not have the right permissions to perform this command.',
-          ephemeral: true,
-        });
+        await interaction.editReply(
+          'You do not have the right permissions to perform this command.'
+        );
         return;
       }
     }
@@ -64,10 +66,9 @@ export default async function (client: Client, interaction: Interaction) {
   try {
     await command.script!(client, chatInteraction, debugLogger);
   } catch (error) {
-    await interaction.followUp({
-      content: `There was an error while running the command:\`\`\`${error}\`\`\``,
-      ephemeral: true,
-    });
+    await interaction.editReply(
+      `There was an error while running the command:\`\`\`${error}\`\`\``
+    );
 
     const errorLogger = createLogger(
       `${interaction.commandName}-command`,

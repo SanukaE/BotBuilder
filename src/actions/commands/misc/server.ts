@@ -27,10 +27,6 @@ const command: CommandType = {
   ],
 
   async script(client, interaction, debugLogger) {
-    debugLogger.write('Deferring reply...');
-    await interaction.deferReply({ ephemeral: true });
-    debugLogger.write('Reply deferred!');
-
     debugLogger.write(
       'Getting minecraftServerIP & isMinecraftServerBedrock from config.json...'
     );
@@ -38,37 +34,30 @@ const command: CommandType = {
     debugLogger.write(`minecraftServerIP: ${minecraftServerIP}`);
     debugLogger.write(`isMinecraftServerBedrock: ${isMinecraftServerBedrock}`);
 
-    debugLogger.write('Getting address & bedrock values from interaction...');
-    debugLogger.write(`address: ${interaction.options.getString('address')}`);
-    debugLogger.write(`bedrock: ${interaction.options.getBoolean('bedrock')}`);
+    debugLogger.write('Getting data from command options:');
     const address =
       interaction.options.getString('address') || minecraftServerIP;
     let isBedrock = interaction.options.getBoolean('bedrock');
-    debugLogger.write(
-      'Initiating interaction values to local variables (address, isBedrock)...'
-    );
     debugLogger.write(`address: ${address}`);
     debugLogger.write(`isBedrock: ${isBedrock}`);
 
-    debugLogger.write('Checking if address variable is valid or not...');
+    debugLogger.write('Checking if address  is valid or not...');
     if (!address) {
-      debugLogger.write(
-        'address variable is not valid, replying back to user...'
-      );
+      debugLogger.write('address is not valid, replying back to user...');
       await interaction.editReply('Please mention an address.');
       debugLogger.write('Reply sent!');
       return;
     }
-    debugLogger.write('address variable is valid!');
+    debugLogger.write('address is valid!');
 
     //to prevent user from entering isBedrock while forgetting to add an address
     debugLogger.write(
-      'Checking if isBedrock (variable) is a boolean & address (variable) = minecraftServerIP (variable)...'
+      'Checking if isBedrock is a boolean & address = minecraftServerIP...'
     );
     if (typeof isBedrock === 'boolean' && address === minecraftServerIP) {
       isBedrock = isMinecraftServerBedrock;
       debugLogger.write(
-        'The condition came out to be true, isBedrock (variable) is now equal to isMinecraftServerBedrock (variable).'
+        'The condition came out to be true, isBedrock is now equal to isMinecraftServerBedrock.'
       );
     } else debugLogger.write('Condition is false!');
 
@@ -110,8 +99,8 @@ const command: CommandType = {
       .setColor('Green')
       .setTitle(responseData.hostname || address)
       .setDescription(
-        responseData.motd?.clean[0]?.trim() +
-          responseData.motd?.clean[1]?.trim() || ''
+        responseData.motd?.clean[0]?.trim + responseData.motd?.clean[1]?.trim ||
+          ''
       )
       .setThumbnail(`https://api.mcsrvstat.us/icon/${address}`);
     debugLogger.write('Embed message created! Adding fields...');
@@ -131,7 +120,7 @@ const command: CommandType = {
       if (unwantedFields.includes(key)) continue;
 
       debugLogger.write(`Adding field: ${key}`);
-      const fieldName = key[0].toUpperCase() + key.slice(1);
+      const fieldName = key[0].toUpperCase + key.slice(1);
 
       switch (key) {
         case 'players':
@@ -155,7 +144,7 @@ const command: CommandType = {
 
         default:
           embedMessage.addFields({
-            name: (key === 'ip' ? fieldName.toUpperCase() : fieldName) + ':',
+            name: (key === 'ip' ? fieldName.toUpperCase : fieldName) + ':',
             value: `\`${value}\``,
             inline: true,
           });
@@ -180,9 +169,10 @@ const command: CommandType = {
     debugLogger.write(
       'Action-row was created! Replying back with embed message & button...'
     );
-    await interaction.editReply({
+    await interaction.followUp({
       embeds: [embedMessage],
       components: [buttonRow],
+      ephemeral: true,
     });
     debugLogger.write('Replied!');
   },

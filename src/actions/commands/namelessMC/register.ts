@@ -1,6 +1,7 @@
 import { ApplicationCommandOptionType } from 'discord.js';
 import CommandType from '../../../utils/CommandType.js';
 import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
+import createEmbed from '../../../utils/createEmbed.js';
 import 'dotenv/config';
 
 const command: CommandType = {
@@ -22,8 +23,6 @@ const command: CommandType = {
   ],
 
   async script(client, interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
     const emailAddress = interaction.options.getString('email');
     const username =
       interaction.options.getString('username') || interaction.user.username;
@@ -58,14 +57,18 @@ const command: CommandType = {
     if (!response.ok || responseData.error)
       throw new Error(responseData.error || 'Failed to register.');
 
+    const embedMessage = createEmbed();
+
     if (responseData.link) {
-      await interaction.editReply(
-        `Almost done. Please set a password using this link: ${responseData.link}.`
-      );
+      await interaction.followUp({
+        content: `Almost done. Please set a password using this link: ${responseData.link}.`,
+        ephemeral: true,
+      });
     } else {
-      await interaction.editReply(
-        `Almost done. Please check your email (\`${emailAddress}\`) for a link to set your password.`
-      );
+      await interaction.followUp({
+        content: `Almost done. Please check your email (\`${emailAddress}\`) for a link to set your password.`,
+        ephemeral: true,
+      });
     }
   },
 };

@@ -20,10 +20,6 @@ const command: CommandType = {
   ],
 
   async script(client, interaction, debugStream) {
-    debugStream.write('Deferring reply...');
-    await interaction.deferReply({ ephemeral: true });
-    debugStream.write('Deferred reply!');
-
     debugStream.write('Getting query from command options...');
     const query = interaction.options.getString('query')!;
     debugStream.write(`query: ${query}`);
@@ -54,9 +50,10 @@ const command: CommandType = {
     debugStream.write('Button Created!');
 
     debugStream.write('Sending reply...');
-    await interaction.editReply({
+    await interaction.followUp({
       embeds: [embedMessage],
       components: [actionRow],
+      ephemeral: true,
     });
     debugStream.write('Reply sent!');
   },

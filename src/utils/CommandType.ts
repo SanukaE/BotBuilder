@@ -14,6 +14,7 @@ type CommandType = {
   isDevOnly?: boolean;
   enableDebug?: boolean;
   isDisabled?: boolean;
+  isGuildOnly?: boolean;
   script?: (
     client: Client,
     interaction: ChatInputCommandInteraction,

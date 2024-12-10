@@ -55,8 +55,6 @@ const command: CommandType = {
   ],
 
   async script(client, interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
     const usersChoice = interaction.options.getString('type');
     const usersPrompt = interaction.options.getString('prompt');
     const usersFile = interaction.options.getAttachment('file');
@@ -152,9 +150,10 @@ const command: CommandType = {
         'generated_file.' + outputFileType
       );
 
-    await interaction.editReply({
+    await interaction.followUp({
       content: '*⚠This message can only be viewed once. So save it now. ⚠*',
       files: [resourceFile],
+      ephemeral: true,
     });
   },
 };

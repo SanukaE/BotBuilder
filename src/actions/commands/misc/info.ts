@@ -37,12 +37,10 @@ const command: CommandType = {
   ],
 
   async script(client, interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
     const userChoice = interaction.options.getString('on');
 
     if (userChoice === 'server' && !interaction.inGuild()) {
-      await interaction.reply('This choice can only be used in a server.');
+      await interaction.editReply('This choice can only be used in a server.');
       return;
     }
 
@@ -52,7 +50,7 @@ const command: CommandType = {
       label: 'Support The Project',
       emoji: '❤',
       style: ButtonStyle.Link,
-      url: 'https://www.patreon.com/sanukae',
+      url: 'https://buy.stripe.com/28oeVWcQX6881Hi6oo',
     });
 
     const buttonActionRow = new ActionRowBuilder<ButtonBuilder>({
@@ -109,13 +107,13 @@ const command: CommandType = {
         embedMessage.addFields([
           {
             name: 'GitHub:',
-            value: 'https://github.com/SanukaE/AIO-Discord',
+            value: 'https://github.com/SanukaE/BotBuilder',
           },
           { name: 'Support:', value: 'Soon...' }, //TODO
         ]);
 
         description =
-          'Introducing AIO (All In One)—your ultimate Discord bot tailor-made for server owners, especially for those managing Minecraft servers! With AIO, you get a comprehensive suite of features designed to make your server management smooth, efficient, and fun—all while being fully open-sourced and absolutely free to use.';
+          'Introducing BotBuilder your ultimate Discord bot tailor-made for server owners, especially for those managing Minecraft servers! With AIO, you get a comprehensive suite of features designed to make your server management smooth, efficient, and fun—all while being fully open-sourced and absolutely free to use.';
 
         break;
 
@@ -210,9 +208,10 @@ const command: CommandType = {
     }
 
     embedMessage.setDescription(description);
-    await interaction.editReply({
+    await interaction.followUp({
       embeds: [embedMessage],
       components: userChoice === 'bot' ? [buttonActionRow] : [],
+      ephemeral: true,
     });
   },
 };
