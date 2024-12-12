@@ -3,8 +3,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 export enum LoggerOptions {
-  Debug = 'debugs',
-  Error = 'errors',
+  Debug = 'debug',
+  Error = 'error',
+  Warning = 'warning',
 }
 
 export type LoggerType = {
@@ -25,33 +26,34 @@ export function createLogger(
   }
 
   const date = new Date();
-  const fileName = `${name}.log`;
+  const fileName = `${name}.txt`;
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
-  const fileDir = path.join(__dirname, '..', '..', logger);
+  const fileDir = path.join(__dirname, '..', '..', 'actionLogs', logger + 's');
 
-  if (!fs.existsSync(fileDir)) fs.mkdirSync(fileDir);
+  if (!fs.existsSync(fileDir)) fs.mkdirSync(fileDir, { recursive: true });
 
   const filePath = path.join(fileDir, fileName);
   const fileWriteStream = fs.createWriteStream(filePath);
 
   const timeStamp = date.toISOString();
-  if (logger === 'debugs')
-    fileWriteStream.write(`[${timeStamp}] START OF DEBUG\n`);
-  else fileWriteStream.write(`[${timeStamp}] START OF ERROR\n`);
+
+  fileWriteStream.write(`[${timeStamp}] START OF ${logger.toUpperCase()}\n`);
 
   return {
     write: (message: string) => {
-      fileWriteStream.write(
-        (logger === 'debugs' ? `[${timeStamp}]` : '') + ` ${message}\n`
-      );
+      if (logger !== 'warning') {
+        fileWriteStream.write(
+          (logger === 'debug' ? `[${timeStamp}] ` : '') + `${message}\n`
+        );
+      } else {
+        fileWriteStream.write(`${message}\n`);
+      }
     },
     close: () => {
-      if (logger === 'debugs')
-        fileWriteStream.end(`[${timeStamp}] END OF DEBUG`);
-      else fileWriteStream.end(`[${timeStamp}] END OF ERROR`);
+      fileWriteStream.end(`[${timeStamp}] END OF ${logger.toUpperCase()}`);
     },
   };
 }

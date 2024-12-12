@@ -5,11 +5,13 @@ import {
   MessageReactionEventDetails,
   PartialMessageReaction,
   PartialUser,
+  Message,
 } from 'discord.js';
 import config from '../../../config.json' assert { type: 'json' };
 import { ActionTypes, getActions } from '../../utils/getActions.js';
 import ReactionType from '../../utils/ReactionType.js';
 import { LoggerOptions, createLogger } from '../../utils/createLogger.js';
+import getErrorSolution from '../../utils/getErrorSolution.js';
 
 export default async function (
   client: Client,
@@ -87,13 +89,34 @@ export default async function (
     });
     await messageReaction.remove();
 
-    setTimeout(async () => {
-      await errorMessageReply.delete();
-    }, 60_000);
-
-    const errorLogger = createLogger(`${reaction}`, LoggerOptions.Error, true);
+    const errorLogger = createLogger(
+      `${reaction.name}-reaction`,
+      LoggerOptions.Error,
+      true
+    );
     errorLogger.write(error as string);
     errorLogger.close();
+
+    const solution = await getErrorSolution(reaction);
+    let solutionReply: Message;
+
+    if (solution) {
+      solutionReply = await errorMessageReply.reply({
+        content:
+          solution.length > 2000 ? solution.slice(0, 1998) + '...' : solution,
+        allowedMentions: { repliedUser: false },
+      });
+    } else if (reaction.isDevOnly && reaction.enableDebug) {
+      solutionReply = await errorMessageReply.reply({
+        content: 'No possible fix found.',
+        allowedMentions: { repliedUser: false },
+      });
+    }
+
+    setTimeout(async () => {
+      await errorMessageReply.delete();
+      await solutionReply.delete();
+    }, 60_000);
   } finally {
     debugLogger.close();
   }

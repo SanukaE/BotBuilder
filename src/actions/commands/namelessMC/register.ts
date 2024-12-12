@@ -1,4 +1,10 @@
-import { ApplicationCommandOptionType } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ApplicationCommandOptionType,
+  ButtonBuilder,
+  ButtonStyle,
+  Colors,
+} from 'discord.js';
 import CommandType from '../../../utils/CommandType.js';
 import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
 import createEmbed from '../../../utils/createEmbed.js';
@@ -57,16 +63,42 @@ const command: CommandType = {
     if (!response.ok || responseData.error)
       throw new Error(responseData.error || 'Failed to register.');
 
-    const embedMessage = createEmbed();
+    const embedMessage = createEmbed({
+      image: { url: 'https://i.postimg.cc/VLbtcT8L/Nameless-MC-Banner.png' },
+      thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
+      title: 'Almost Done!',
+      fields: [{ name: 'NamelessMC Support:', value: 'discord.gg/nameless' }],
+      color: Colors.DarkGold,
+    });
 
     if (responseData.link) {
+      embedMessage.setURL(`${responseData.link}`);
+      embedMessage.setDescription(
+        'Your now a member of the community! To login to your brand new account you must set a password. If your facing any deficiencies please contact namelessmc support.'
+      );
+
+      const setPasswordBtn = new ButtonBuilder({
+        emoji: '🔑',
+        label: 'Set Password',
+        style: ButtonStyle.Link,
+        url: `${responseData.link}`,
+      });
+      const passwordBtnActionRow = new ActionRowBuilder<ButtonBuilder>({
+        components: [setPasswordBtn],
+      });
+
       await interaction.followUp({
-        content: `Almost done. Please set a password using this link: ${responseData.link}.`,
+        embeds: [embedMessage],
+        components: [passwordBtnActionRow],
         ephemeral: true,
       });
     } else {
+      embedMessage.setDescription(
+        `Your now a member of the community! To login please check your email (\`${emailAddress}\`) for a link to set your password. If your facing any deficiencies please contact namelessmc support.`
+      );
+
       await interaction.followUp({
-        content: `Almost done. Please check your email (\`${emailAddress}\`) for a link to set your password.`,
+        embeds: [embedMessage],
         ephemeral: true,
       });
     }

@@ -3,6 +3,7 @@ import config from '../../../config.json' assert { type: 'json' };
 import { getActions, ActionTypes } from '../../utils/getActions.js';
 import CommandType from '../../utils/CommandType.js';
 import { createLogger, LoggerOptions } from '../../utils/createLogger.js';
+import getErrorSolution from '../../utils/getErrorSolution.js';
 
 export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isChatInputCommand()) return;
@@ -71,12 +72,27 @@ export default async function (client: Client, interaction: Interaction) {
     );
 
     const errorLogger = createLogger(
-      `${interaction.commandName}-command`,
+      `${command.name}-command`,
       LoggerOptions.Error,
       true
     );
     errorLogger.write(error as string);
     errorLogger.close();
+
+    const solution = await getErrorSolution(command);
+
+    if (solution) {
+      await interaction.followUp({
+        content:
+          solution.length > 2000 ? solution.slice(0, 1998) + '...' : solution,
+        ephemeral: true,
+      });
+    } else if (command.isDevOnly && command.enableDebug) {
+      await interaction.followUp({
+        content: 'No possible fix found.',
+        ephemeral: true,
+      });
+    }
   } finally {
     debugLogger.close();
   }

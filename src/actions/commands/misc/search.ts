@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ActionRowBuilder,
+  Colors,
 } from 'discord.js';
 import CommandType from '../../../utils/CommandType.js';
 import createEmbed from '../../../utils/createEmbed.js';
@@ -25,16 +26,15 @@ const command: CommandType = {
     debugStream.write(`query: ${query}`);
 
     debugStream.write('Creating embed message...');
-    const embedMessage = createEmbed();
-
-    embedMessage.setTitle(`Google Search Result:`);
-    embedMessage.setDescription(query);
-    embedMessage.setThumbnail(
-      `https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_120x44dp.png`
-    );
-    embedMessage.setURL(
-      `https://www.google.com/search?q=${encodeURIComponent(query)}`
-    );
+    const embedMessage = createEmbed({
+      color: Colors.Aqua,
+      description: query,
+      title: 'Google Search',
+      thumbnail: {
+        url: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_120x44dp.png',
+      },
+      url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+    });
     debugStream.write('Embed created!');
 
     debugStream.write('Creating button...');

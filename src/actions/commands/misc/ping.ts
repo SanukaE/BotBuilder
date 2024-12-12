@@ -5,7 +5,10 @@ const command: CommandType = {
   description: 'Gets bots ping.',
 
   async script(client, interaction) {
-    await interaction.followUp(`Pong! ${client.ws.ping}ms.`);
+    await interaction.followUp({
+      content: `Pong! ${client.ws.ping}ms.`,
+      ephemeral: true,
+    });
   },
 };
 

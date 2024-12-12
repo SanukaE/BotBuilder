@@ -16,5 +16,6 @@ const client = new Client({
 });
 
 eventHandler(client);
+//TODO: Delete the log file from file manager
 
 client.login(process.env.APP_TOKEN);

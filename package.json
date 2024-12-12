@@ -1,7 +1,7 @@
 {
-  "name": "litecraft-discord",
+  "name": "botbuilder",
   "version": "1.0.0",
-  "description": "A discord application for the official LiteCraft discord server.",
+  "description": "A discord bot that has anything a server owner could wish for.",
   "main": "dist/src/index.js",
   "scripts": {
     "build": "npm install && tsc",
@@ -11,10 +11,10 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "bing-translate-api": "^4.0.2",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
-    "mongoose": "^8.8.2",
-    "replicate": "^1.0.1"
+    "mongoose": "^8.8.2"
   }
 }
