@@ -1,4 +1,3 @@
-import { Client } from 'discord.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
 import { createLogger, LoggerOptions } from './createLogger.js';
@@ -10,7 +9,11 @@ export default function () {
   const { geminiModel } = config;
 
   if (!geminiAPIKey) {
-    const warningLogger = createLogger(`system`, LoggerOptions.Warning, true);
+    const warningLogger = createLogger(
+      `initializeAI-util`,
+      LoggerOptions.Warning,
+      true
+    );
     warningLogger.write('Warning: GEMINI_API_KEY is not set.');
     warningLogger.write('Result: All AI required features will be disabled.');
     warningLogger.write(
@@ -21,7 +24,11 @@ export default function () {
   }
 
   if (!geminiModel) {
-    const warningLogger = createLogger(`system`, LoggerOptions.Warning, true);
+    const warningLogger = createLogger(
+      `initializeAI-util`,
+      LoggerOptions.Warning,
+      true
+    );
     warningLogger.write('Warning: geminiModel is not set.');
     warningLogger.write(
       'Result: All AI required features will be using "gemini-1.5-flash" model.'

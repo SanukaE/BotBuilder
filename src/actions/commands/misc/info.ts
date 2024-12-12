@@ -76,6 +76,7 @@ const command: CommandType = {
             Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
           },
         });
+
         data = await response.json();
 
         embedMessage.addFields([

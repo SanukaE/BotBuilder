@@ -3,6 +3,8 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import getAllFiles from './getAllFiles.js';
 import CommandType from './CommandType.js';
 import ReactionType from './ReactionType.js';
+import checkEnvVariables from './checkEnvVariables.js';
+import config from '../../config.json' assert { type: 'json' };
 
 export enum ActionTypes {
   Commands = 'commands',
@@ -13,6 +15,8 @@ export async function getActions(
   actionType: ActionTypes,
   exceptions?: string[]
 ) {
+  const { disabledModules } = config;
+
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
@@ -20,10 +24,24 @@ export async function getActions(
     path.join(__dirname, '..', 'actions', actionType),
     true
   );
+  const missingVariables = checkEnvVariables();
+  let skipCategories: string[] = [];
 
   const actions: CommandType[] | ReactionType[] = [];
 
   for (const actionCategory of actionCategories) {
+    missingVariables.forEach((variable) => {
+      if (actionCategory.endsWith(variable))
+        skipCategories.push(actionCategory);
+    });
+
+    disabledModules.forEach((module) => {
+      if (actionCategory.endsWith(module) && !skipCategories.includes(module))
+        skipCategories.push(actionCategory);
+    });
+
+    if (skipCategories.includes(actionCategory)) continue;
+
     const actionFiles = getAllFiles(actionCategory);
 
     for (const actionFile of actionFiles) {

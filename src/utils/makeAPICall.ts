@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import checkEnvVariables from './checkEnvVariables.js';
 
 export enum Location {
   MinecraftServerStats = 1,
@@ -11,6 +12,7 @@ export async function makeAPICall(
   options?: RequestInit
 ): Promise<Response> {
   let baseURL = '';
+  const missingVariables = checkEnvVariables();
 
   switch (location) {
     case 1:
@@ -18,6 +20,8 @@ export async function makeAPICall(
       break;
 
     case 2:
+      if (missingVariables.includes('namelessMC'))
+        throw new Error('Missing API URL/Key from NamelessMC.');
       baseURL = process.env.NAMELESSMC_API_URL!;
       break;
   }

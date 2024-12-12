@@ -28,11 +28,15 @@ const command: CommandType = {
     },
   ],
 
-  async script(client, interaction) {
+  async script(client, interaction, debugStream) {
+    debugStream.write('Getting values from command...');
     const emailAddress = interaction.options.getString('email');
     const username =
       interaction.options.getString('username') || interaction.user.username;
+    debugStream.write(`emailAddress: ${emailAddress}`);
+    debugStream.write(`username: ${username}`);
 
+    debugStream.write('Creating data object...');
     const data = {
       username,
       email: emailAddress,
@@ -43,6 +47,7 @@ const command: CommandType = {
         },
       },
     };
+    debugStream.write('Data object created! Creating RequestInit...');
 
     const options: RequestInit = {
       method: 'POST',
@@ -52,55 +57,71 @@ const command: CommandType = {
         Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
       },
     };
+    debugStream.write('RequestInit created! Making request...');
 
     const response = await makeAPICall(
       Location.NamelessMC,
       '/users/register',
       options
     );
+    debugStream.write('Request made! Getting JSON data...');
     const responseData = await response.json();
+    debugStream.write('Data collected!');
 
-    if (!response.ok || responseData.error)
+    debugStream.write('Checking for any errors...');
+    if (!response.ok || responseData.error) {
+      debugStream.write('Error found!');
       throw new Error(responseData.error || 'Failed to register.');
+    } else debugStream.write('No errors found! Creating embed message...');
 
     const embedMessage = createEmbed({
-      image: { url: 'https://i.postimg.cc/VLbtcT8L/Nameless-MC-Banner.png' },
       thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
       title: 'Almost Done!',
       fields: [{ name: 'NamelessMC Support:', value: 'discord.gg/nameless' }],
       color: Colors.DarkGold,
     });
+    debugStream.write(
+      'Embed created! Checking if link in response data exist...'
+    );
 
     if (responseData.link) {
+      debugStream.write('Link found! Setting embed URL & description...');
       embedMessage.setURL(`${responseData.link}`);
       embedMessage.setDescription(
         'Your now a member of the community! To login to your brand new account you must set a password. If your facing any deficiencies please contact namelessmc support.'
       );
 
+      debugStream.write('Embed set! Creating setPasswordBtn...');
       const setPasswordBtn = new ButtonBuilder({
         emoji: '🔑',
         label: 'Set Password',
         style: ButtonStyle.Link,
         url: `${responseData.link}`,
       });
+      debugStream.write('Button created! Adding it to a action row...');
       const passwordBtnActionRow = new ActionRowBuilder<ButtonBuilder>({
         components: [setPasswordBtn],
       });
+      debugStream.write('Button added! Sending follow up message...');
 
       await interaction.followUp({
         embeds: [embedMessage],
         components: [passwordBtnActionRow],
         ephemeral: true,
       });
+      debugStream.write('Message sent!');
     } else {
+      debugStream.write('No link found! Setting embed description...');
       embedMessage.setDescription(
         `Your now a member of the community! To login please check your email (\`${emailAddress}\`) for a link to set your password. If your facing any deficiencies please contact namelessmc support.`
       );
 
+      debugStream.write('Embed set! Sending follow up message...');
       await interaction.followUp({
         embeds: [embedMessage],
         ephemeral: true,
       });
+      debugStream.write('Message sent!');
     }
   },
 };
