@@ -1,6 +1,7 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import 'dotenv/config';
 import eventHandler from './handlers/eventHandler.js';
+import fileHandler from './handlers/fileHandler.js';
 import checkEnvVariables from './utils/checkEnvVariables.js';
 import initializeAI from './utils/initializeAI.js';
 
@@ -17,6 +18,7 @@ const client = new Client({
 });
 
 eventHandler(client);
+fileHandler(client);
 
 client.login(process.env.APP_TOKEN);
 
@@ -27,15 +29,16 @@ const handleShutdown = async () => {
   const { fileManager } = initializeAI();
 
   if (fileManager) {
-    const uploadedFiles = await fileManager.listFiles();
+    const uploadedFiles = (await fileManager.listFiles()).files;
 
-    for (const file of uploadedFiles.files) {
-      await fileManager.deleteFile(file.name);
+    if (uploadedFiles?.length > 0) {
+      for (const file of uploadedFiles) {
+        await fileManager.deleteFile(file.name);
+      }
     }
   }
 
   console.log('Have a good day! 👋');
-  process.exit(0);
 };
 
 process.on('SIGINT', handleShutdown);

@@ -1,7 +1,7 @@
 import { Client } from 'discord.js';
 
 export default function (client: Client) {
-  console.log(`
+  const botBuilderText = `
 $$$$$$$\             $$\     $$$$$$$\            $$\ $$\       $$\                     
 $$  __$$\            $$ |    $$  __$$\           \__|$$ |      $$ |                    
 $$ |  $$ | $$$$$$\ $$$$$$\   $$ |  $$ |$$\   $$\ $$\ $$ | $$$$$$$ | $$$$$$\   $$$$$$\  
@@ -13,8 +13,12 @@ $$$$$$$  |\$$$$$$  | \$$$$  |$$$$$$$  |\$$$$$$  |$$ |$$ |\$$$$$$$ |\$$$$$$$\ $$ 
                                                                                        
                                                                                        
                                                                                        
-`);
+`;
+
+  console.clear();
+  console.log(botBuilderText);
+  console.log('The future of Discord Bots. Created with ❤ by ItzSanuka.');
   console.log(
-    `Your bot (${client.user?.tag}) is now online! Thank you for choosing BotBuilder ❤.`
+    `🤖 BotBuilder is now powering ${client.user?.displayName} (${client.user?.tag})!.`
   );
 }

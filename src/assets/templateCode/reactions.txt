@@ -1,0 +1,16 @@
+import ReactionType from '../../../utils/ReactionType.js';
+
+const reaction: ReactionType = {
+  name: '{{actionName}}',
+  isDevOnly: true,
+  enableDebug: true,
+
+  async script(client, messageReaction, user, details, debugStream) {
+    await messageReaction.message.reply({
+      content: "Edit the {{fileName}} and view changes live!",
+      allowedMentions: { repliedUser: false }
+    });
+  },
+};
+
+export default reaction;

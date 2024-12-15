@@ -6,18 +6,20 @@ import 'dotenv/config';
 
 export default function () {
   const geminiAPIKey = process.env.GEMINI_API_KEY;
-  const { geminiModel } = config;
+  const { geminiModel, disabledModules } = config;
 
-  if (!geminiAPIKey) {
+  if (!geminiAPIKey || (disabledModules as string[]).includes('AI')) {
     const warningLogger = createLogger(
       `initializeAI-util`,
       LoggerOptions.Warning,
       true
     );
-    warningLogger.write('Warning: GEMINI_API_KEY is not set.');
+    warningLogger.write(
+      'Warning: GEMINI_API_KEY is not set OR AI is disabled.'
+    );
     warningLogger.write('Result: All AI required features will be disabled.');
     warningLogger.write(
-      'Fix: Please check if your API Key is correct in the .env file.'
+      'Fix: Please check if your API Key is correct in the .env file OR remove AI from the config.json file.'
     );
     warningLogger.close();
     return { enabled: false };

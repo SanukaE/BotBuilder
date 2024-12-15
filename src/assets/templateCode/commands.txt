@@ -1,0 +1,17 @@
+import CommandType from '../../../utils/CommandType.js';
+
+const command: CommandType = {
+  name: '{{actionName}}',
+  description: 'This is a template code. Save the file to view changes live!',
+  isDevOnly: true,
+  enableDebug: true,
+
+  async script(client, interaction, debugStream) {
+    await interaction.followUp({
+      content: "Edit the {{fileName}} and view changes live!",
+      ephemeral: true
+    });
+  },
+};
+
+export default command;
