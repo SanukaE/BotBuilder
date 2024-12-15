@@ -4,7 +4,7 @@
   "description": "A discord bot that has anything a server owner could wish for.",
   "main": "build/src/index.js",
   "scripts": {
-    "dev": "tsc-watch --onFirstSuccess \"node build/src/index.js\" --noClear",
+    "dev": "tsc-watch --onFirstSuccess \"node build/src/index.js\" --noClear --silent",
     "build": "tsc",
     "start": "node build/src/index.js"
   },

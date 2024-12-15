@@ -10,44 +10,53 @@ export default function (client: Client) {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
-  const actionTypes = getAllFiles(
+  const actionTypePaths = getAllFiles(
     path.join(__dirname, '..', '..', '..', 'src', 'actions'),
     true
   );
 
-  for (const actionType of actionTypes) {
-    const actionCategories = getAllFiles(actionType, true);
+  for (const actionTypePath of actionTypePaths) {
+    fs.watch(actionTypePath, (eventType, fileName) => {
+      if (!fileName) return;
+      addListeners(actionTypePath, client);
+    });
 
-    for (const actionCategory of actionCategories) {
-      const actionFilePaths = getAllFiles(actionCategory);
+    addListeners(actionTypePath, client);
+  }
+}
 
-      const actionFiles = actionFilePaths.map(
-        (filePath) => filePath.split('/').pop()!
-      );
+function addListeners(actionTypePath: string, client: Client) {
+  const actionCategoryPaths = getAllFiles(actionTypePath, true);
 
-      fs.watch(actionCategory, async (eventType, fileName) => {
-        switch (eventType) {
-          case 'change':
-            await handleFileChange(actionCategory, fileName!, actionType);
-            break;
+  for (const actionCategoryPath of actionCategoryPaths) {
+    const actionFilePaths = getAllFiles(actionCategoryPath);
 
-          case 'rename':
-            await handleFileRename(
-              actionCategory,
-              fileName!,
-              actionFiles,
-              actionType
-            );
-            break;
-        }
+    const actionFiles = actionFilePaths.map(
+      (filePath) => filePath.split('/').pop()!
+    );
 
-        if (actionType.endsWith('commands')) {
-          setTimeout(async () => {
-            await registerCommands(client);
-          }, 20_000);
-        }
-      });
-    }
+    fs.watch(actionCategoryPath, async (eventType, fileName) => {
+      switch (eventType) {
+        case 'change':
+          await handleFileChange(actionCategoryPath, fileName!, actionTypePath);
+          break;
+
+        case 'rename':
+          await handleFileRename(
+            actionCategoryPath,
+            fileName!,
+            actionFiles,
+            actionTypePath
+          );
+          break;
+      }
+
+      if (actionTypePath.endsWith('commands')) {
+        setTimeout(async () => {
+          await registerCommands(client);
+        }, 20_000);
+      }
+    });
   }
 }
 
@@ -105,7 +114,7 @@ async function handleFileChange(
         },
       },
       {
-        text: `Ignoring all the comments that start with "AI Help:" or "AI Solution:". Give me a solution without using markdown & when ur showing code blocks don't use \`\`\`language code\`\`\`, instead use CODE: and then the code. \nThis is the problem:\n${problem.content}`,
+        text: `Ignoring all the comments that start with "AI Help:" or "AI Solution:". Give me a solution without using markdown & when ur showing code blocks don't use \`\`\`language code\`\`\` just display the code itself. \nThis is the problem:\n${problem.content}`,
       },
     ]);
 
