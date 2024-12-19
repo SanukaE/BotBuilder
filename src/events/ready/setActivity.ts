@@ -1,10 +1,13 @@
 import { Client, ActivityType } from 'discord.js';
+import config from '../../../config.json' assert { type: 'json' };
 
 export default async function (client: Client) {
+  const { appActivity } = config;
+
   client.user?.setActivity({
-    name: 'on BotBuilder!',
-    type: ActivityType.Streaming,
+    name: 'BotBuilder',
+    type: ActivityType.Custom,
     url: 'https://github.com/SanukaE/BotBuilder',
-    state: 'The future of Discord Bots',
+    state: appActivity || '🤖 Powered by BotBuilder!',
   });
 }

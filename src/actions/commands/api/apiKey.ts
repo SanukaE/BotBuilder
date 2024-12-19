@@ -8,7 +8,7 @@ const command: CommandType = {
   isDevOnly: true,
 
   async script(client, interaction, debugStream) {
-    //TODO: Fetch API Key from DB.
+    //TODO: Fetch API Key from DB
   },
 };
 

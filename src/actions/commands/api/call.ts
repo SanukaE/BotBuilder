@@ -16,7 +16,7 @@ const command: CommandType = {
   ],
 
   async script(client, interaction, debugStream) {
-    //TODO: Make a fetch to the given endpoint.
+    //TODO: Make a fetch to the given endpoint
   },
 };
 

@@ -4,7 +4,7 @@ import config from '../../config.json' assert { type: 'json' };
 //TODO: add icon & remove branding if premium
 
 export default function (data?: EmbedData | APIEmbed, client?: Client) {
-  const { botMotto } = config;
+  const { appMotto } = config;
 
   return new EmbedBuilder({
     author: {
@@ -16,8 +16,8 @@ export default function (data?: EmbedData | APIEmbed, client?: Client) {
     ...data,
 
     footer: {
-      text: botMotto || 'BotBuilder, the future of Discord Bots.',
-      iconURL: botMotto ? client?.user?.avatarURL()! : '',
+      text: appMotto || 'BotBuilder, the future of Discord Bots.',
+      iconURL: appMotto ? client?.user?.avatarURL()! : '',
     },
   });
 }
