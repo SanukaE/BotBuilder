@@ -13,6 +13,7 @@ type ReactionType = {
   isDevOnly?: boolean;
   isGuildOnly?: boolean;
   enableDebug?: boolean;
+  isDisabled?: boolean;
   script?: (
     client: Client,
     messageReaction: MessageReaction | PartialMessageReaction,

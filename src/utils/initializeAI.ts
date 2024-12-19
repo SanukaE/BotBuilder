@@ -6,9 +6,9 @@ import 'dotenv/config';
 
 export default function () {
   const geminiAPIKey = process.env.GEMINI_API_KEY;
-  const { geminiModel, disabledModules } = config;
+  const { geminiModel, disabledCategories } = config;
 
-  if (!geminiAPIKey || (disabledModules as string[]).includes('AI')) {
+  if (!geminiAPIKey || (disabledCategories as string[]).includes('AI')) {
     const warningLogger = createLogger(
       `initializeAI-util`,
       LoggerOptions.Warning,

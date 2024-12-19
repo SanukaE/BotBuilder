@@ -9,13 +9,14 @@ import config from '../../config.json' assert { type: 'json' };
 export enum ActionTypes {
   Commands = 'commands',
   Reactions = 'reactions',
+  Routes = 'routes',
 }
 
 export async function getActions(
   actionType: ActionTypes,
   exceptions?: string[]
 ) {
-  const { disabledModules } = config;
+  const { disabledCategories } = config;
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -35,8 +36,11 @@ export async function getActions(
         skipCategories.push(actionCategory);
     });
 
-    disabledModules.forEach((module) => {
-      if (actionCategory.endsWith(module) && !skipCategories.includes(module))
+    disabledCategories.forEach((category) => {
+      if (
+        actionCategory.endsWith(category) &&
+        !skipCategories.includes(category)
+      )
         skipCategories.push(actionCategory);
     });
 

@@ -74,12 +74,17 @@ const command: CommandType = {
       throw new Error(responseData.error || 'Failed to register.');
     } else debugStream.write('No errors found! Creating embed message...');
 
-    const embedMessage = createEmbed({
-      thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
-      title: 'Almost Done!',
-      fields: [{ name: 'NamelessMC Support:', value: 'discord.gg/nameless' }],
-      color: Colors.DarkGold,
-    });
+    const embedMessage = createEmbed(
+      {
+        thumbnail: {
+          url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        },
+        title: 'Almost Done!',
+        fields: [{ name: 'NamelessMC Support:', value: 'discord.gg/nameless' }],
+        color: Colors.DarkGold,
+      },
+      client
+    );
     debugStream.write(
       'Embed created! Checking if link in response data exist...'
     );

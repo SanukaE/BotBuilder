@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BotBuilder API Documentation</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-dark: #121212;
+        --bg-darker: #0a0a0a;
+        --primary-color: #3b5998;
+        --secondary-color: #ff6b6b;
+        --text-light: #e0e0e0;
+        --text-muted: #888;
+        --card-bg: #1e1e1e;
+        --border-color: #333;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', 'Arial', sans-serif;
+        background-color: var(--bg-dark);
+        color: var(--text-light);
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Header Styles */
+      .api-header {
+        background-color: var(--bg-darker);
+        padding: 30px 0;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid var(--primary-color);
+      }
+
+      .api-header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(
+          45deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+
+      /* Section Styles */
+      .section {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+      }
+
+      .section:hover {
+        transform: translateY(-5px);
+      }
+
+      .section h2 {
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+      }
+
+      .support-btn {
+        display: inline-block;
+        background: linear-gradient(145deg, var(--primary-color), #2c4a7c);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-top: 15px;
+      }
+
+      .support-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Folder and Endpoint Styles (Previous styles remain the same) */
+      .folder-section {
+        margin-bottom: 30px;
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .folder-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: var(--bg-darker);
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .folder-header:hover {
+        background-color: rgba(59, 89, 152, 0.2);
+      }
+
+      .folder-header h2 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        border: none;
+      }
+
+      .folder-header .toggle-icon {
+        transition: transform 0.3s ease;
+      }
+
+      .folder-header.active .toggle-icon {
+        transform: rotate(180deg);
+      }
+
+      .endpoints-list {
+        display: none;
+        padding: 20px;
+      }
+
+      .endpoints-list.active {
+        display: block;
+      }
+
+      .endpoint-card {
+        background-color: var(--bg-darker);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 15px;
+        padding: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .endpoint-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .endpoint-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .endpoint-path {
+        font-weight: bold;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+      }
+
+      .endpoint-method {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .method-get {
+        background-color: #2ecc71;
+        color: white;
+      }
+      .method-post {
+        background-color: #3498db;
+        color: white;
+      }
+      .method-patch {
+        background-color: #f39c12;
+        color: white;
+      }
+      .method-delete {
+        background-color: #e74c3c;
+        color: white;
+      }
+
+      .endpoint-description {
+        color: var(--text-muted);
+        margin-bottom: 10px;
+      }
+
+      .endpoint-badges {
+        display: flex;
+        gap: 5px;
+        margin-top: 10px;
+      }
+
+      .endpoint-badge {
+        background-color: #6c757d;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+      }
+
+      .endpoint-examples {
+        background-color: var(--bg-dark);
+        border-radius: 6px;
+        padding: 15px;
+        margin-top: 15px;
+      }
+
+      .endpoint-example-title {
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+
+      .endpoint-example-content {
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: var(--bg-darker);
+        padding: 10px;
+        border-radius: 4px;
+      }
+
+      /* Footer Styles */
+      footer {
+        background-color: var(--bg-darker);
+        color: var(--text-muted);
+        padding: 20px 0;
+        text-align: center;
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      footer a:hover {
+        color: var(--text-light);
+        text-decoration: underline;
+      }
+
+      @media (max-width: 768px) {
+        .footer-content {
+          flex-direction: column;
+        }
+
+        .footer-content > * {
+          margin-bottom: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="api-header">
+      <div class="container">
+        <h1>BotBuilder API</h1>
+        <p>The Future of Discord Bots</p>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="section">
+        <h2>About the Project</h2>
+        <p>
+          BotBuilder is a revolutionary platform designed to simplify and
+          enhance Discord bot development. Our mission is to provide developers
+          with powerful, intuitive tools to create sophisticated and engaging
+          Discord bots with ease.
+        </p>
+        <a
+          href="https://buy.stripe.com/28oeVWcQX6881Hi6oo"
+          target="_blank"
+          class="support-btn"
+        >
+          ❤ Support the Project
+        </a>
+      </section>
+
+      <section class="section">
+        <h2>How to Use the API</h2>
+        <p>
+          Our comprehensive API documentation provides developers with clear
+          guidelines and examples to seamlessly integrate BotBuilder into their
+          Discord bot projects. Each endpoint is categorized by its
+          functionality and includes detailed request and response examples.
+        </p>
+      </section>
+
+      <section class="section" id="api-endpoints-section">
+        <h2>API Endpoints</h2>
+        <div id="endpoints-container"></div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-content">
+        <div>
+          <p>
+            A project by
+            <a href="https://github.com/SanukaE" target="_blank">Sanuka</a>
+          </p>
+        </div>
+        <div>
+          <p>© 2024 Sanuka - All Rights Reserved</p>
+        </div>
+        <div>
+          <p>
+            Powered by
+            <a href="https://github.com/SanukaE/BotBuilder" target="_blank"
+              >BotBuilder</a
+            >
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module">
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          const response = await fetch('/endpoints');
+          const responseJSON = await response.json();
+
+          // Group endpoints by folder
+          const folderGroups = responseJSON.endpointData
+            .filter((endpoint) => !endpoint.isDisabled)
+            .reduce((acc, endpoint) => {
+              const folder = endpoint.folderName || 'Uncategorized';
+              if (!acc[folder]) {
+                acc[folder] = [];
+              }
+              acc[folder].push(endpoint);
+              return acc;
+            }, {});
+
+          const endpointsContainer = document.getElementById(
+            'endpoints-container'
+          );
+
+          // Create folder sections
+          Object.entries(folderGroups).forEach(([folderName, endpoints]) => {
+            const folderSection = document.createElement('div');
+            folderSection.classList.add('folder-section');
+
+            // Folder header
+            const folderHeader = document.createElement('div');
+            folderHeader.classList.add('folder-header');
+            folderHeader.innerHTML = `
+                      <h2>
+                          <i class="fas fa-folder"></i>
+                          ${folderName}
+                          <span class="endpoint-count">(${endpoints.length} endpoints)</span>
+                      </h2>
+                      <i class="fas fa-chevron-down toggle-icon"></i>
+                  `;
+
+            // Endpoints list
+            const endpointsList = document.createElement('div');
+            endpointsList.classList.add('endpoints-list');
+
+            // Create endpoint cards
+            endpoints.forEach((endPointObject) => {
+              const endpointCard = document.createElement('div');
+              endpointCard.classList.add('endpoint-card');
+
+              // Endpoint header
+              const endpointHeader = document.createElement('div');
+              endpointHeader.classList.add('endpoint-header');
+
+              const endpointPath = document.createElement('span');
+              endpointPath.classList.add('endpoint-path');
+              endpointPath.textContent = endPointObject.endpoint;
+
+              const endpointMethodBadge = document.createElement('span');
+              endpointMethodBadge.classList.add(
+                'endpoint-method',
+                `method-${endPointObject.method.toLowerCase()}`
+              );
+              endpointMethodBadge.textContent = endPointObject.method;
+
+              endpointHeader.appendChild(endpointPath);
+              endpointHeader.appendChild(endpointMethodBadge);
+
+              // Description
+              const descriptionElement = document.createElement('div');
+              descriptionElement.classList.add('endpoint-description');
+              descriptionElement.textContent = endPointObject.description;
+
+              // Badges
+              const badgesContainer = document.createElement('div');
+              badgesContainer.classList.add('endpoint-badges');
+
+              if (endPointObject.isDevOnly) {
+                const devBadge = document.createElement('span');
+                devBadge.classList.add('endpoint-badge');
+                devBadge.textContent = 'Dev Only';
+                badgesContainer.appendChild(devBadge);
+              }
+
+              if (endPointObject.isGuildOnly) {
+                const guildBadge = document.createElement('span');
+                guildBadge.classList.add('endpoint-badge');
+                guildBadge.textContent = 'Guild Only';
+                badgesContainer.appendChild(guildBadge);
+              }
+
+              // Endpoint examples
+              const examplesContainer = document.createElement('div');
+              examplesContainer.classList.add('endpoint-examples');
+
+              // Request example
+              if (endPointObject.requestData) {
+                const requestExample = document.createElement('div');
+                const requestTitle = document.createElement('div');
+                requestTitle.classList.add('endpoint-example-title');
+                requestTitle.textContent = 'Example Request';
+
+                const requestContent = document.createElement('pre');
+                requestContent.classList.add('endpoint-example-content');
+                requestContent.textContent = JSON.stringify(
+                  endPointObject.requestData,
+                  null,
+                  2
+                );
+
+                requestExample.appendChild(requestTitle);
+                requestExample.appendChild(requestContent);
+                examplesContainer.appendChild(requestExample);
+              }
+
+              // Response example
+              if (endPointObject.responseData) {
+                const responseExample = document.createElement('div');
+                const responseTitle = document.createElement('div');
+                responseTitle.classList.add('endpoint-example-title');
+                responseTitle.textContent = 'Example Response';
+
+                const responseContent = document.createElement('pre');
+                responseContent.classList.add('endpoint-example-content');
+                responseContent.textContent = JSON.stringify(
+                  endPointObject.responseData,
+                  null,
+                  2
+                );
+
+                responseExample.appendChild(responseTitle);
+                responseExample.appendChild(responseContent);
+                examplesContainer.appendChild(responseExample);
+              }
+
+              // Assemble endpoint card
+              endpointCard.appendChild(endpointHeader);
+              endpointCard.appendChild(descriptionElement);
+
+              if (badgesContainer.children.length > 0) {
+                endpointCard.appendChild(badgesContainer);
+              }
+
+              if (examplesContainer.children.length > 0) {
+                endpointCard.appendChild(examplesContainer);
+              }
+
+              endpointsList.appendChild(endpointCard);
+            });
+
+            // Folder toggle functionality
+            folderHeader.addEventListener('click', () => {
+              folderHeader.classList.toggle('active');
+              endpointsList.classList.toggle('active');
+            });
+
+            // Assemble folder section
+            folderSection.appendChild(folderHeader);
+            folderSection.appendChild(endpointsList);
+
+            endpointsContainer.appendChild(folderSection);
+          });
+        } catch (error) {
+          console.error('Failed to fetch endpoints:', error);
+          const errorContainer = document.getElementById('endpoints-container');
+          const errorMessage = document.createElement('div');
+          errorMessage.classList.add('error-message');
+          errorMessage.innerHTML = `
+                  <i class="fas fa-exclamation-circle"></i>
+                  <p>Unable to load API endpoints. Please try again later.</p>
+              `;
+          errorContainer.appendChild(errorMessage);
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -27,14 +27,17 @@ const command: CommandType = {
     debugStream.write(`query: ${query}`);
 
     debugStream.write('Creating embed message...');
-    const embedMessage = createEmbed({
-      color: Colors.Aqua,
-      title: 'Google Search',
-      thumbnail: {
-        url: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_120x44dp.png',
+    const embedMessage = createEmbed(
+      {
+        color: Colors.Aqua,
+        title: 'Google Search',
+        thumbnail: {
+          url: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_120x44dp.png',
+        },
+        url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
       },
-      url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
-    });
+      client
+    );
     debugStream.write('Embed created!');
 
     debugStream.write('Enabling AI...');

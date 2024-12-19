@@ -1,14 +1,14 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { ActionTypes } from './getActions.js';
 import getAllFiles from './getAllFiles.js';
 
-export default function (actionName: string, actionType: ActionTypes) {
+export default async function (actionName: string, actionType: ActionTypes) {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
   const actionFolders = getAllFiles(
-    path.join(__dirname, '..', 'actions'),
+    path.join(__dirname, '..', '..', 'src', 'actions'),
     true
   );
   const actionFolder = actionFolders.find((actionFolder) =>
@@ -21,7 +21,12 @@ export default function (actionName: string, actionType: ActionTypes) {
     const actionFiles = getAllFiles(actionCategory);
 
     for (const actionFile of actionFiles) {
-      if (actionFile.endsWith(actionName + '.js')) return actionFile;
+      const fileURL = pathToFileURL(actionFile).href;
+      const fileExport = await import(fileURL);
+
+      const { name } = fileExport.default;
+
+      if (name === actionName) return actionFile;
     }
   }
 }

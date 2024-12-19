@@ -51,13 +51,14 @@ export default async function (
   }
 
   const reactions = (await getActions(ActionTypes.Reactions)) as ReactionType[];
-  const reaction = reactions.find(
-    (reaction) => reaction.name === messageReaction.emoji.name
+  const reaction = reactions.find((reaction) =>
+    messageReaction.emoji.name?.includes(reaction.name)
   );
 
   if (
     !reaction ||
-    (reaction.isDevOnly && message.guildId !== developmentGuildID)
+    (reaction.isDevOnly && message.guildId !== developmentGuildID) ||
+    reaction.isDisabled
   )
     return;
 
@@ -97,7 +98,7 @@ export default async function (
     errorLogger.write(error as string);
     errorLogger.close();
 
-    const solution = await getErrorSolution(reaction);
+    const solution = await getErrorSolution(reaction, ActionTypes.Reactions);
     let solutionReply: Message;
 
     if (solution) {

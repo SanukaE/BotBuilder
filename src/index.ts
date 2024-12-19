@@ -38,7 +38,7 @@ const handleShutdown = async () => {
     }
   }
 
-  console.log('Have a good day! 👋');
+  console.log('Have a nice day! 👋');
 };
 
 process.on('SIGINT', handleShutdown);

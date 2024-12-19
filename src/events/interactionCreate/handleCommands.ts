@@ -79,7 +79,7 @@ export default async function (client: Client, interaction: Interaction) {
     errorLogger.write(error as string);
     errorLogger.close();
 
-    const solution = await getErrorSolution(command);
+    const solution = await getErrorSolution(command, ActionTypes.Commands);
 
     if (solution) {
       await interaction.followUp({

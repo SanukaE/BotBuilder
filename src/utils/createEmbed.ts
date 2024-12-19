@@ -1,8 +1,11 @@
-import { EmbedBuilder, EmbedData, APIEmbed } from 'discord.js';
+import { EmbedBuilder, EmbedData, APIEmbed, Client } from 'discord.js';
+import config from '../../config.json' assert { type: 'json' };
 
 //TODO: add icon & remove branding if premium
 
-export default function (data?: EmbedData | APIEmbed) {
+export default function (data?: EmbedData | APIEmbed, client?: Client) {
+  const { botMotto } = config;
+
   return new EmbedBuilder({
     author: {
       name: 'Powered by BotBuilder',
@@ -13,8 +16,8 @@ export default function (data?: EmbedData | APIEmbed) {
     ...data,
 
     footer: {
-      text: 'BotBuilder, the future of Discord Bots.',
-      //iconURL: '',
+      text: botMotto || 'BotBuilder, the future of Discord Bots.',
+      iconURL: botMotto ? client?.user?.avatarURL()! : '',
     },
   });
 }

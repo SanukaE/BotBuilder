@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import getAllFiles from '../utils/getAllFiles.js';
 import initializeAI from '../utils/initializeAI.js';
 import registerCommands from '../events/ready/registerCommands.js';
+import registerRoutes from '../events/ready/registerRoutes.js';
 import { Client } from 'discord.js';
 
 export default function (client: Client) {
@@ -29,35 +30,40 @@ function addListeners(actionTypePath: string, client: Client) {
   const actionCategoryPaths = getAllFiles(actionTypePath, true);
 
   for (const actionCategoryPath of actionCategoryPaths) {
-    const actionFilePaths = getAllFiles(actionCategoryPath);
+    listenToFiles(actionCategoryPath, actionTypePath, client);
+  }
+}
 
-    const actionFiles = actionFilePaths.map(
-      (filePath) => filePath.split('/').pop()!
-    );
+function listenToFiles(
+  actionCategoryPath: string,
+  actionTypePath: string,
+  client: Client
+) {
+  fs.watch(actionCategoryPath, async (eventType, fileName) => {
+    switch (eventType) {
+      case 'change':
+        await handleFileChange(actionCategoryPath, fileName!, actionTypePath);
+        break;
 
-    fs.watch(actionCategoryPath, async (eventType, fileName) => {
-      switch (eventType) {
-        case 'change':
-          await handleFileChange(actionCategoryPath, fileName!, actionTypePath);
-          break;
+      case 'rename':
+        await handleFileRename(actionCategoryPath, fileName!, actionTypePath);
+        break;
+    }
 
-        case 'rename':
-          await handleFileRename(
-            actionCategoryPath,
-            fileName!,
-            actionFiles,
-            actionTypePath
-          );
-          break;
-      }
-
-      if (actionTypePath.endsWith('commands')) {
+    switch (true) {
+      case actionTypePath.endsWith('commands'):
         setTimeout(async () => {
           await registerCommands(client);
         }, 20_000);
-      }
-    });
-  }
+        break;
+
+      case actionTypePath.endsWith('routes'):
+        setTimeout(async () => {
+          await registerRoutes(client);
+        }, 20_000);
+        break;
+    }
+  });
 }
 
 //Called when file is modified
@@ -114,11 +120,11 @@ async function handleFileChange(
         },
       },
       {
-        text: `Ignoring all the comments that start with "AI Help:" or "AI Solution:". Give me a solution without using markdown & when ur showing code blocks don't use \`\`\`language code\`\`\` just display the code itself. \nThis is the problem:\n${problem.content}`,
+        text: `Ignoring all the comments that start with "AI Help:" or "AI Solution:".\n${problem.content}`,
       },
     ]);
 
-    const solutionComment = `/* AI Solution:\n${result?.response.text()}\n*/`;
+    const solutionComment = `/*AI Solution:\n${result?.response.text()}\n*/`;
     actionData =
       actionData.slice(0, problem.start) +
       solutionComment +
@@ -132,7 +138,6 @@ async function handleFileChange(
 async function handleFileRename(
   fileDirPath: string,
   fileName: string,
-  existingFiles: string[],
   actionTypePath: string
 ) {
   let filePath = path.join(fileDirPath, fileName);
@@ -140,12 +145,14 @@ async function handleFileRename(
   //On File delete
   if (!fs.existsSync(filePath)) return;
 
-  //Rest of the code is for file creation
-  if (existingFiles.includes(fileName)) return;
-
   const actionTypeName = actionTypePath.split('\\').pop()!;
   const fileStream = fs.createWriteStream(filePath, { flags: 'a' });
   const templateCode = getTemplateCode(fileName, actionTypeName);
+
+  const actionData = fs.readFileSync(filePath, 'utf-8');
+
+  //Checks if file was renamed
+  if (actionData.includes(templateCode) || actionData.length > 0) return;
 
   fileStream.write(templateCode);
   fileStream.close();
@@ -160,8 +167,7 @@ function getTemplateCode(fileName: string, actionType: string) {
     '..',
     '..',
     '..',
-    'src',
-    'assets',
+    'public',
     'templateCode',
     `${actionType}.txt`
   );
@@ -169,8 +175,8 @@ function getTemplateCode(fileName: string, actionType: string) {
   let templateCode = fs.readFileSync(pathToTemplate, 'utf-8');
 
   templateCode = templateCode
-    .replace('{{actionName}}', fileName.split('.')[0])
-    .replace('{{fileName}}', fileName);
+    .replaceAll('{{actionName}}', fileName.split('.')[0])
+    .replaceAll('{{fileName}}', fileName);
 
   return templateCode;
 }

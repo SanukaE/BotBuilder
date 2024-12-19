@@ -15,9 +15,11 @@
     "@google/generative-ai": "^0.21.0",
     "bing-translate-api": "^4.0.2",
     "discord.js": "^14.16.3",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "tsc-watch": "^6.2.1",
     "typescript": "^5.7.2"
   }

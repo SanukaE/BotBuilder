@@ -7,8 +7,12 @@ import fs from 'fs';
 import CommandType from './CommandType.js';
 import ReactionType from './ReactionType.js';
 import { ActionTypes } from './getActions.js';
+import { RouteType } from './RouteType.js';
 
-export default async function (action: CommandType | ReactionType) {
+export default async function (
+  action: CommandType | ReactionType | RouteType,
+  actionType: ActionTypes
+) {
   const { enabled, model, fileManager } = initializeAI();
 
   if (!enabled && (!model || !fileManager)) return;
@@ -25,20 +29,24 @@ export default async function (action: CommandType | ReactionType) {
   );
 
   const errorFile = errorFiles.find((errorFile) =>
-    errorFile.endsWith(`${action.name}-command.txt`)
+    errorFile.endsWith(
+      `${action.name}-${actionType.slice(0, actionType.length - 1)}.txt`
+    )
   )!;
   const debugFile = debugFiles.find((debugFile) =>
-    debugFile.endsWith(`${action.name}-command.txt`)
+    debugFile.endsWith(
+      `${action.name}-${actionType.slice(0, actionType.length - 1)}.txt`
+    )
   )!;
-  const actionFile = getActionFile(action.name, ActionTypes.Commands)!;
+  const actionFile = await getActionFile(action.name, actionType)!;
 
   if (!errorFile || !debugFile || !actionFile) return 'No possible fix found.';
 
   const result = await model?.generateContent([
-    'Summaries a fix for the error (in less than 2000 charters):',
+    'Summaries a fix for the error in less than 2000 charters:',
     fileToGenerativePart(errorFile, 'text/plain'),
     fileToGenerativePart(debugFile, 'text/plain'),
-    fileToGenerativePart(actionFile, 'text/javascript'),
+    fileToGenerativePart(actionFile, 'text/typescript'),
   ]);
 
   const solution = result?.response.text();

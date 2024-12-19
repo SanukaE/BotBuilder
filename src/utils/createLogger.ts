@@ -36,7 +36,7 @@ export function createLogger(
   if (!fs.existsSync(fileDir)) fs.mkdirSync(fileDir, { recursive: true });
 
   const filePath = path.join(fileDir, fileName);
-  const fileWriteStream = fs.createWriteStream(filePath);
+  const fileWriteStream = fs.createWriteStream(filePath, { flags: 'a' });
 
   const timeStamp = date.toISOString();
 

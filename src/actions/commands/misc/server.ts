@@ -95,7 +95,7 @@ const command: CommandType = {
     }
 
     debugLogger.write('Server is online, creating embed message...');
-    const embedMessage = createEmbed()
+    const embedMessage = createEmbed(undefined, client)
       .setColor('Green')
       .setTitle(responseData.hostname || address)
       .setDescription(

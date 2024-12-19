@@ -1,0 +1,26 @@
+import { RouteType, HTTPMethod } from '../../../utils/RouteType.js';
+
+const route: RouteType = {
+  name: 'hello',
+  description: 'Reply with "Hello world"',
+  method: HTTPMethod.GET,
+  responseData: {
+    success: true,
+    message: 'The request was success! Check text value from data.',
+    data: { text: 'Hello World!' },
+  },
+  enableDebug: true,
+  isDevOnly: true,
+
+  async script(req, res, debugStream) {
+    const data = {
+      success: true,
+      message: 'The request was success! Check text value from data.',
+      data: { text: 'Hello World!' },
+    };
+
+    res.json(data);
+  },
+};
+
+export default route;
