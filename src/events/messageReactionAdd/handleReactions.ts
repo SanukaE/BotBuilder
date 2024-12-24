@@ -8,10 +8,10 @@ import {
   Message,
 } from 'discord.js';
 import config from '../../../config.json' assert { type: 'json' };
-import { ActionTypes, getActions } from '../../utils/getActions.js';
-import ReactionType from '../../utils/ReactionType.js';
-import { LoggerOptions, createLogger } from '../../utils/createLogger.js';
-import getErrorSolution from '../../utils/getErrorSolution.js';
+import { ActionTypes, getActions } from '#utils/getActions.js';
+import ReactionType from '#types/ReactionType.js';
+import { LoggerOptions, createLogger } from '#utils/createLogger.js';
+import getErrorSolution from '#utils/getErrorSolution.js';
 
 export default async function (
   client: Client,

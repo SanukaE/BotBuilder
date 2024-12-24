@@ -1,15 +1,19 @@
 import express from 'express';
 import config from '../../../config.json' assert { type: 'json' };
-import { LoggerOptions, createLogger } from '../../utils/createLogger.js';
+import { LoggerOptions, createLogger } from '#utils/createLogger.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
 import { Client } from 'discord.js';
-import getAllFiles from '../../utils/getAllFiles.js';
+import getAllFiles from '#utils/getAllFiles.js';
+import { ActionTypes, getActions } from '#utils/getActions.js';
+import { HTTPMethod, RouteType } from '#types/RouteType.js';
+import checkEnvVariables from '#utils/checkEnvVariables.js';
 
-export const app = express();
+const app = express();
 
 export default async function (client: Client) {
-  const { webServerPort } = config;
+  const { webServerPort, disabledCategories } = config;
+  const missingVariables = checkEnvVariables();
 
   if (!webServerPort) {
     const warnLogger = createLogger(
@@ -26,6 +30,12 @@ export default async function (client: Client) {
     );
     warnLogger.close();
   }
+
+  app.use((req, res, next) => {
+    if (!req.baseUrl) next();
+
+    //TODO: API Token verification
+  });
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -52,30 +62,80 @@ export default async function (client: Client) {
       true
     );
 
-    let endpointData = [];
+    let endpointData: string[] = [];
 
     for (const routeFolderPath of routeFolderPaths) {
       //this is the endpoint category
-      const folderName = routeFolderPath.split('\\').pop();
+      const folderName = routeFolderPath.split('\\').pop()!;
+
+      if (
+        (disabledCategories as string[]).includes(folderName) ||
+        missingVariables.includes(folderName)
+      )
+        continue;
+
+      const pushData = async (routeFilePaths: string[]) => {
+        for (const routeFilePath of routeFilePaths) {
+          const fileURL = pathToFileURL(routeFilePath).href;
+          const fileExport = await import(fileURL);
+
+          if (fileExport.isDisabled) continue;
+
+          endpointData.push({ folderName, ...fileExport.default });
+        }
+      };
 
       const routeFilePaths = getAllFiles(routeFolderPath);
+      pushData(routeFilePaths);
 
-      for (const routeFilePath of routeFilePaths) {
-        const fileURL = pathToFileURL(routeFilePath).href;
-
-        const fileExport = await import(fileURL);
-        endpointData.push({ folderName, ...fileExport.default });
-      }
+      const subRouteCategories = getAllFiles(routeFolderPath, true);
+      pushData(subRouteCategories);
     }
 
     res.json({ endpointData });
   });
 
-  app.use((req, res, next) => {
-    if (!req.baseUrl) next();
-
-    //TODO: API Token verification
-  });
+  await registerRoutes();
 
   app.listen(webServerPort);
+}
+
+export async function registerRoutes() {
+  const routes = (await getActions(ActionTypes.Routes)) as RouteType[];
+
+  for (const route of routes) {
+    if (route.isDisabled) continue;
+
+    const debugStream = createLogger(
+      `${route.name}-route`,
+      LoggerOptions.Debug,
+      route.enableDebug
+    );
+
+    switch (route.method) {
+      case HTTPMethod.GET:
+        app.get(`/${route.name}`, async (req, res) => {
+          await route.script!(req, res, debugStream);
+        });
+        break;
+
+      case HTTPMethod.POST:
+        app.post(`/${route.name}`, async (req, res) => {
+          await route.script!(req, res, debugStream);
+        });
+        break;
+
+      case HTTPMethod.PATCH:
+        app.patch(`/${route.name}`, async (req, res) => {
+          await route.script!(req, res, debugStream);
+        });
+        break;
+
+      case HTTPMethod.DELETE:
+        app.delete(`/${route.name}`, async (req, res) => {
+          await route.script!(req, res, debugStream);
+        });
+        break;
+    }
+  }
 }

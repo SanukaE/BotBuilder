@@ -3,7 +3,7 @@ import {
   ChatInputCommandInteraction,
   APIApplicationCommandOption,
 } from 'discord.js';
-import { LoggerType } from './createLogger.js';
+import { LoggerType } from '#utils/createLogger.js';
 
 type CommandType = {
   id?: string;

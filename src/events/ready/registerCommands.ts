@@ -1,8 +1,8 @@
 import { Client } from 'discord.js';
-import { getActions, ActionTypes } from '../../utils/getActions.js';
-import getRegisteredCommands from '../../utils/getRegisteredCommands.js';
-import areCommandsDifferent from '../../utils/areCommandsDifferent.js';
-import CommandType from '../../utils/CommandType.js';
+import { getActions, ActionTypes } from '#utils/getActions.js';
+import getRegisteredCommands from '#utils/getRegisteredCommands.js';
+import areCommandsDifferent from '#utils/areCommandsDifferent.js';
+import CommandType from '#types/CommandType.js';
 
 export default async function (client: Client) {
   try {

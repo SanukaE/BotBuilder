@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import getAllFiles from '../utils/getAllFiles.js';
-import initializeAI from '../utils/initializeAI.js';
+import getAllFiles from '#utils/getAllFiles.js';
+import initializeAI from '#utils/initializeAI.js';
 import registerCommands from '../events/ready/registerCommands.js';
-import registerRoutes from '../events/ready/registerRoutes.js';
+import { registerRoutes } from '../events/ready/startWebServer.js';
 import { Client } from 'discord.js';
 
 export default function (client: Client) {
@@ -31,6 +31,12 @@ function addListeners(actionTypePath: string, client: Client) {
 
   for (const actionCategoryPath of actionCategoryPaths) {
     listenToFiles(actionCategoryPath, actionTypePath, client);
+
+    const actionSubCategoryPaths = getAllFiles(actionCategoryPath, true);
+
+    for (const actionSubCategoryPath of actionSubCategoryPaths) {
+      listenToFiles(actionSubCategoryPath, actionTypePath, client);
+    }
   }
 }
 
@@ -42,11 +48,11 @@ function listenToFiles(
   fs.watch(actionCategoryPath, async (eventType, fileName) => {
     switch (eventType) {
       case 'change':
-        await handleFileChange(actionCategoryPath, fileName!, actionTypePath);
+        await handleFileChange(actionCategoryPath, fileName, actionTypePath);
         break;
 
       case 'rename':
-        await handleFileRename(actionCategoryPath, fileName!, actionTypePath);
+        await handleFileRename(actionCategoryPath, fileName, actionTypePath);
         break;
     }
 
@@ -59,7 +65,7 @@ function listenToFiles(
 
       case actionTypePath.endsWith('routes'):
         setTimeout(async () => {
-          await registerRoutes(client);
+          await registerRoutes();
         }, 20_000);
         break;
     }
@@ -69,9 +75,11 @@ function listenToFiles(
 //Called when file is modified
 async function handleFileChange(
   fileDir: string,
-  fileName: string,
+  fileName: string | null,
   actionTypePath: string
 ) {
+  if (!fileName) return;
+
   const filePath = path.join(fileDir, fileName);
   let actionData = fs.readFileSync(filePath, 'utf-8');
 
@@ -137,9 +145,11 @@ async function handleFileChange(
 //Called when file is renamed, created or deleted
 async function handleFileRename(
   fileDirPath: string,
-  fileName: string,
+  fileName: string | null,
   actionTypePath: string
 ) {
+  if (!fileName) return;
+
   let filePath = path.join(fileDirPath, fileName);
 
   //On File delete

@@ -6,7 +6,7 @@ import {
   PartialUser,
   MessageReactionEventDetails,
 } from 'discord.js';
-import { LoggerType } from './createLogger.js';
+import { LoggerType } from '#utils/createLogger.js';
 
 type ReactionType = {
   name: string;

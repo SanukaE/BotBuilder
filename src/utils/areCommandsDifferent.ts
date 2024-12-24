@@ -2,7 +2,7 @@ import {
   APIApplicationCommandOption,
   APIApplicationCommandOptionChoice,
 } from 'discord.js';
-import CommandType from './CommandType.js';
+import CommandType from '#types/CommandType.js';
 
 export default function areCommandsDifferent(
   localCommand: CommandType,

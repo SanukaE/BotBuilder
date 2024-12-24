@@ -1,4 +1,4 @@
-import CommandType from '../../../utils/CommandType.js';
+import CommandType from '#types/CommandType.js';
 
 const command: CommandType = {
   name: '{{actionName}}',

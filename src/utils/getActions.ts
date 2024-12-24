@@ -1,11 +1,11 @@
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import getAllFiles from './getAllFiles.js';
-import CommandType from './CommandType.js';
-import ReactionType from './ReactionType.js';
+import CommandType from '#types/CommandType.js';
+import ReactionType from '#types/ReactionType.js';
 import checkEnvVariables from './checkEnvVariables.js';
 import config from '../../config.json' assert { type: 'json' };
-import { RouteType } from './RouteType.js';
+import { RouteType } from '#types/RouteType.js';
 
 export enum ActionTypes {
   Commands = 'commands',
@@ -13,10 +13,7 @@ export enum ActionTypes {
   Routes = 'routes',
 }
 
-export async function getActions(
-  actionType: ActionTypes,
-  exceptions?: string[]
-) {
+export async function getActions(actionType: ActionTypes) {
   const { disabledCategories } = config;
 
   const __filename = fileURLToPath(import.meta.url);
@@ -47,16 +44,24 @@ export async function getActions(
 
     if (skipCategories.includes(actionCategory)) continue;
 
-    const actionFiles = getAllFiles(actionCategory);
+    const pushActions = async (categoryPath: string) => {
+      const actionFiles = getAllFiles(categoryPath);
 
-    for (const actionFile of actionFiles) {
-      const fileUrl = pathToFileURL(actionFile).href;
-      const actionModule = await import(fileUrl);
-      const action = actionModule.default;
+      for (const actionFile of actionFiles) {
+        const fileUrl = pathToFileURL(actionFile).href;
+        const actionModule = await import(fileUrl);
+        const action = actionModule.default;
 
-      if (exceptions?.includes(action.name)) continue;
+        actions.push(action);
+      }
+    };
 
-      actions.push(action);
+    await pushActions(actionCategory);
+
+    const actionSubCategories = getAllFiles(actionCategory, true);
+
+    for (const actionSubCategory of actionSubCategories) {
+      await pushActions(actionSubCategory);
     }
   }
 

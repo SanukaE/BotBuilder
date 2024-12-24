@@ -2,8 +2,9 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import 'dotenv/config';
 import eventHandler from './handlers/eventHandler.js';
 import fileHandler from './handlers/fileHandler.js';
-import checkEnvVariables from './utils/checkEnvVariables.js';
-import initializeAI from './utils/initializeAI.js';
+import checkEnvVariables from '#utils/checkEnvVariables.js';
+import initializeAI from '#utils/initializeAI.js';
+import dbPool from '#utils/dbPool.js';
 
 checkEnvVariables();
 
@@ -23,8 +24,10 @@ fileHandler(client);
 client.login(process.env.APP_TOKEN);
 
 const handleShutdown = async () => {
-  console.log('Shutting down...');
-  client.destroy();
+  console.log('⚡ BotBuilder shutting down...');
+
+  await client.destroy();
+  await dbPool.end();
 
   const { fileManager } = initializeAI();
 

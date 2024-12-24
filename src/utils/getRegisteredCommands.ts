@@ -1,5 +1,5 @@
 import { Client, APIApplicationCommandOption } from 'discord.js';
-import CommandType from './CommandType.js';
+import CommandType from '#types/CommandType.js';
 
 export default async function (client: Client) {
   try {

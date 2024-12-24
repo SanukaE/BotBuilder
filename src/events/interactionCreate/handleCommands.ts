@@ -1,9 +1,9 @@
 import { Client, Interaction, ChatInputCommandInteraction } from 'discord.js';
 import config from '../../../config.json' assert { type: 'json' };
-import { getActions, ActionTypes } from '../../utils/getActions.js';
-import CommandType from '../../utils/CommandType.js';
-import { createLogger, LoggerOptions } from '../../utils/createLogger.js';
-import getErrorSolution from '../../utils/getErrorSolution.js';
+import { getActions, ActionTypes } from '#utils/getActions.js';
+import CommandType from '#types/CommandType.js';
+import { createLogger, LoggerOptions } from '#utils/createLogger.js';
+import getErrorSolution from '#utils/getErrorSolution.js';
 
 export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isChatInputCommand()) return;
@@ -26,6 +26,11 @@ export default async function (client: Client, interaction: Interaction) {
 
   if (!command) {
     await interaction.editReply('Unknown command.');
+    return;
+  }
+
+  if (command.isDisabled) {
+    await interaction.editReply('This command is currently disabled.');
     return;
   }
 

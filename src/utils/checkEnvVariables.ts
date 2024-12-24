@@ -2,7 +2,13 @@ import { createLogger, LoggerOptions } from './createLogger.js';
 import 'dotenv/config';
 
 export default function checkEnvVariables() {
-  const requiredVariables = ['APP_TOKEN'];
+  const requiredVariables = [
+    'APP_TOKEN',
+    'MYSQL_HOST',
+    'MYSQL_PORT',
+    'MYSQL_USER',
+    'MYSQL_PASSWORD',
+  ];
   const optionalVariables = [
     'NAMELESSMC_API_URL',
     'NAMELESSMC_API_KEY',

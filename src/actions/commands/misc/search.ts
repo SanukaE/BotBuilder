@@ -5,9 +5,9 @@ import {
   ActionRowBuilder,
   Colors,
 } from 'discord.js';
-import CommandType from '../../../utils/CommandType.js';
-import createEmbed from '../../../utils/createEmbed.js';
-import initializeAI from '../../../utils/initializeAI.js';
+import CommandType from '#types/CommandType.js';
+import createEmbed from '#utils/createEmbed.js';
+import initializeAI from '#utils/initializeAI.js';
 
 const command: CommandType = {
   name: 'search',

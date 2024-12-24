@@ -351,16 +351,17 @@
           const responseJSON = await response.json();
 
           // Group endpoints by folder
-          const folderGroups = responseJSON.endpointData
-            .filter((endpoint) => !endpoint.isDisabled)
-            .reduce((acc, endpoint) => {
-              const folder = endpoint.folderName || 'Uncategorized';
+          const folderGroups = responseJSON.endpointData.reduce(
+            (acc, endpoint) => {
+              const folder = endpoint.folderName;
               if (!acc[folder]) {
                 acc[folder] = [];
               }
               acc[folder].push(endpoint);
               return acc;
-            }, {});
+            },
+            {}
+          );
 
           const endpointsContainer = document.getElementById(
             'endpoints-container'
@@ -398,7 +399,7 @@
 
               const endpointPath = document.createElement('span');
               endpointPath.classList.add('endpoint-path');
-              endpointPath.textContent = endPointObject.endpoint;
+              endpointPath.textContent = `/${endPointObject.name}`;
 
               const endpointMethodBadge = document.createElement('span');
               endpointMethodBadge.classList.add(

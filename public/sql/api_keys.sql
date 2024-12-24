@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS api_keys (
+    userID VARCHAR(255) NOT NULL,
+    apiKey VARCHAR(64) NOT NULL,
+    keyStatus ENUM('ACTIVE', 'REVOKED') DEFAULT 'ACTIVE',
+    statusNote VARCHAR(255),
+    PRIMARY KEY (userID)
+);

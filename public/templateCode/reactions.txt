@@ -1,4 +1,4 @@
-import ReactionType from '../../../utils/ReactionType.js';
+import ReactionType from '#types/ReactionType.js';
 
 const reaction: ReactionType = {
   name: '{{actionName}}',

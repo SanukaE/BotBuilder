@@ -9,7 +9,12 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
-    "outDir": "build"
+    "rootDir": ".",
+    "outDir": "build",
+    "paths": {
+      "#utils/*": ["./src/utils/*"],
+      "#types/*": ["./src/types/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules"]

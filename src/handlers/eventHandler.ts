@@ -1,7 +1,7 @@
 import { Client } from 'discord.js';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import getAllFiles from '../utils/getAllFiles.js';
+import getAllFiles from '#utils/getAllFiles.js';
 
 export default function (client: Client) {
   const __filename = fileURLToPath(import.meta.url);

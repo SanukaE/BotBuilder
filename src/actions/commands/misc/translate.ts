@@ -3,8 +3,8 @@ import {
   Client,
   ChatInputCommandInteraction,
 } from 'discord.js';
-import CommandType from '../../../utils/CommandType.js';
-import { LoggerType } from '../../../utils/createLogger.js';
+import CommandType from '#types/CommandType.js';
+import { LoggerType } from '#utils/createLogger.js';
 import { translate } from 'bing-translate-api';
 
 const command: CommandType = {

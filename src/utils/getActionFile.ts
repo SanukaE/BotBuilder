@@ -17,9 +17,7 @@ export default async function (actionName: string, actionType: ActionTypes) {
 
   const actionCategories = getAllFiles(actionFolder, true);
 
-  for (const actionCategory of actionCategories) {
-    const actionFiles = getAllFiles(actionCategory);
-
+  const checkFiles = async (actionFiles: string[]) => {
     for (const actionFile of actionFiles) {
       const fileURL = pathToFileURL(actionFile).href;
       const fileExport = await import(fileURL);
@@ -27,6 +25,23 @@ export default async function (actionName: string, actionType: ActionTypes) {
       const { name } = fileExport.default;
 
       if (name === actionName) return actionFile;
+    }
+  };
+
+  for (const actionCategory of actionCategories) {
+    const actionFiles = getAllFiles(actionCategory);
+    const actionSubCategories = getAllFiles(actionCategory, true);
+
+    const result = await checkFiles(actionFiles);
+
+    if (result) return result;
+
+    for (const subCategory of actionSubCategories) {
+      const categoryFiles = getAllFiles(subCategory);
+
+      const result = await checkFiles(categoryFiles);
+
+      if (result) return result;
     }
   }
 }

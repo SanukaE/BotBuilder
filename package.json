@@ -8,15 +8,20 @@
     "build": "tsc",
     "start": "node build/src/index.js"
   },
-  "author": "ItzSanuka",
+  "author": "SanukaE",
   "license": "MIT",
   "type": "module",
+  "imports": {
+    "#utils/*": "./build/src/utils/*",
+    "#types/*": "./build/src/types/*"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "bing-translate-api": "^4.0.2",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

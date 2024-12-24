@@ -4,11 +4,9 @@ import {
   ButtonStyle,
   ActionRowBuilder,
 } from 'discord.js';
-import CommandType from '../../../utils/CommandType.js';
-import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
+import CommandType from '#types/CommandType.js';
 import config from '../../../../config.json' assert { type: 'json' };
-import { LoggerType } from '../../../utils/createLogger.js';
-import createEmbed from '../../../utils/createEmbed.js';
+import createEmbed from '#utils/createEmbed.js';
 
 const command: CommandType = {
   name: 'server',
@@ -66,10 +64,7 @@ const command: CommandType = {
     debugLogger.write(`Endpoint: ${apiEndPoint}`);
 
     debugLogger.write('Making a request...');
-    const response = await makeAPICall(
-      Location.MinecraftServerStats,
-      apiEndPoint
-    );
+    const response = await fetch('https://mcsrvstats.com/' + apiEndPoint);
     debugLogger.write(
       `Response received with status (${response.status}) & OK (${response.ok}).`
     );

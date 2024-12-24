@@ -4,10 +4,10 @@ import { fileURLToPath } from 'url';
 import getActionFile from './getActionFile.js';
 import initializeAI from './initializeAI.js';
 import fs from 'fs';
-import CommandType from './CommandType.js';
-import ReactionType from './ReactionType.js';
+import CommandType from '#types/CommandType.js';
+import ReactionType from '#types/ReactionType.js';
 import { ActionTypes } from './getActions.js';
-import { RouteType } from './RouteType.js';
+import { RouteType } from '#types/RouteType.js';
 
 export default async function (
   action: CommandType | ReactionType | RouteType,

@@ -1,4 +1,4 @@
-import { RouteType, HTTPMethod } from '../../../utils/RouteType.js';
+import { RouteType, HTTPMethod } from '#types/RouteType.js';
 
 const route: RouteType = {
   name: 'hello',

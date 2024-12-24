@@ -5,9 +5,8 @@ import {
   ButtonStyle,
   Colors,
 } from 'discord.js';
-import CommandType from '../../../utils/CommandType.js';
-import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
-import createEmbed from '../../../utils/createEmbed.js';
+import CommandType from '#types/CommandType.js';
+import createEmbed from '#utils/createEmbed.js';
 import 'dotenv/config';
 
 const command: CommandType = {
@@ -47,22 +46,17 @@ const command: CommandType = {
         },
       },
     };
-    debugStream.write('Data object created! Creating RequestInit...');
-
-    const options: RequestInit = {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/JSON',
-        Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
-      },
-    };
-    debugStream.write('RequestInit created! Making request...');
-
-    const response = await makeAPICall(
-      Location.NamelessMC,
-      '/users/register',
-      options
+    debugStream.write('Data object created! Making request...');
+    const response = await fetch(
+      process.env.NAMELESSMC_API_URL + '/users/register',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/JSON',
+          Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
+        },
+      }
     );
     debugStream.write('Request made! Getting JSON data...');
     const responseData = await response.json();

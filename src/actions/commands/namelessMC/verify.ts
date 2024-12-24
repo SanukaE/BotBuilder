@@ -1,6 +1,5 @@
 import { ApplicationCommandOptionType } from 'discord.js';
-import CommandType from '../../../utils/CommandType.js';
-import { Location, makeAPICall } from '../../../utils/makeAPICall.js';
+import CommandType from '#types/CommandType.js';
 import 'dotenv/config';
 
 const command: CommandType = {
@@ -27,22 +26,18 @@ const command: CommandType = {
       identifier: interaction.user.id,
       username: interaction.user.username,
     };
-    debugStream.write('Data object created! Creating RequestInit...');
+    debugStream.write('Data object created! Making request...');
 
-    const options: RequestInit = {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/JSON',
-        Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
-      },
-    };
-    debugStream.write('RequestInit options made! Making API call...');
-
-    const response = await makeAPICall(
-      Location.NamelessMC,
-      '/integration/verify',
-      options
+    const response = await fetch(
+      process.env.NAMELESSMC_API_URL + '/integration/verify',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/JSON',
+          Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
+        },
+      }
     );
     debugStream.write('Response received! Getting JSON data...');
     const responseData = await response.json();

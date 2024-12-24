@@ -17,7 +17,7 @@ export default function (data?: EmbedData | APIEmbed, client?: Client) {
 
     footer: {
       text: appMotto || 'BotBuilder, the future of Discord Bots.',
-      iconURL: appMotto ? client?.user?.avatarURL()! : '',
+      iconURL: appMotto ? client?.user?.displayAvatarURL() : '',
     },
   });
 }

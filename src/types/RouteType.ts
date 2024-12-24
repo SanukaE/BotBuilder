@@ -1,4 +1,4 @@
-import { LoggerType } from './createLogger.js';
+import { LoggerType } from '#utils/createLogger.js';
 import type { Request, Response } from 'express';
 
 export enum HTTPMethod {
