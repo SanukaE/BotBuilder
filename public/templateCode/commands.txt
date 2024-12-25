@@ -11,6 +11,8 @@ const command: CommandType = {
       content: "Edit the {{fileName}} and view changes live!",
       ephemeral: true
     });
+
+    debugStream.write("Follow up sent!");
   },
 };
 

@@ -1,0 +1,47 @@
+import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';
+import ModalType from '#types/ModalType.js';
+
+const feedbackModal = new ModalBuilder()
+    .setCustomId('feedback')
+    .setTitle('User Feedback Form');
+
+// Create the text input components
+const usernameInput = new TextInputBuilder()
+    .setCustomId('usernameInput')
+    .setLabel("Your username")
+    .setStyle(TextInputStyle.Short)
+    .setRequired(true);
+
+const feedbackInput = new TextInputBuilder()
+    .setCustomId('feedbackInput')
+    .setLabel("What's your feedback?")
+    .setStyle(TextInputStyle.Paragraph)
+    .setRequired(true)
+    .setMaxLength(1000);
+
+// Add inputs to the modal
+const firstActionRow = new ActionRowBuilder().addComponents(usernameInput);
+const secondActionRow = new ActionRowBuilder().addComponents(feedbackInput);
+feedbackModal.addComponents(firstActionRow, secondActionRow);
+
+const modal: ModalType = {
+    name: 'feedback',
+    modal: feedbackModal,
+    isDevOnly: false,
+    enableDebug: true,
+
+    async script(client, interaction, debugStream) {
+        // Get the data entered by the user
+        const username = interaction.fields.getTextInputValue('usernameInput');
+        const feedback = interaction.fields.getTextInputValue('feedbackInput');
+
+        await interaction.reply({
+            content: `Thanks for your feedback!\nUsername: ${username}\nFeedback: ${feedback}`,
+            ephemeral: true
+        });
+        
+        debugStream.write(`Feedback received from ${username}`);
+    },
+};
+
+export default modal;

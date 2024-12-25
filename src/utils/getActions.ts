@@ -6,11 +6,15 @@ import ReactionType from '#types/ReactionType.js';
 import checkEnvVariables from './checkEnvVariables.js';
 import config from '../../config.json' assert { type: 'json' };
 import { RouteType } from '#types/RouteType.js';
+import ButtonType from '#types/ButtonType.js';
+import ModalType from '#types/ModalType.js';
 
 export enum ActionTypes {
   Commands = 'commands',
   Reactions = 'reactions',
   Routes = 'routes',
+  Buttons = 'buttons',
+  Modals = 'modals',
 }
 
 export async function getActions(actionType: ActionTypes) {
@@ -26,7 +30,12 @@ export async function getActions(actionType: ActionTypes) {
   const missingVariables = checkEnvVariables();
   let skipCategories: string[] = [];
 
-  const actions: CommandType[] | ReactionType[] | RouteType[] = [];
+  const actions:
+    | CommandType[]
+    | ReactionType[]
+    | RouteType[]
+    | ButtonType[]
+    | ModalType[] = [];
 
   for (const actionCategory of actionCategories) {
     missingVariables.forEach((variable) => {

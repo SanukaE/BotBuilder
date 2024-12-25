@@ -20,6 +20,8 @@ const route: RouteType = {
     };
 
     res.json(data);
+
+    debugStream.write("Data sent!");
   },
 };
 

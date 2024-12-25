@@ -1,12 +1,12 @@
-import { Client, Interaction, ChatInputCommandInteraction } from 'discord.js';
+import { Client, Interaction, ButtonInteraction } from 'discord.js';
 import config from '../../../config.json' assert { type: 'json' };
 import { getActions, ActionTypes } from '#utils/getActions.js';
-import CommandType from '#types/CommandType.js';
+import ButtonType from '#types/ButtonType.js';
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';
 import getErrorSolution from '#utils/getErrorSolution.js';
 
 export default async function (client: Client, interaction: Interaction) {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isButton()) return;
   const { developmentGuildID, isMaintenanceEnabled } = config;
 
   await interaction.deferReply({ ephemeral: true });
@@ -16,43 +16,41 @@ export default async function (client: Client, interaction: Interaction) {
     return;
   }
 
-  const commands = (await getActions(ActionTypes.Commands)) as CommandType[];
+  const buttons = (await getActions(ActionTypes.Buttons)) as ButtonType[];
 
-  const command = commands.find(
-    (command) => command.name === interaction.commandName
-  );
+  const button = buttons.find((button) => button.name === interaction.customId);
 
-  if (!command) {
-    await interaction.editReply('Unknown command.');
+  if (!button) {
+    await interaction.editReply('Unknown button.');
     return;
   }
 
-  if (command.isDisabled) {
-    await interaction.editReply('This command is currently disabled.');
+  if (button.isDisabled) {
+    await interaction.editReply('This button is currently disabled.');
     return;
   }
 
-  if (command.isGuildOnly && !interaction.inGuild()) {
-    await interaction.editReply('This command can only be used in a server.');
+  if (button.isGuildOnly && !interaction.inGuild()) {
+    await interaction.editReply('This button can only be used in a server.');
     return;
   }
 
-  if (command.isDevOnly && interaction.guildId !== developmentGuildID) {
+  if (button.isDevOnly && interaction.guildId !== developmentGuildID) {
     await interaction.editReply(
-      'This command is currently under development. Please try again later.'
+      'This button is currently under development. Please try again later.'
     );
     return;
   }
 
-  if (command.permissions) {
-    for (const permission of command.permissions) {
+  if (button.permissions) {
+    for (const permission of button.permissions) {
       if (
         !interaction.member ||
         typeof interaction.member.permissions === 'string' ||
         !interaction.member.permissions.has(permission)
       ) {
         await interaction.editReply(
-          'You do not have the right permissions to perform this command.'
+          'You do not have the right permissions to perform this action.'
         );
         return;
       }
@@ -60,29 +58,29 @@ export default async function (client: Client, interaction: Interaction) {
   }
 
   const debugLogger = createLogger(
-    `${command.name}-command`,
+    `${button.name}-button`,
     LoggerOptions.Debug,
-    command.enableDebug
+    button.enableDebug
   );
 
-  const chatInteraction = interaction as ChatInputCommandInteraction;
+  const buttonInteraction = interaction as ButtonInteraction;
 
   try {
-    await command.script!(client, chatInteraction, debugLogger);
+    await button.script!(client, buttonInteraction, debugLogger);
   } catch (error) {
     await interaction.editReply(
-      `There was an error while running the command:\`\`\`${error}\`\`\``
+      `There was an error while running the button:\`\`\`${error}\`\`\``
     );
 
     const errorLogger = createLogger(
-      `${command.name}-command`,
+      `${button.name}-button`,
       LoggerOptions.Error,
       true
     );
     errorLogger.write(error as string);
     errorLogger.close();
 
-    const solution = await getErrorSolution(command, ActionTypes.Commands);
+    const solution = await getErrorSolution(button, ActionTypes.Buttons);
 
     if (solution) {
       await interaction.followUp({
@@ -90,7 +88,7 @@ export default async function (client: Client, interaction: Interaction) {
           solution.length > 2000 ? solution.slice(0, 1998) + '...' : solution,
         ephemeral: true,
       });
-    } else if (command.isDevOnly && command.enableDebug) {
+    } else if (button.isDevOnly && button.enableDebug) {
       await interaction.followUp({
         content: 'No possible fix found.',
         ephemeral: true,

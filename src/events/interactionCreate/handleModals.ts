@@ -1,12 +1,12 @@
-import { Client, Interaction, ChatInputCommandInteraction } from 'discord.js';
+import { Client, Interaction, ModalSubmitInteraction } from 'discord.js';
 import config from '../../../config.json' assert { type: 'json' };
 import { getActions, ActionTypes } from '#utils/getActions.js';
-import CommandType from '#types/CommandType.js';
+import ModalType from '#types/ModalType.js';
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';
 import getErrorSolution from '#utils/getErrorSolution.js';
 
 export default async function (client: Client, interaction: Interaction) {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isModalSubmit()) return;
   const { developmentGuildID, isMaintenanceEnabled } = config;
 
   await interaction.deferReply({ ephemeral: true });
@@ -16,43 +16,41 @@ export default async function (client: Client, interaction: Interaction) {
     return;
   }
 
-  const commands = (await getActions(ActionTypes.Commands)) as CommandType[];
+  const modals = (await getActions(ActionTypes.Modals)) as ModalType[];
 
-  const command = commands.find(
-    (command) => command.name === interaction.commandName
-  );
+  const modal = modals.find((modal) => modal.name === interaction.customId);
 
-  if (!command) {
-    await interaction.editReply('Unknown command.');
+  if (!modal) {
+    await interaction.editReply('Unknown modal.');
     return;
   }
 
-  if (command.isDisabled) {
-    await interaction.editReply('This command is currently disabled.');
+  if (modal.isDisabled) {
+    await interaction.editReply('This modal is currently disabled.');
     return;
   }
 
-  if (command.isGuildOnly && !interaction.inGuild()) {
-    await interaction.editReply('This command can only be used in a server.');
+  if (modal.isGuildOnly && !interaction.inGuild()) {
+    await interaction.editReply('This modal can only be used in a server.');
     return;
   }
 
-  if (command.isDevOnly && interaction.guildId !== developmentGuildID) {
+  if (modal.isDevOnly && interaction.guildId !== developmentGuildID) {
     await interaction.editReply(
-      'This command is currently under development. Please try again later.'
+      'This modal is currently under development. Please try again later.'
     );
     return;
   }
 
-  if (command.permissions) {
-    for (const permission of command.permissions) {
+  if (modal.permissions) {
+    for (const permission of modal.permissions) {
       if (
         !interaction.member ||
         typeof interaction.member.permissions === 'string' ||
         !interaction.member.permissions.has(permission)
       ) {
         await interaction.editReply(
-          'You do not have the right permissions to perform this command.'
+          'You do not have the right permissions to perform this modal.'
         );
         return;
       }
@@ -60,29 +58,29 @@ export default async function (client: Client, interaction: Interaction) {
   }
 
   const debugLogger = createLogger(
-    `${command.name}-command`,
+    `${modal.name}-modal`,
     LoggerOptions.Debug,
-    command.enableDebug
+    modal.enableDebug
   );
 
-  const chatInteraction = interaction as ChatInputCommandInteraction;
+  const modalInteraction = interaction as ModalSubmitInteraction;
 
   try {
-    await command.script!(client, chatInteraction, debugLogger);
+    await modal.script!(client, modalInteraction, debugLogger);
   } catch (error) {
     await interaction.editReply(
-      `There was an error while running the command:\`\`\`${error}\`\`\``
+      `There was an error while running the modal:\`\`\`${error}\`\`\``
     );
 
     const errorLogger = createLogger(
-      `${command.name}-command`,
+      `${modal.name}-modal`,
       LoggerOptions.Error,
       true
     );
     errorLogger.write(error as string);
     errorLogger.close();
 
-    const solution = await getErrorSolution(command, ActionTypes.Commands);
+    const solution = await getErrorSolution(modal, ActionTypes.Modals);
 
     if (solution) {
       await interaction.followUp({
@@ -90,7 +88,7 @@ export default async function (client: Client, interaction: Interaction) {
           solution.length > 2000 ? solution.slice(0, 1998) + '...' : solution,
         ephemeral: true,
       });
-    } else if (command.isDevOnly && command.enableDebug) {
+    } else if (modal.isDevOnly && modal.enableDebug) {
       await interaction.followUp({
         content: 'No possible fix found.',
         ephemeral: true,

@@ -10,6 +10,8 @@ const reaction: ReactionType = {
       content: "Edit the {{fileName}} and view changes live!",
       allowedMentions: { repliedUser: false }
     });
+
+    debugStream.write("Reply sent!");
   },
 };
 

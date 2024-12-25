@@ -8,9 +8,11 @@ import CommandType from '#types/CommandType.js';
 import ReactionType from '#types/ReactionType.js';
 import { ActionTypes } from './getActions.js';
 import { RouteType } from '#types/RouteType.js';
+import ButtonType from '#types/ButtonType.js';
+import ModalType from '#types/ModalType.js';
 
 export default async function (
-  action: CommandType | ReactionType | RouteType,
+  action: CommandType | ReactionType | RouteType | ButtonType | ModalType,
   actionType: ActionTypes
 ) {
   const { enabled, model, fileManager } = initializeAI();
