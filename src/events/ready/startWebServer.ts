@@ -107,32 +107,32 @@ export async function registerRoutes() {
     if (route.isDisabled) continue;
 
     const debugStream = createLogger(
-      `${route.name}-route`,
+      `${route.endpoint.replaceAll('/', '_')}-route`,
       LoggerOptions.Debug,
       route.enableDebug
     );
 
     switch (route.method) {
       case HTTPMethod.GET:
-        app.get(`/${route.name}`, async (req, res) => {
+        app.get(`/${route.endpoint}`, async (req, res) => {
           await route.script!(req, res, debugStream);
         });
         break;
 
       case HTTPMethod.POST:
-        app.post(`/${route.name}`, async (req, res) => {
+        app.post(`/${route.endpoint}`, async (req, res) => {
           await route.script!(req, res, debugStream);
         });
         break;
 
       case HTTPMethod.PATCH:
-        app.patch(`/${route.name}`, async (req, res) => {
+        app.patch(`/${route.endpoint}`, async (req, res) => {
           await route.script!(req, res, debugStream);
         });
         break;
 
       case HTTPMethod.DELETE:
-        app.delete(`/${route.name}`, async (req, res) => {
+        app.delete(`/${route.endpoint}`, async (req, res) => {
           await route.script!(req, res, debugStream);
         });
         break;

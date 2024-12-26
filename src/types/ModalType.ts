@@ -1,9 +1,8 @@
-import { Client, ModalSubmitInteraction, ModalBuilder } from 'discord.js';
+import { Client, ModalSubmitInteraction } from 'discord.js';
 import { LoggerType } from '#utils/createLogger.js';
 
 type ModalType = {
-  name: string;
-  modal: ModalBuilder;
+  customID: string;
   permissions?: bigint[];
   isDevOnly?: boolean;
   enableDebug?: boolean;

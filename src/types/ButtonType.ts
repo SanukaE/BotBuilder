@@ -1,9 +1,8 @@
-import { Client, ButtonInteraction, ButtonBuilder } from 'discord.js';
+import { Client, ButtonInteraction } from 'discord.js';
 import { LoggerType } from '#utils/createLogger.js';
 
 type ButtonType = {
-  name: string;
-  button: ButtonBuilder;
+  customID: string;
   permissions?: bigint[];
   isDevOnly?: boolean;
   enableDebug?: boolean;

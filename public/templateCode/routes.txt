@@ -1,7 +1,7 @@
 import { RouteType, HTTPMethod } from '#types/RouteType.js';
 
 const route: RouteType = {
-  name: 'hello',
+  endpoint: 'hello',
   description: 'Reply with "Hello world"',
   method: HTTPMethod.GET,
   responseData: {

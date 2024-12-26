@@ -18,7 +18,9 @@ export default async function (client: Client, interaction: Interaction) {
 
   const modals = (await getActions(ActionTypes.Modals)) as ModalType[];
 
-  const modal = modals.find((modal) => modal.name === interaction.customId);
+  const modal = modals.find((modal) =>
+    modal.customID.startsWith(interaction.customId)
+  );
 
   if (!modal) {
     await interaction.editReply('Unknown modal.');
@@ -58,7 +60,7 @@ export default async function (client: Client, interaction: Interaction) {
   }
 
   const debugLogger = createLogger(
-    `${modal.name}-modal`,
+    `${modal.customID}-modal`,
     LoggerOptions.Debug,
     modal.enableDebug
   );
@@ -73,7 +75,7 @@ export default async function (client: Client, interaction: Interaction) {
     );
 
     const errorLogger = createLogger(
-      `${modal.name}-modal`,
+      `${modal.customID}-modal`,
       LoggerOptions.Error,
       true
     );

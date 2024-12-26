@@ -10,7 +10,7 @@ import createEmbed from '#utils/createEmbed.js';
 import initializeAI from '#utils/initializeAI.js';
 
 const command: CommandType = {
-  name: 'search',
+  name: 'misc-search',
   description: 'Make a quick google search.',
   options: [
     {

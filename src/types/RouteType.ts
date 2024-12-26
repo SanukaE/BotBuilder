@@ -9,7 +9,7 @@ export enum HTTPMethod {
 }
 
 export type RouteType = {
-  name: string;
+  endpoint: string;
   method: HTTPMethod;
   description: string;
   requestData?: any;

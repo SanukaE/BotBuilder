@@ -8,7 +8,7 @@ import { LoggerType } from '#utils/createLogger.js';
 import { translate } from 'bing-translate-api';
 
 const command: CommandType = {
-  name: 'translate',
+  name: 'misc-translate',
   description: 'Translate any text to any language.',
   options: [
     {

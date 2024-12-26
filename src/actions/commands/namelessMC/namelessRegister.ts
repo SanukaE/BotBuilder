@@ -10,7 +10,7 @@ import createEmbed from '#utils/createEmbed.js';
 import 'dotenv/config';
 
 const command: CommandType = {
-  name: 'register',
+  name: 'nameless-register',
   description:
     'Register for an account on the website linked with your discord account.',
   options: [

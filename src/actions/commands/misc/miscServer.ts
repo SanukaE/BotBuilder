@@ -9,7 +9,7 @@ import config from '../../../../config.json' assert { type: 'json' };
 import createEmbed from '#utils/createEmbed.js';
 
 const command: CommandType = {
-  name: 'server',
+  name: 'misc-server',
   description: 'Get status of a minecraft server.',
   options: [
     {

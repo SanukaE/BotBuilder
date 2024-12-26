@@ -18,7 +18,9 @@ export default async function (client: Client, interaction: Interaction) {
 
   const buttons = (await getActions(ActionTypes.Buttons)) as ButtonType[];
 
-  const button = buttons.find((button) => button.name === interaction.customId);
+  const button = buttons.find((button) =>
+    button.customID.startsWith(interaction.customId)
+  );
 
   if (!button) {
     await interaction.editReply('Unknown button.');
@@ -58,7 +60,7 @@ export default async function (client: Client, interaction: Interaction) {
   }
 
   const debugLogger = createLogger(
-    `${button.name}-button`,
+    `${button.customID}-button`,
     LoggerOptions.Debug,
     button.enableDebug
   );
@@ -73,7 +75,7 @@ export default async function (client: Client, interaction: Interaction) {
     );
 
     const errorLogger = createLogger(
-      `${button.name}-button`,
+      `${button.customID}-button`,
       LoggerOptions.Error,
       true
     );

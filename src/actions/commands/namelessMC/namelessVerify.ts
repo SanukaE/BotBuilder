@@ -3,7 +3,7 @@ import CommandType from '#types/CommandType.js';
 import 'dotenv/config';
 
 const command: CommandType = {
-  name: 'verify',
+  name: 'nameless-verify',
   description: 'Verify your discord account to the website.',
   options: [
     {

@@ -1,7 +1,7 @@
 import CommandType from '#types/CommandType.js';
 
 const command: CommandType = {
-  name: 'ping',
+  name: 'misc-ping',
   description: 'Gets bots ping.',
 
   async script(client, interaction) {

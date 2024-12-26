@@ -1,15 +1,7 @@
-import { ButtonBuilder, ButtonStyle } from 'discord.js';
 import ButtonType from '#types/ButtonType.js';
 
-const exampleButton = new ButtonBuilder()
-    .setCustomId('example_button')
-    .setLabel('Click Me!')
-    .setStyle(ButtonStyle.Primary)
-    .setEmoji('👋');
-
 const button: ButtonType = {
-  name: 'example_button',
-  button: exampleButton
+  customID: 'example-button',
   isDevOnly: false,
   enableDebug: true,
     
