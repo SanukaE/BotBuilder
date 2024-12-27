@@ -5,9 +5,7 @@ const route: RouteType = {
   description: 'Reply with "Hello world"',
   method: HTTPMethod.GET,
   responseData: {
-    success: true,
-    message: 'The request was success! Check text value from data.',
-    data: { text: 'Hello World!' },
+    text: 'Hello World!'
   },
   enableDebug: true,
   isDevOnly: true,

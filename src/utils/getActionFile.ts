@@ -22,9 +22,18 @@ export default async function (actionName: string, actionType: ActionTypes) {
       const fileURL = pathToFileURL(actionFile).href;
       const fileExport = await import(fileURL);
 
-      const { name } = fileExport.default;
+      const { name, endpoint, customID } = fileExport.default;
 
-      if (name === actionName) return actionFile;
+      switch (actionName) {
+        case name:
+          return actionFile;
+
+        case endpoint:
+          return actionFile;
+
+        case customID:
+          return actionFile;
+      }
     }
   };
 

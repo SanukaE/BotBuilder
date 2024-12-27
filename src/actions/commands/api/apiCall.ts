@@ -97,7 +97,7 @@ const command: CommandType = {
     });
 
     for (const route of validRoutes) {
-      if (route.name === endpoint) {
+      if (route.endpoint === endpoint) {
         isValid = true;
         break;
       }
@@ -122,7 +122,7 @@ const command: CommandType = {
 
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${usersAPIKey}`,
+        Authorization: usersAPIKey,
       },
     });
     const data = await response.json();

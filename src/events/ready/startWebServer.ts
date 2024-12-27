@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import config from '../../../config.json' assert { type: 'json' };
 import { LoggerOptions, createLogger } from '#utils/createLogger.js';
 import { fileURLToPath, pathToFileURL } from 'url';
@@ -8,6 +8,9 @@ import getAllFiles from '#utils/getAllFiles.js';
 import { ActionTypes, getActions } from '#utils/getActions.js';
 import { HTTPMethod, RouteType } from '#types/RouteType.js';
 import checkEnvVariables from '#utils/checkEnvVariables.js';
+import dbPool from '#utils/dbPool.js';
+import { RowDataPacket } from 'mysql2';
+import getErrorSolution from '#utils/getErrorSolution.js';
 
 const app = express();
 
@@ -31,10 +34,37 @@ export default async function (client: Client) {
     warnLogger.close();
   }
 
-  app.use((req, res, next) => {
-    if (!req.baseUrl) next();
+  app.use(async (req, res, next) => {
+    if (req.url === '/' || req.url === '/endpoints') {
+      next();
+      return;
+    }
 
-    //TODO: API Token verification
+    const apiKey = req.headers.authorization;
+
+    const [rows] = await dbPool.query<RowDataPacket[]>(
+      'SELECT userID FROM api_keys WHERE apiKey = ?',
+      [apiKey]
+    );
+
+    if (!rows.length) {
+      res.status(401).json({
+        success: false,
+        message: 'Key not found.',
+      });
+      return;
+    } else {
+      if (rows[0].keyStatus === 'REVOKED') {
+        res.status(401).json({
+          success: false,
+          message: 'Contact a staff member.',
+        });
+        return;
+      }
+    }
+
+    req.params.apiUserID = rows[0].userID;
+    next();
   });
 
   const __filename = fileURLToPath(import.meta.url);
@@ -95,13 +125,14 @@ export default async function (client: Client) {
     res.json({ endpointData });
   });
 
-  await registerRoutes();
+  await registerRoutes(client);
 
   app.listen(webServerPort);
 }
 
-export async function registerRoutes() {
+export async function registerRoutes(client: Client) {
   const routes = (await getActions(ActionTypes.Routes)) as RouteType[];
+  const { developmentGuildID } = config;
 
   for (const route of routes) {
     if (route.isDisabled) continue;
@@ -112,29 +143,90 @@ export async function registerRoutes() {
       route.enableDebug
     );
 
+    const routeScript = async (req: Request, res: Response) => {
+      const apiUserID = req.params.apiUserID;
+      const devGuild = await client.guilds.fetch(developmentGuildID);
+      const developer = await devGuild.members.fetch(apiUserID);
+
+      if (route.isDevOnly && !developer) {
+        res.status(401).json({
+          success: false,
+          message: 'This endpoint is only available to developers.',
+        });
+        return;
+      }
+
+      if (route.isGuildOnly) {
+        const userGuilds = client.guilds.cache.filter((guild) =>
+          guild.members.cache.has(apiUserID)
+        );
+
+        if (userGuilds.size === 0) {
+          res.status(401).json({
+            success: false,
+            message:
+              'This endpoint requires you to be in a server thats using BotBuilder.',
+          });
+          return;
+        }
+      }
+
+      try {
+        await route.script!(req, res, debugStream);
+      } catch (error) {
+        debugStream.close();
+
+        const errorLogger = createLogger(
+          `${route.endpoint.replaceAll('/', '_')}-route`,
+          LoggerOptions.Error,
+          true
+        );
+        errorLogger.write(error as string);
+        errorLogger.close();
+
+        const solution = await getErrorSolution(route, ActionTypes.Routes);
+
+        if (solution) {
+          res.status(500).json({
+            success: false,
+            message: 'An error occurred while processing your request.',
+            error: error,
+            solution,
+          });
+        } else if (route.enableDebug && route.isDevOnly) {
+          res.status(500).json({
+            success: false,
+            message: 'An error occurred while processing your request.',
+            error: error,
+            solution: 'No possible fix found.',
+          });
+        }
+
+        res.status(500).json({
+          success: false,
+          message: 'An error occurred while processing your request.',
+          error: error,
+        });
+      } finally {
+        debugStream.close();
+      }
+    };
+
     switch (route.method) {
       case HTTPMethod.GET:
-        app.get(`/${route.endpoint}`, async (req, res) => {
-          await route.script!(req, res, debugStream);
-        });
+        app.get(`/${route.endpoint}`, routeScript);
         break;
 
       case HTTPMethod.POST:
-        app.post(`/${route.endpoint}`, async (req, res) => {
-          await route.script!(req, res, debugStream);
-        });
+        app.post(`/${route.endpoint}`, routeScript);
         break;
 
       case HTTPMethod.PATCH:
-        app.patch(`/${route.endpoint}`, async (req, res) => {
-          await route.script!(req, res, debugStream);
-        });
+        app.patch(`/${route.endpoint}`, routeScript);
         break;
 
       case HTTPMethod.DELETE:
-        app.delete(`/${route.endpoint}`, async (req, res) => {
-          await route.script!(req, res, debugStream);
-        });
+        app.delete(`/${route.endpoint}`, routeScript);
         break;
     }
   }

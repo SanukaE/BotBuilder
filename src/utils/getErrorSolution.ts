@@ -30,17 +30,35 @@ export default async function (
     path.join(__dirname, '..', '..', 'actionLogs', 'debugs')
   );
 
+  let actionName = 'N/A';
+
+  switch (actionType) {
+    case ActionTypes.Commands:
+    case ActionTypes.Reactions:
+      actionName = (action as CommandType | ReactionType).name;
+      break;
+
+    case ActionTypes.Routes:
+      actionName = (action as RouteType).endpoint.replaceAll('/', '_');
+      break;
+
+    case ActionTypes.Buttons:
+    case ActionTypes.Modals:
+      actionName = (action as ButtonType | ModalType).customID;
+      break;
+  }
+
   const errorFile = errorFiles.find((errorFile) =>
     errorFile.endsWith(
-      `${action.name}-${actionType.slice(0, actionType.length - 1)}.txt`
+      `${actionName}-${actionType.slice(0, actionType.length - 1)}.txt`
     )
   )!;
   const debugFile = debugFiles.find((debugFile) =>
     debugFile.endsWith(
-      `${action.name}-${actionType.slice(0, actionType.length - 1)}.txt`
+      `${actionName}-${actionType.slice(0, actionType.length - 1)}.txt`
     )
   )!;
-  const actionFile = await getActionFile(action.name, actionType)!;
+  const actionFile = await getActionFile(actionName, actionType)!;
 
   if (!errorFile || !debugFile || !actionFile) return 'No possible fix found.';
 
