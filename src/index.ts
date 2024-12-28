@@ -11,10 +11,13 @@ checkEnvVariables();
 const client = new Client({
   intents: [
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages,
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMessageTyping,
+    GatewayIntentBits.GuildModeration,
     GatewayIntentBits.AutoModerationConfiguration,
   ],
 });

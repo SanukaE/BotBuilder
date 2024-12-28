@@ -22,6 +22,21 @@ export default async function (
   const { developmentGuildID, isMaintenanceEnabled } = config;
   const message = messageReaction.message;
 
+  const reactions = (await getActions(ActionTypes.Reactions)) as ReactionType[];
+  const reaction = reactions.find((reaction) =>
+    messageReaction.emoji.name?.includes(reaction.name)
+  );
+
+  if (
+    !reaction ||
+    (reaction.isDevOnly && message.guildId !== developmentGuildID) ||
+    reaction.isDisabled ||
+    !message.channel.isSendable()
+  )
+    return;
+
+  await message.channel.sendTyping();
+
   if (messageReaction.count && messageReaction.count > 1) {
     const messageReply = await message.reply({
       content: 'You can only react to a message once.',
@@ -49,18 +64,6 @@ export default async function (
 
     return;
   }
-
-  const reactions = (await getActions(ActionTypes.Reactions)) as ReactionType[];
-  const reaction = reactions.find((reaction) =>
-    messageReaction.emoji.name?.includes(reaction.name)
-  );
-
-  if (
-    !reaction ||
-    (reaction.isDevOnly && message.guildId !== developmentGuildID) ||
-    reaction.isDisabled
-  )
-    return;
 
   if (reaction.isGuildOnly && !message.inGuild()) {
     const messageReply = await message.reply({

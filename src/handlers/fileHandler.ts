@@ -65,7 +65,7 @@ function listenToFiles(
 
       case actionTypePath.endsWith('routes'):
         setTimeout(async () => {
-          await registerRoutes();
+          await registerRoutes(client);
         }, 20_000);
         break;
     }
