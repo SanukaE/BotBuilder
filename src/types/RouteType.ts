@@ -18,7 +18,7 @@ export type RouteType = {
   enableDebug?: boolean;
   isDisabled?: boolean;
   isGuildOnly?: boolean;
-  script?: (
+  script: (
     req: Request,
     res: Response,
     debugStream: LoggerType

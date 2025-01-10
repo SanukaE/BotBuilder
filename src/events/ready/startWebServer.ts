@@ -8,7 +8,7 @@ import getAllFiles from '#utils/getAllFiles.js';
 import { ActionTypes, getActions } from '#utils/getActions.js';
 import { HTTPMethod, RouteType } from '#types/RouteType.js';
 import checkEnvVariables from '#utils/checkEnvVariables.js';
-import dbPool from '#utils/dbPool.js';
+import MySQL from '#libs/MySQL.js';
 import { RowDataPacket } from 'mysql2';
 import getErrorSolution from '#utils/getErrorSolution.js';
 
@@ -42,7 +42,7 @@ export default async function (client: Client) {
 
     const apiKey = req.headers.authorization;
 
-    const [rows] = await dbPool.query<RowDataPacket[]>(
+    const [rows] = await MySQL.query<RowDataPacket[]>(
       'SELECT userID FROM api_keys WHERE apiKey = ?',
       [apiKey]
     );
@@ -70,7 +70,7 @@ export default async function (client: Client) {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
-  const pathToPublic = path.join(__dirname, '..', '..', '..', '..', 'public');
+  const pathToPublic = path.join(__dirname, '..', '..', '..', 'public');
 
   app.get('/', (req, res) => {
     res.sendFile(path.join(pathToPublic, 'apiEndpoints.html'), (error) => {
@@ -92,7 +92,7 @@ export default async function (client: Client) {
       true
     );
 
-    let endpointData: string[] = [];
+    let endpointData: any[] = [];
 
     for (const routeFolderPath of routeFolderPaths) {
       //this is the endpoint category
@@ -109,17 +109,17 @@ export default async function (client: Client) {
           const fileURL = pathToFileURL(routeFilePath).href;
           const fileExport = await import(fileURL);
 
-          if (fileExport.isDisabled) continue;
+          if (fileExport.default.isDisabled) continue;
 
           endpointData.push({ folderName, ...fileExport.default });
         }
       };
 
       const routeFilePaths = getAllFiles(routeFolderPath);
-      pushData(routeFilePaths);
+      await pushData(routeFilePaths);
 
       const subRouteCategories = getAllFiles(routeFolderPath, true);
-      pushData(subRouteCategories);
+      await pushData(subRouteCategories);
     }
 
     res.json({ endpointData });
@@ -136,12 +136,6 @@ export async function registerRoutes(client: Client) {
 
   for (const route of routes) {
     if (route.isDisabled) continue;
-
-    const debugStream = createLogger(
-      `${route.endpoint.replaceAll('/', '_')}-route`,
-      LoggerOptions.Debug,
-      route.enableDebug
-    );
 
     const routeScript = async (req: Request, res: Response) => {
       const apiUserID = req.params.apiUserID;
@@ -171,8 +165,14 @@ export async function registerRoutes(client: Client) {
         }
       }
 
+      const debugStream = createLogger(
+        `${route.endpoint.replaceAll('/', '_')}-route`,
+        LoggerOptions.Debug,
+        route.enableDebug
+      );
+
       try {
-        await route.script!(req, res, debugStream);
+        await route.script(req, res, debugStream);
       } catch (error) {
         debugStream.close();
 
@@ -181,7 +181,7 @@ export async function registerRoutes(client: Client) {
           LoggerOptions.Error,
           true
         );
-        errorLogger.write(error as string);
+        errorLogger.write(error);
         errorLogger.close();
 
         const solution = await getErrorSolution(route, ActionTypes.Routes);

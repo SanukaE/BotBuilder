@@ -14,7 +14,7 @@ type ReactionType = {
   isGuildOnly?: boolean;
   enableDebug?: boolean;
   isDisabled?: boolean;
-  script?: (
+  script: (
     client: Client,
     messageReaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,

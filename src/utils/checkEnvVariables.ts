@@ -1,5 +1,4 @@
 import { createLogger, LoggerOptions } from './createLogger.js';
-import 'dotenv/config';
 
 export default function checkEnvVariables() {
   const requiredVariables = [
@@ -8,11 +7,16 @@ export default function checkEnvVariables() {
     'MYSQL_PORT',
     'MYSQL_USER',
     'MYSQL_PASSWORD',
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_USERNAME',
+    'REDIS_PASSWORD',
   ];
   const optionalVariables = [
     'NAMELESSMC_API_URL',
     'NAMELESSMC_API_KEY',
     'GEMINI_API_KEY',
+    'MCSTATISTICS_SECRET',
   ];
 
   requiredVariables.forEach((variable) => {
@@ -34,6 +38,10 @@ export default function checkEnvVariables() {
 
         case 'GEMINI_API_KEY':
           missingVariables.push('AI');
+          break;
+
+        case 'MCSTATISTICS_SECRET':
+          missingVariables.push('mcStatistics');
           break;
       }
     }

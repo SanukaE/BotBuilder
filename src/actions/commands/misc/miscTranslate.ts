@@ -25,7 +25,7 @@ const command: CommandType = {
   ],
 
   script: async (
-    client: Client,
+    _: Client,
     interaction: ChatInputCommandInteraction,
     debugStream: LoggerType
   ) => {
@@ -46,7 +46,6 @@ const command: CommandType = {
     debugStream.write('Sending reply...');
     await interaction.followUp({
       content: `${usersText}\n> *${translationData?.translation}*`,
-      ephemeral: true,
     });
     debugStream.write('Reply sent!');
   },

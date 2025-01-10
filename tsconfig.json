@@ -9,13 +9,13 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
-    "rootDir": ".",
+    "rootDir": "./src",
     "outDir": "build",
     "paths": {
-      "#utils/*": ["./src/utils/*"],
-      "#types/*": ["./src/types/*"]
+      "#config": ["../config.json"],
+      "#utils/*": ["./utils/*"],
+      "#types/*": ["./types/*"],
+      "#libs/*": ["./libs/*"]
     }
-  },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  }
 }

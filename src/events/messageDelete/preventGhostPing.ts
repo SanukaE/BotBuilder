@@ -13,11 +13,11 @@ export default async function (
 ) {
   if (message.author?.bot || !message.inGuild()) return;
 
-  const members = message.mentions.members?.filter(
+  const members = message.mentions.members.filter(
     (member) => !member.user.bot && member.id !== message.author.id
   );
 
-  if (!members) return;
+  if (!members.size) return;
   await message.channel.sendTyping();
 
   const embedMessage = createEmbed({

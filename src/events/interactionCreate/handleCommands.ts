@@ -1,5 +1,5 @@
 import { Client, Interaction, ChatInputCommandInteraction } from 'discord.js';
-import config from '../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import { getActions, ActionTypes } from '#utils/getActions.js';
 import CommandType from '#types/CommandType.js';
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';
@@ -69,7 +69,9 @@ export default async function (client: Client, interaction: Interaction) {
 
   try {
     await command.script!(client, chatInteraction, debugLogger);
+    debugLogger.close();
   } catch (error) {
+    debugLogger.close();
     await interaction.editReply(
       `There was an error while running the command:\`\`\`${error}\`\`\``
     );
@@ -79,7 +81,7 @@ export default async function (client: Client, interaction: Interaction) {
       LoggerOptions.Error,
       true
     );
-    errorLogger.write(error as string);
+    errorLogger.write(error);
     errorLogger.close();
 
     const solution = await getErrorSolution(command, ActionTypes.Commands);
@@ -96,7 +98,5 @@ export default async function (client: Client, interaction: Interaction) {
         ephemeral: true,
       });
     }
-  } finally {
-    debugLogger.close();
   }
 }

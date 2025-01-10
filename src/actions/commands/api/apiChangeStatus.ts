@@ -1,5 +1,5 @@
 import CommandType from '#types/CommandType.js';
-import dbPool from '#utils/dbPool.js';
+import MySQL from '#libs/MySQL.js';
 import generateAPIKey from '#utils/generateAPIKey.js';
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord.js';
 import { RowDataPacket } from 'mysql2';
@@ -35,7 +35,7 @@ const command: CommandType = {
   ],
   permissions: [PermissionFlagsBits.ModerateMembers],
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Getting data from interaction...');
     const userID = interaction.options.getUser('user')!.id;
     const newStatus = interaction.options.getString('status')!;
@@ -45,8 +45,19 @@ const command: CommandType = {
     debugStream.write(`newStatus: ${newStatus}`);
     debugStream.write(`statusNote: ${statusNote}`);
 
+    if (userID === interaction.user.id) {
+      debugStream.write('Same user detected! Sending reply...');
+
+      await interaction.editReply(
+        "You can't run this command on yourself. Please get a different staff member to do it for you."
+      );
+
+      debugStream.write('Reply sent!');
+      return;
+    }
+
     debugStream.write('Fetching record for user...');
-    const [rows] = await dbPool.query<RowDataPacket[]>(
+    const [rows] = await MySQL.query<RowDataPacket[]>(
       'SELECT * FROM api_keys WHERE userID = ?',
       [userID]
     );
@@ -57,7 +68,7 @@ const command: CommandType = {
       );
       const newAPIKey = await generateAPIKey();
 
-      await dbPool.query(
+      await MySQL.query(
         'INSERT INTO api_keys (userID, apiKey, keyStatus, statusNote) VALUES (?, ?, ?, ?)',
         [userID, newAPIKey, newStatus, statusNote]
       );
@@ -73,20 +84,19 @@ const command: CommandType = {
       });
     } else {
       debugStream.write('Record found! Updating db...');
-      await dbPool.query('UPDATE api_keys SET keyStatus = ? WHERE userID = ?', [
+      await MySQL.query('UPDATE api_keys SET keyStatus = ? WHERE userID = ?', [
         newStatus,
         userID,
       ]);
 
-      await dbPool.query(
-        'UPDATE api_keys SET statusNote = ? WHERE userID = ?',
-        [statusNote, userID]
-      );
+      await MySQL.query('UPDATE api_keys SET statusNote = ? WHERE userID = ?', [
+        statusNote,
+        userID,
+      ]);
       debugStream.write('Record updated! Sending follow up message...');
 
       await interaction.followUp({
         content: `Update successful! Updated <@${userID}> with status \`${newStatus}\` & note \`${statusNote}\``,
-        ephemeral: true,
       });
     }
 

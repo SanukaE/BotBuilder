@@ -1,16 +1,16 @@
 import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
-import dbPool from '#utils/dbPool.js';
+import MySQL from '#libs/MySQL.js';
 import generateAPIKey from '#utils/generateAPIKey.js';
 import { RowDataPacket } from 'mysql2';
-import config from '../../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 const command: CommandType = {
   name: 'api-key',
   description: "Shows your API Key to use BotBuilder's API.",
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Getting data from interaction...');
     const userID = interaction.user.id;
     debugStream.write(`userID: ${userID}`);
@@ -21,7 +21,7 @@ const command: CommandType = {
     debugStream.write(`webServerPort: ${webServerPort}`);
 
     debugStream.write('Getting data from db...');
-    const [rows] = await dbPool.query<RowDataPacket[]>(
+    const [rows] = await MySQL.query<RowDataPacket[]>(
       'SELECT * FROM api_keys WHERE userID = ?',
       [userID]
     );
@@ -31,7 +31,7 @@ const command: CommandType = {
       title: 'BotBuilder API:',
       description:
         'To learn how to use the API please visit the page linked to the button below.',
-      thumbnail: { url: client.user?.displayAvatarURL() || '' },
+      thumbnail: { url: 'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp' },
     });
 
     debugStream.write('Creating button row...');
@@ -58,10 +58,10 @@ const command: CommandType = {
       keyData.apiKey = await generateAPIKey();
 
       debugStream.write('Inserting key into db...');
-      await dbPool.query(
-        'INSERT INTO api_keys (userID, apiKey) VALUES (?, ?)',
-        [userID, keyData.apiKey]
-      );
+      await MySQL.query('INSERT INTO api_keys (userID, apiKey) VALUES (?, ?)', [
+        userID,
+        keyData.apiKey,
+      ]);
       debugStream.write('Done!');
 
       embedMessage.setColor('Green');
@@ -88,7 +88,6 @@ const command: CommandType = {
     await interaction.followUp({
       embeds: [embedMessage],
       components: [actionRow],
-      ephemeral: true,
     });
     debugStream.write('Done!');
   },

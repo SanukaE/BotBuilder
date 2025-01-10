@@ -8,7 +8,7 @@ export default async function (actionName: string, actionType: ActionTypes) {
   const __dirname = path.dirname(__filename);
 
   const actionFolders = getAllFiles(
-    path.join(__dirname, '..', '..', 'src', 'actions'),
+    path.join(__dirname, '..', '..', 'actions'),
     true
   );
   const actionFolder = actionFolders.find((actionFolder) =>

@@ -5,7 +5,7 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 import CommandType from '#types/CommandType.js';
-import config from '../../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import createEmbed from '#utils/createEmbed.js';
 
 const command: CommandType = {
@@ -24,7 +24,7 @@ const command: CommandType = {
     },
   ],
 
-  async script(client, interaction, debugLogger) {
+  async script(_, interaction, debugLogger) {
     debugLogger.write(
       'Getting minecraftServerIP & isMinecraftServerBedrock from config.json...'
     );
@@ -64,7 +64,7 @@ const command: CommandType = {
     debugLogger.write(`Endpoint: ${apiEndPoint}`);
 
     debugLogger.write('Making a request...');
-    const response = await fetch('https://mcsrvstats.com/' + apiEndPoint);
+    const response = await fetch('https://api.mcsrvstat.us/' + apiEndPoint);
     debugLogger.write(
       `Response received with status (${response.status}) & OK (${response.ok}).`
     );
@@ -90,7 +90,7 @@ const command: CommandType = {
     }
 
     debugLogger.write('Server is online, creating embed message...');
-    const embedMessage = createEmbed(undefined, client)
+    const embedMessage = createEmbed()
       .setColor('Green')
       .setTitle(responseData.hostname || address)
       .setDescription(
@@ -167,7 +167,6 @@ const command: CommandType = {
     await interaction.followUp({
       embeds: [embedMessage],
       components: [buttonRow],
-      ephemeral: true,
     });
     debugLogger.write('Replied!');
   },

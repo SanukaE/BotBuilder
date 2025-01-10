@@ -7,7 +7,7 @@ import {
   PartialUser,
   Message,
 } from 'discord.js';
-import config from '../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import { ActionTypes, getActions } from '#utils/getActions.js';
 import ReactionType from '#types/ReactionType.js';
 import { LoggerOptions, createLogger } from '#utils/createLogger.js';
@@ -24,7 +24,7 @@ export default async function (
 
   const reactions = (await getActions(ActionTypes.Reactions)) as ReactionType[];
   const reaction = reactions.find((reaction) =>
-    messageReaction.emoji.name?.includes(reaction.name)
+    messageReaction.emoji.name?.startsWith(reaction.name)
   );
 
   if (
@@ -85,8 +85,10 @@ export default async function (
     reaction.enableDebug
   );
   try {
-    await reaction.script!(client, messageReaction, user, details, debugLogger);
+    await reaction.script(client, messageReaction, user, details, debugLogger);
+    debugLogger.close();
   } catch (error) {
+    debugLogger.close();
     const errorMessageReply = await message.reply({
       content: `There was an error while running the command:\`\`\`${error}\`\`\``,
       allowedMentions: { repliedUser: false },
@@ -98,7 +100,7 @@ export default async function (
       LoggerOptions.Error,
       true
     );
-    errorLogger.write(error as string);
+    errorLogger.write(error);
     errorLogger.close();
 
     const solution = await getErrorSolution(reaction, ActionTypes.Reactions);
@@ -121,7 +123,5 @@ export default async function (
       await errorMessageReply.delete();
       await solutionReply.delete();
     }, 60_000);
-  } finally {
-    debugLogger.close();
   }
 }

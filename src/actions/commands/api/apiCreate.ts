@@ -1,15 +1,15 @@
 import CommandType from '#types/CommandType.js';
-import dbPool from '#utils/dbPool.js';
+import MySQL from '#libs/MySQL.js';
 import generateAPIKey from '#utils/generateAPIKey.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { RowDataPacket } from 'mysql2';
-import config from '../../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 
 const command: CommandType = {
   name: 'api-create',
   description: 'Create/regenerate a new API Key.',
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Getting data from interaction...');
     const userID = interaction.user.id;
     debugStream.write(`userID: ${userID}`);
@@ -18,7 +18,7 @@ const command: CommandType = {
     const newAPIKey = await generateAPIKey();
     debugStream.write('Key generated! Getting data from db...');
 
-    const [rows] = await dbPool.query<RowDataPacket[]>(
+    const [rows] = await MySQL.query<RowDataPacket[]>(
       'SELECT apiKey FROM api_keys WHERE userID = ?',
       [userID]
     );
@@ -42,14 +42,14 @@ const command: CommandType = {
 
     if (rows.length === 0) {
       debugStream.write('User is new! Creating new record...');
-      await dbPool.query(
-        'INSERT INTO api_keys (userID, apiKey) VALUES (?, ?)',
-        [userID, newAPIKey]
-      );
+      await MySQL.query('INSERT INTO api_keys (userID, apiKey) VALUES (?, ?)', [
+        userID,
+        newAPIKey,
+      ]);
       debugStream.write('Record made!');
     } else {
       debugStream.write('Updating existing users record...');
-      await dbPool.query('UPDATE api_keys SET apiKey = ? WHERE userID = ?', [
+      await MySQL.query('UPDATE api_keys SET apiKey = ? WHERE userID = ?', [
         newAPIKey,
         userID,
       ]);
@@ -64,7 +64,6 @@ const command: CommandType = {
         \nTo learn how to use this key please visit the page linked to the button below.
         \n-# Treat this key like your discord password.`,
       components: [actionRow],
-      ephemeral: true,
     });
     debugStream.write('Message sent!');
   },

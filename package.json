@@ -1,19 +1,21 @@
 {
   "name": "botbuilder",
-  "version": "1.0.0",
-  "description": "A discord bot that has anything a server owner could wish for.",
-  "main": "build/src/index.js",
+  "version": "alpha",
+  "description": "A discord bot setup that has anything a server owner could wish for.",
+  "main": "build/index.js",
   "scripts": {
-    "dev": "tsc-watch --onFirstSuccess \"node build/src/index.js\" --noClear --silent",
+    "dev": "tsc-watch --onFirstSuccess \"node build/index.js\" --noClear --silent",
     "build": "tsc",
-    "start": "node build/src/index.js"
+    "start": "node build/index.js"
   },
   "author": "SanukaE",
   "license": "MIT",
   "type": "module",
   "imports": {
-    "#utils/*": "./build/src/utils/*",
-    "#types/*": "./build/src/types/*"
+    "#config": "./config.json",
+    "#utils/*": "./build/utils/*",
+    "#types/*": "./build/types/*",
+    "#libs/*": "./build/libs/*"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -21,7 +23,8 @@
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "mysql2": "^3.11.5"
+    "mysql2": "^3.11.5",
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

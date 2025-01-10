@@ -2,20 +2,27 @@ import getAllFiles from './getAllFiles.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import getActionFile from './getActionFile.js';
-import initializeAI from './initializeAI.js';
+import Gemini from '#libs/Gemini.js';
 import fs from 'fs';
+import { ActionTypes } from './getActions.js';
 import CommandType from '#types/CommandType.js';
 import ReactionType from '#types/ReactionType.js';
-import { ActionTypes } from './getActions.js';
 import { RouteType } from '#types/RouteType.js';
 import ButtonType from '#types/ButtonType.js';
 import ModalType from '#types/ModalType.js';
+import StringMenuType from '#types/StringMenuType.js';
 
 export default async function (
-  action: CommandType | ReactionType | RouteType | ButtonType | ModalType,
+  action:
+    | CommandType
+    | ReactionType
+    | RouteType
+    | ButtonType
+    | ModalType
+    | StringMenuType,
   actionType: ActionTypes
 ) {
-  const { enabled, model, fileManager } = initializeAI();
+  const { enabled, model, fileManager } = Gemini();
 
   if (!enabled && (!model || !fileManager)) return;
   if (!action.isDevOnly || !action.enableDebug) return;

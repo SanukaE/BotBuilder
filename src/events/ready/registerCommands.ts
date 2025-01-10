@@ -3,7 +3,6 @@ import { getActions, ActionTypes } from '#utils/getActions.js';
 import getRegisteredCommands from '#utils/getRegisteredCommands.js';
 import areCommandsDifferent from '#utils/areCommandsDifferent.js';
 import CommandType from '#types/CommandType.js';
-import { createLogger, LoggerOptions } from '#utils/createLogger.js';
 
 export default async function (client: Client) {
   try {
@@ -47,13 +46,7 @@ export default async function (client: Client) {
     for (const deletedCommand of deletedCommands) {
       await client.application!.commands.delete(deletedCommand.id!);
     }
-  } catch (error) {
-    const errorLogger = createLogger(
-      `registerCommands-readyEvent`,
-      LoggerOptions.Error,
-      true
-    );
-    errorLogger.write(error as string);
-    errorLogger.close();
+  } catch (error: any) {
+    console.error(`[Error] ${error.message || error}`);
   }
 }

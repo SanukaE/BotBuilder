@@ -7,7 +7,7 @@ import {
 } from 'discord.js';
 import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
-import initializeAI from '#utils/initializeAI.js';
+import Gemini from '#libs/Gemini.js';
 
 const command: CommandType = {
   name: 'misc-search',
@@ -21,27 +21,24 @@ const command: CommandType = {
     },
   ],
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Getting query from command options...');
     const query = interaction.options.getString('query')!;
     debugStream.write(`query: ${query}`);
 
     debugStream.write('Creating embed message...');
-    const embedMessage = createEmbed(
-      {
-        color: Colors.Aqua,
-        title: 'Google Search',
-        thumbnail: {
-          url: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_120x44dp.png',
-        },
-        url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+    const embedMessage = createEmbed({
+      color: Colors.Aqua,
+      title: 'Google Search',
+      thumbnail: {
+        url: 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_120x44dp.png',
       },
-      client
-    );
+      url: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+    });
     debugStream.write('Embed created!');
 
     debugStream.write('Enabling AI...');
-    const { enabled, model } = initializeAI();
+    const { enabled, model } = Gemini();
     debugStream.write(`enabled: ${enabled}`);
 
     debugStream.write('Checking if AI is available...');
@@ -84,7 +81,6 @@ const command: CommandType = {
     await interaction.followUp({
       embeds: [embedMessage],
       components: [actionRow],
-      ephemeral: true,
     });
     debugStream.write('Reply sent!');
   },

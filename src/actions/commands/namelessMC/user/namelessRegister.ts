@@ -7,7 +7,6 @@ import {
 } from 'discord.js';
 import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
-import 'dotenv/config';
 
 const command: CommandType = {
   name: 'nameless-register',
@@ -27,7 +26,7 @@ const command: CommandType = {
     },
   ],
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Getting values from command...');
     const emailAddress = interaction.options.getString('email');
     const username =
@@ -63,22 +62,23 @@ const command: CommandType = {
     debugStream.write('Data collected!');
 
     debugStream.write('Checking for any errors...');
-    if (!response.ok || responseData.error) {
+    if (responseData.error) {
       debugStream.write('Error found!');
-      throw new Error(responseData.error || 'Failed to register.');
+      throw new Error(
+        `Failed to fetch from NamelessMC. Error: ${responseData.error}, ${
+          responseData.message ? 'Message :' + responseData.message : ''
+        }, ${responseData.meta ? 'Meta :' + responseData.meta : ''}`
+      );
     } else debugStream.write('No errors found! Creating embed message...');
 
-    const embedMessage = createEmbed(
-      {
-        thumbnail: {
-          url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
-        },
-        title: 'Almost Done!',
-        fields: [{ name: 'NamelessMC Support:', value: 'discord.gg/nameless' }],
-        color: Colors.DarkGold,
+    const embedMessage = createEmbed({
+      thumbnail: {
+        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
       },
-      client
-    );
+      title: 'Almost Done!',
+      fields: [{ name: 'NamelessMC Support:', value: 'discord.gg/nameless' }],
+      color: Colors.DarkGold,
+    });
     debugStream.write(
       'Embed created! Checking if link in response data exist...'
     );
@@ -118,7 +118,6 @@ const command: CommandType = {
       debugStream.write('Embed set! Sending follow up message...');
       await interaction.followUp({
         embeds: [embedMessage],
-        ephemeral: true,
       });
       debugStream.write('Message sent!');
     }

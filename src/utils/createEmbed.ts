@@ -1,23 +1,25 @@
-import { EmbedBuilder, EmbedData, APIEmbed, Client } from 'discord.js';
-import config from '../../config.json' assert { type: 'json' };
+import { EmbedBuilder, APIEmbed } from 'discord.js';
+import config from '#config' assert { type: 'json' };
+import { client } from '../index.js';
 
-//TODO: add icon & remove branding if premium
-
-export default function (data?: EmbedData | APIEmbed, client?: Client) {
+export default function (data?: APIEmbed) {
   const { appMotto } = config;
 
   return new EmbedBuilder({
     author: {
       name: 'Powered by BotBuilder',
       url: 'https://github.com/SanukaE/BotBuilder',
-      //iconURL: ""
+      icon_url: 'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp',
+    },
+
+    footer: {
+      text: appMotto || 'Your Free, Open-Source, All-In-One Discord Companion',
+      icon_url: appMotto
+        ? client.user?.displayAvatarURL() ||
+          'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp'
+        : 'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp',
     },
 
     ...data,
-
-    footer: {
-      text: appMotto || 'BotBuilder, the future of Discord Bots.',
-      iconURL: appMotto ? client?.user?.displayAvatarURL() : '',
-    },
   });
 }

@@ -1,5 +1,5 @@
 import CommandType from '#types/CommandType.js';
-import dbPool from '#utils/dbPool.js';
+import MySQL from '#libs/MySQL.js';
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord.js';
 import { RowDataPacket } from 'mysql2';
 
@@ -17,13 +17,13 @@ const command: CommandType = {
   ],
   permissions: [PermissionFlagsBits.ModerateMembers],
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Getting data from interaction...');
     const userID = interaction.options.getUser('user')!.id;
     debugStream.write(`userID: ${userID}`);
 
     debugStream.write('Getting data from db...');
-    const [rows] = await dbPool.query<RowDataPacket[]>(
+    const [rows] = await MySQL.query<RowDataPacket[]>(
       'SELECT keyStatus, statusNote FROM api_keys WHERE userID = ?',
       [userID]
     );
@@ -45,7 +45,6 @@ const command: CommandType = {
         content: `${
           keyStatus === 'ACTIVE' ? '✔' : '❌'
         } Status: \`${keyStatus}\`\n📝 Status Note: \`${statusNote || 'N/A'}\``,
-        ephemeral: true,
       });
     }
 

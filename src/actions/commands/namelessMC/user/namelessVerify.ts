@@ -1,28 +1,27 @@
 import { ApplicationCommandOptionType } from 'discord.js';
 import CommandType from '#types/CommandType.js';
-import 'dotenv/config';
 
 const command: CommandType = {
   name: 'nameless-verify',
   description: 'Verify your discord account to the website.',
   options: [
     {
-      name: 'code',
+      name: 'token',
       description: 'Verification code',
       type: ApplicationCommandOptionType.String,
       required: true,
     },
   ],
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Getting values from command...');
-    const verificationCode = interaction.options.getString('code');
-    debugStream.write(`verificationCode: ${verificationCode}`);
+    const verificationToken = interaction.options.getString('token');
+    debugStream.write(`verificationToken: ${verificationToken}`);
 
     debugStream.write('Creating data object...');
     const data = {
       integration: 'Discord',
-      code: verificationCode,
+      code: verificationToken,
       identifier: interaction.user.id,
       username: interaction.user.username,
     };
@@ -43,14 +42,17 @@ const command: CommandType = {
     const responseData = await response.json();
     debugStream.write('responseData received! Checking for any errors...');
 
-    if (!response.ok || responseData.error) {
+    if (responseData.error) {
       debugStream.write('Error found!');
-      throw new Error(responseData.error || 'Failed to verify.');
+      throw new Error(
+        `Failed to fetch from NamelessMC. Error: ${responseData.error}, ${
+          responseData.message ? 'Message :' + responseData.message : ''
+        }, ${responseData.meta ? 'Meta :' + responseData.meta : ''}`
+      );
     } else debugStream.write('No errors found! Sending follow up message...');
 
     await interaction.followUp({
       content: 'Successfully verified.',
-      ephemeral: true,
     });
     debugStream.write('Message sent!');
   },

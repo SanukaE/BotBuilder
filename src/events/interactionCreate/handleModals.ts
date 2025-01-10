@@ -1,5 +1,5 @@
 import { Client, Interaction, ModalSubmitInteraction } from 'discord.js';
-import config from '../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import { getActions, ActionTypes } from '#utils/getActions.js';
 import ModalType from '#types/ModalType.js';
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';
@@ -7,6 +7,8 @@ import getErrorSolution from '#utils/getErrorSolution.js';
 
 export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isModalSubmit()) return;
+  if (interaction.customId.endsWith('collector')) return;
+
   const { developmentGuildID, isMaintenanceEnabled } = config;
 
   await interaction.deferReply({ ephemeral: true });
@@ -19,7 +21,7 @@ export default async function (client: Client, interaction: Interaction) {
   const modals = (await getActions(ActionTypes.Modals)) as ModalType[];
 
   const modal = modals.find((modal) =>
-    modal.customID.startsWith(interaction.customId)
+    interaction.customId.startsWith(modal.customID)
   );
 
   if (!modal) {
@@ -68,8 +70,10 @@ export default async function (client: Client, interaction: Interaction) {
   const modalInteraction = interaction as ModalSubmitInteraction;
 
   try {
-    await modal.script!(client, modalInteraction, debugLogger);
+    await modal.script(client, modalInteraction, debugLogger);
+    debugLogger.close();
   } catch (error) {
+    debugLogger.close();
     await interaction.editReply(
       `There was an error while running the modal:\`\`\`${error}\`\`\``
     );
@@ -79,7 +83,7 @@ export default async function (client: Client, interaction: Interaction) {
       LoggerOptions.Error,
       true
     );
-    errorLogger.write(error as string);
+    errorLogger.write(error);
     errorLogger.close();
 
     const solution = await getErrorSolution(modal, ActionTypes.Modals);
@@ -96,7 +100,5 @@ export default async function (client: Client, interaction: Interaction) {
         ephemeral: true,
       });
     }
-  } finally {
-    debugLogger.close();
   }
 }

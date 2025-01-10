@@ -8,7 +8,7 @@ type ModalType = {
   enableDebug?: boolean;
   isDisabled?: boolean;
   isGuildOnly?: boolean;
-  script?: (
+  script: (
     client: Client,
     interaction: ModalSubmitInteraction,
     debugStream: LoggerType

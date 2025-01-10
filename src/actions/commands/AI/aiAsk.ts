@@ -1,10 +1,10 @@
 import CommandType from '#types/CommandType.js';
 import { ApplicationCommandOptionType } from 'discord.js';
-import initializeAI from '#utils/initializeAI.js';
+import Gemini from '#libs/Gemini.js';
 import { GenerateContentResult } from '@google/generative-ai';
 
 const command: CommandType = {
-  name: 'misc-ask',
+  name: 'ai-ask',
   description: 'Ask the AI a question',
   enableDebug: true,
   isDevOnly: true,
@@ -24,7 +24,7 @@ const command: CommandType = {
 
   async script(client, interaction, debugStream) {
     debugStream.write('Initializing AI...');
-    const { enabled, model, fileManager } = initializeAI();
+    const { enabled, model, fileManager } = Gemini();
 
     if (!enabled) {
       debugStream.write('AI is not enabled! Sending reply...');

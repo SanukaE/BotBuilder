@@ -9,7 +9,7 @@ export enum LoggerOptions {
 }
 
 export type LoggerType = {
-  write: (message: string) => void;
+  write: (message: any) => void;
   close: () => void;
 };
 
@@ -31,7 +31,13 @@ export function createLogger(
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
-  const fileDir = path.join(__dirname, '..', '..', 'actionLogs', logger + 's');
+  const fileDir = path.join(
+    __dirname,
+    '..',
+    '..',
+    'ApplicationLogs',
+    logger + 's'
+  );
 
   if (!fs.existsSync(fileDir)) fs.mkdirSync(fileDir, { recursive: true });
 
@@ -43,7 +49,7 @@ export function createLogger(
   fileWriteStream.write(`[${timeStamp}] START OF ${logger.toUpperCase()}\n`);
 
   return {
-    write: (message: string) => {
+    write: (message: any) => {
       if (logger !== 'warning') {
         fileWriteStream.write(
           (logger === 'debug' ? `[${timeStamp}] ` : '') + `${message}\n`
@@ -53,7 +59,7 @@ export function createLogger(
       }
     },
     close: () => {
-      fileWriteStream.end(`[${timeStamp}] END OF ${logger.toUpperCase()}`);
+      fileWriteStream.end(`[${timeStamp}] END OF ${logger.toUpperCase()}\n`);
     },
   };
 }

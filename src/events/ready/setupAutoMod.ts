@@ -4,12 +4,11 @@ import {
   AutoModerationRuleTriggerType,
   Client,
 } from 'discord.js';
-import config from '../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';
-import 'dotenv/config';
 
 export default async function (client: Client) {
-  const { productionGuildID } = config;
+  const { productionGuildID, autoModEnvProtection } = config;
 
   if (!productionGuildID) {
     const warningLogger = createLogger(
@@ -35,7 +34,7 @@ export default async function (client: Client) {
       (rule) => rule.name === 'BotBuilder Env Variables'
     );
 
-    if (!existingRule) {
+    if (!existingRule && autoModEnvProtection) {
       await guildAutoModRules.create({
         name: 'BotBuilder Env Variables',
         enabled: true,
@@ -50,27 +49,27 @@ export default async function (client: Client) {
         triggerType: AutoModerationRuleTriggerType.Keyword,
         triggerMetadata: {
           keywordFilter: [
-            `*${process.env.MYSQL_USER}*`,
             `*${process.env.MYSQL_PASSWORD}*`,
             `*${process.env.NAMELESSMC_API_KEY}*`,
+            `*${process.env.REDIS_PASSWORD}*`,
             `*${process.env.GEMINI_API_KEY}*`,
           ],
         },
       });
-    } else
-      await existingRule.setKeywordFilter([
-        `*${process.env.MYSQL_USER}*`,
+    } else if (autoModEnvProtection) {
+      await existingRule?.setKeywordFilter([
         `*${process.env.MYSQL_PASSWORD}*`,
         `*${process.env.NAMELESSMC_API_KEY}*`,
+        `*${process.env.REDIS_PASSWORD}*`,
         `*${process.env.GEMINI_API_KEY}*`,
       ]);
-  } catch (error) {
-    const errorLogger = createLogger(
-      `setupAutoMod-readyEvent`,
-      LoggerOptions.Error,
-      true
-    );
-    errorLogger.write(error as string);
-    errorLogger.close();
+    }
+
+    if (!autoModEnvProtection && existingRule)
+      await existingRule.delete(
+        'AutoMod Env Protection is disabled in config.'
+      );
+  } catch (error: any) {
+    console.error(`[Error] ${error.message || error}`);
   }
 }

@@ -7,7 +7,6 @@ const command: CommandType = {
   async script(client, interaction) {
     await interaction.followUp({
       content: `Pong! ${client.ws.ping}ms.`,
-      ephemeral: true,
     });
   },
 };

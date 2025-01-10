@@ -16,7 +16,6 @@ export default async function (client: Client) {
 
     return slashCommands;
   } catch (error) {
-    console.log('Error retrieving slash commands:', error);
     throw error;
   }
 }

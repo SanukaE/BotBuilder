@@ -1,5 +1,5 @@
 import { Client, Interaction, ButtonInteraction } from 'discord.js';
-import config from '../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import { getActions, ActionTypes } from '#utils/getActions.js';
 import ButtonType from '#types/ButtonType.js';
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';
@@ -7,6 +7,8 @@ import getErrorSolution from '#utils/getErrorSolution.js';
 
 export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isButton()) return;
+  if (interaction.customId.endsWith('collector')) return;
+
   const { developmentGuildID, isMaintenanceEnabled } = config;
 
   await interaction.deferReply({ ephemeral: true });
@@ -19,7 +21,7 @@ export default async function (client: Client, interaction: Interaction) {
   const buttons = (await getActions(ActionTypes.Buttons)) as ButtonType[];
 
   const button = buttons.find((button) =>
-    button.customID.startsWith(interaction.customId)
+    interaction.customId.startsWith(button.customID)
   );
 
   if (!button) {
@@ -68,8 +70,10 @@ export default async function (client: Client, interaction: Interaction) {
   const buttonInteraction = interaction as ButtonInteraction;
 
   try {
-    await button.script!(client, buttonInteraction, debugLogger);
+    await button.script(client, buttonInteraction, debugLogger);
+    debugLogger.close();
   } catch (error) {
+    debugLogger.close();
     await interaction.editReply(
       `There was an error while running the button:\`\`\`${error}\`\`\``
     );
@@ -79,7 +83,7 @@ export default async function (client: Client, interaction: Interaction) {
       LoggerOptions.Error,
       true
     );
-    errorLogger.write(error as string);
+    errorLogger.write(error);
     errorLogger.close();
 
     const solution = await getErrorSolution(button, ActionTypes.Buttons);
@@ -96,7 +100,5 @@ export default async function (client: Client, interaction: Interaction) {
         ephemeral: true,
       });
     }
-  } finally {
-    debugLogger.close();
   }
 }

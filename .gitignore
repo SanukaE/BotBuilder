@@ -1,6 +1,7 @@
 #Production
 build
 node_modules
+ApplicationLogs
 
 #Environment Variables
 .env

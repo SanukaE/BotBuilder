@@ -12,8 +12,7 @@ import {
   GuildAuditLogsTargetType,
   User,
 } from 'discord.js';
-import config from '../../../config.json' assert { type: 'json' };
-import { createLogger, LoggerOptions } from '#utils/createLogger.js';
+import config from '#config' assert { type: 'json' };
 
 export default async function (
   client: Client,
@@ -42,22 +41,19 @@ export default async function (
   if (targetUser.bot) return;
   const { punishmentAppealLink } = config;
 
-  const embedMessage = createEmbed(
-    {
-      color:
-        action === AuditLogEvent.MemberBanAdd ||
-        action === AuditLogEvent.MemberKick
-          ? Colors.Red
-          : Colors.Green,
-      title:
-        action === AuditLogEvent.MemberBanAdd ||
-        action === AuditLogEvent.MemberKick
-          ? 'Punishment Notice'
-          : 'Punishment Notice Revoked',
-      thumbnail: { url: guild.iconURL() || '' },
-    },
-    client
-  );
+  const embedMessage = createEmbed({
+    color:
+      action === AuditLogEvent.MemberBanAdd ||
+      action === AuditLogEvent.MemberKick
+        ? Colors.Red
+        : Colors.Green,
+    title:
+      action === AuditLogEvent.MemberBanAdd ||
+      action === AuditLogEvent.MemberKick
+        ? 'Punishment Notice'
+        : 'Punishment Notice Revoked',
+    thumbnail: { url: guild.iconURL() || '' },
+  });
 
   if (
     action === AuditLogEvent.MemberBanAdd ||
@@ -97,12 +93,6 @@ export default async function (
   try {
     await targetUser.send({ embeds: [embedMessage], components: [actionRow] });
   } catch (error) {
-    const errorLogger = createLogger(
-      `notifyPunishment-guildAuditLogEntryCreateEvent`,
-      LoggerOptions.Error,
-      true
-    );
-    errorLogger.write(error as string);
-    errorLogger.close();
+    null;
   }
 }

@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
-import { createLogger, LoggerOptions } from './createLogger.js';
+import { createLogger, LoggerOptions } from '#utils/createLogger.js';
 import config from '../../config.json' assert { type: 'json' };
 import 'dotenv/config';
 
@@ -10,7 +10,7 @@ export default function () {
 
   if (!geminiAPIKey || (disabledCategories as string[]).includes('AI')) {
     const warningLogger = createLogger(
-      `initializeAI-util`,
+      `Gemini-libs`,
       LoggerOptions.Warning,
       true
     );

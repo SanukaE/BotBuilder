@@ -8,7 +8,7 @@ type ButtonType = {
   enableDebug?: boolean;
   isDisabled?: boolean;
   isGuildOnly?: boolean;
-  script?: (
+  script: (
     client: Client,
     interaction: ButtonInteraction,
     debugStream: LoggerType

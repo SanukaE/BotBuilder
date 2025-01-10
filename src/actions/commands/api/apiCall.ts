@@ -6,9 +6,9 @@ import {
   Colors,
 } from 'discord.js';
 import CommandType from '#types/CommandType.js';
-import config from '../../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import createEmbed from '#utils/createEmbed.js';
-import dbPool from '#utils/dbPool.js';
+import MySQL from '#libs/MySQL.js';
 import { RowDataPacket } from 'mysql2';
 import generateAPIKey from '#utils/generateAPIKey.js';
 import { ActionTypes, getActions } from '#utils/getActions.js';
@@ -35,7 +35,7 @@ const command: CommandType = {
     },
   ],
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Getting data from interaction...');
     const endpoint = interaction.options.getString('endpoint')!;
     const value = interaction.options.getString('value');
@@ -47,7 +47,7 @@ const command: CommandType = {
     debugStream.write(`webServerIP: ${webServerIP}`);
     debugStream.write(`webServerPort: ${webServerPort}`);
 
-    const [rows] = await dbPool.query<RowDataPacket[]>(
+    const [rows] = await MySQL.query<RowDataPacket[]>(
       'SELECT * FROM api_keys WHERE userID = ?',
       [interaction.user.id]
     );
@@ -59,10 +59,10 @@ const command: CommandType = {
       usersAPIKey = await generateAPIKey();
 
       debugStream.write('Inserting API key into database...');
-      await dbPool.query(
-        'INSERT INTO api_keys (userID, apiKey) VALUES (?, ?)',
-        [interaction.user.id, usersAPIKey]
-      );
+      await MySQL.query('INSERT INTO api_keys (userID, apiKey) VALUES (?, ?)', [
+        interaction.user.id,
+        usersAPIKey,
+      ]);
     } else {
       const userData = rows[0];
 
@@ -133,14 +133,13 @@ const command: CommandType = {
     const embedMessage = createEmbed({
       color: Colors.Green,
       title: 'API Response',
-      description: `\`\`\`JSON\n${JSON.stringify(data)}\`\`\``,
-      thumbnail: { url: client.user?.displayAvatarURL() || '' },
+      description: `\`\`\`JSON\n${data}\`\`\``,
+      thumbnail: { url: 'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp' },
     });
 
     await interaction.followUp({
       embeds: [embedMessage],
       components: [row],
-      ephemeral: true,
     });
 
     debugStream.write('Data sent.');

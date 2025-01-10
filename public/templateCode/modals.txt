@@ -2,7 +2,7 @@ import ModalType from '#types/ModalType.js';
 
 const modal: ModalType = {
     customID: 'feedback',
-    isDevOnly: false,
+    isDevOnly: true,
     enableDebug: true,
 
     async script(client, interaction, debugStream) {
@@ -10,7 +10,7 @@ const modal: ModalType = {
         const username = interaction.fields.getTextInputValue('usernameInput');
         const feedback = interaction.fields.getTextInputValue('feedbackInput');
 
-        await interaction.reply({
+        await interaction.followUp({
             content: `Thanks for your feedback!\nUsername: ${username}\nFeedback: ${feedback}`,
             ephemeral: true
         });

@@ -1,5 +1,5 @@
 import { RowDataPacket } from 'mysql2';
-import dbPool from './dbPool.js';
+import MySQL from '#libs/MySQL.js';
 
 export default async function generateAPIKey(maxAttempts = 3) {
   let apiKey = '';
@@ -28,7 +28,7 @@ export default async function generateAPIKey(maxAttempts = 3) {
     }
 
     //check if key is unique
-    const [rows] = await dbPool.query<RowDataPacket[]>(
+    const [rows] = await MySQL.query<RowDataPacket[]>(
       'SELECT apiKey FROM api_keys WHERE apikey = ?',
       [apiKey]
     );

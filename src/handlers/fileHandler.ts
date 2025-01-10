@@ -2,17 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import getAllFiles from '#utils/getAllFiles.js';
-import initializeAI from '#utils/initializeAI.js';
+import Gemini from '#libs/Gemini.js';
 import registerCommands from '../events/ready/registerCommands.js';
 import { registerRoutes } from '../events/ready/startWebServer.js';
 import { Client } from 'discord.js';
 
 export default function (client: Client) {
+  return; //! W.I.P: Could cause crashes if allowed to run at it's current state
+
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
   const actionTypePaths = getAllFiles(
-    path.join(__dirname, '..', '..', '..', 'src', 'actions'),
+    path.join(__dirname, '..', '..', 'src', 'actions'),
     true
   );
 
@@ -93,7 +95,7 @@ async function handleFileChange(
   )
     return;
 
-  const { enabled, model, fileManager } = initializeAI();
+  const { enabled, model, fileManager } = Gemini();
   if (!enabled) return;
 
   const problemRegex = /\/\*([\s\S]*?)\*\//g;
@@ -114,7 +116,6 @@ async function handleFileChange(
   }
 
   for (const problem of aiProblems) {
-    //TODO: Send problem to AI
     const actionFileUpload = await fileManager?.uploadFile(filePath, {
       mimeType: 'text/typescript',
       displayName: fileName.split('.')[0],
@@ -174,7 +175,6 @@ function getTemplateCode(fileName: string, actionType: string) {
 
   const pathToTemplate = path.join(
     __dirname,
-    '..',
     '..',
     '..',
     'public',

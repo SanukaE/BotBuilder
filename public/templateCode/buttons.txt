@@ -2,11 +2,11 @@ import ButtonType from '#types/ButtonType.js';
 
 const button: ButtonType = {
   customID: 'example-button',
-  isDevOnly: false,
+  isDevOnly: true,
   enableDebug: true,
     
   async script(client, interaction, debugStream) {
-    await interaction.reply({
+    await interaction.followUp({
         content: "Thanks for clicking me! This is an example button response.",
         ephemeral: true
     });
