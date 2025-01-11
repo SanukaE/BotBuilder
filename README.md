@@ -15,8 +15,6 @@ Your Free, Open-Source, All-In-One Discord Companion
 
 For detailed setup instructions and deployment guides, please refer to our [Installation Wiki](https://github.com/SanukaE/BotBuilder/wiki/Installation). The instructions below are primarily for development purposes.
 
-> **Note**: If you're looking to run BotBuilder on a production server, check the "Running in Production" section in our wiki.
-
 ## 🚀 Prerequisites
 
 Before you begin, ensure you have installed:
@@ -28,20 +26,20 @@ Before you begin, ensure you have installed:
 
 1. Clone the repository:
 
-```bash
+```sh
 git clone https://github.com/SanukaE/BotBuilder
 cd BotBuilder
 ```
 
 2. Install dependencies:
 
-```bash
+```sh
 npm install
 ```
 
 or
 
-```bash
+```sh
 pnpm install
 ```
 
@@ -53,13 +51,13 @@ pnpm install
 
 Start the development server:
 
-```bash
+```sh
 npm run dev
 ```
 
 or
 
-```bash
+```sh
 pnpm dev
 ```
 
@@ -71,14 +69,14 @@ Your bot will be online and the API endpoints will be available at http://localh
 
 Create a production build:
 
-```bash
+```sh
 npm run build
 npm start
 ```
 
 or
 
-```bash
+```sh
 pnpm build
 pnpm start
 ```
@@ -115,6 +113,14 @@ Our Discord server is the best place to:
 - Share your projects
 - Meet other developers
 - Stay updated with latest features
+
+## 👥 Servers That Use BotBuilder
+
+Check out all these amazing servers that uses BotBuilder's help to manage them.
+
+*Be the first server to use BotBuilder.*
+
+> **Note:** To add your server to the list please open a ticket on our [support](https://discord.gg/fpkASGjwYT) server.
 
 ## 📄 License
 
