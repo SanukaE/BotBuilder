@@ -9,7 +9,7 @@
     "start": "node build/index.js"
   },
   "author": "SanukaE",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "type": "module",
   "imports": {
     "#config": "./config.json",
