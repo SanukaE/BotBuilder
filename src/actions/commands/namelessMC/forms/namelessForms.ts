@@ -6,7 +6,6 @@ import { ActionRowBuilder, Colors, StringSelectMenuBuilder } from 'discord.js';
 const command: CommandType = {
   name: 'nameless-forms',
   description: 'Get a list of all forms on the website.',
-  isDisabled: true, //! WIP
 
   async script(_, interaction, debugStream) {
     debugStream.write('Fetching data...');

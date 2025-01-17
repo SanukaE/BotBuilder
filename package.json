@@ -1,6 +1,6 @@
 {
   "name": "botbuilder",
-  "version": "alpha",
+  "version": "v1.0.0-beta",
   "description": "A discord bot setup that has anything a server owner could wish for.",
   "main": "build/index.js",
   "scripts": {

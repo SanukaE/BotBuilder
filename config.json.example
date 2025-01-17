@@ -1,0 +1,15 @@
+{
+  "productionGuildID": "1055384504841285682",
+  "developmentGuildID": "1220680255078010901",
+  "isMaintenanceEnabled": false,
+  "minecraftServerIP": "hypixel.net",
+  "isMinecraftServerBedrock": false,
+  "geminiModel": "gemini-1.5-flash",
+  "disabledCategories": [],
+  "webServerIP": "localhost",
+  "webServerPort": 3000,
+  "appMotto": "Your Free, Open-Source, All-In-One Discord Companion",
+  "appActivity": "🤖 Powered by BotBuilder!",
+  "punishmentAppealLink": "N/A",
+  "autoModEnvProtection": false
+}

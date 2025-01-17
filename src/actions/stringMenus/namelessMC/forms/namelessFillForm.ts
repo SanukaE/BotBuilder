@@ -27,7 +27,7 @@ const stringMenu: StringMenuType = {
     if (redisResult) form = JSON.parse(redisResult);
     else {
       const response = await fetch(
-        process.env.NAMELESSMC_API_URL + `/forms/${formID}`,
+        process.env.NAMELESSMC_API_URL + `/forms/form/${formID}`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
@@ -56,18 +56,30 @@ const stringMenu: StringMenuType = {
 
     debugStream.write('Data collected! Creating embed...');
 
+    const questions = form.fields.filter(
+      (field: any) => field.type !== 5 && field.type !== 4
+    );
+
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
       title: form.title,
       description:
         'You can fill this form either through Discord or our website. To use Discord, your account must be linked first.\n\n' +
         '📝 Options:\n' +
-        '• Discord: Click "Fill form via Discord" (Note: This feature is still a W.I.P)\n' +
+        '• Discord: Click "Fill form via Discord" (Note: Your DM\'s must be open & your discord account must be linked)\n' +
         '• Website: Click "Fill form via website"\n\n' +
-        "⚠️ Important: Your progress won't be saved if you leave the form incomplete.\n\n" +
+        "⚠️ Important: Your progress won't be saved if you leave the form incomplete. (This only apply's only for the website)\n\n" +
         'Good luck! 🍀',
       thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
-      fields: [], //TODO: Display the amount of different question types.
+      fields: [
+        { name: 'Total Questions:', value: questions.length, inline: true },
+
+        {
+          name: 'No of Required Questions:',
+          value: questions.filter((question: any) => question.required).length,
+          inline: true,
+        },
+      ],
     });
 
     debugStream.write('Embed created! Creating buttons...');
@@ -76,8 +88,7 @@ const stringMenu: StringMenuType = {
       customId: `nameless-forms-discord-submit-${formID}`,
       emoji: '💬',
       style: ButtonStyle.Primary,
-      label: 'Fill form via Discord (W.I.P)',
-      disabled: true, //! W.I.P
+      label: 'Fill form via Discord',
     });
 
     const websiteSubmitBtn = new ButtonBuilder({
@@ -95,6 +106,7 @@ const stringMenu: StringMenuType = {
 
     await interaction.followUp({
       embeds: [embedMessage],
+      components: [actionRow],
     });
 
     debugStream.write('Follow up sent!');
