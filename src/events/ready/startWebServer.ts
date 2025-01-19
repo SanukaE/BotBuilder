@@ -1,6 +1,10 @@
 import express, { Request, Response } from 'express';
 import config from '../../../config.json' assert { type: 'json' };
-import { LoggerOptions, createLogger } from '#utils/createLogger.js';
+import {
+  LoggerOptions,
+  createLogger,
+  createWarning,
+} from '#utils/createLogger.js';
 import { fileURLToPath, pathToFileURL } from 'url';
 import path from 'path';
 import { Client } from 'discord.js';
@@ -18,21 +22,13 @@ export default async function (client: Client) {
   const { webServerPort, disabledCategories } = config;
   const missingVariables = checkEnvVariables();
 
-  if (!webServerPort) {
-    const warnLogger = createLogger(
-      'startWebServer-readyEvent',
-      LoggerOptions.Warning,
-      true
+  if (!webServerPort)
+    createWarning(
+      'webServerPort is not set in config.json',
+      'Your operating system will assign an arbitrary unused port',
+      'Please allocated a port for the webServer & set it in config.json',
+      'startWebServer-readyEvent'
     );
-    warnLogger.write('Warning: webServerPort is not set in config.json.');
-    warnLogger.write(
-      'Result: Your operating system will assign an arbitrary unused port.'
-    );
-    warnLogger.write(
-      'Fix: Please allocated a port for the webServer & set it in the config.json file.'
-    );
-    warnLogger.close();
-  }
 
   app.use(async (req, res, next) => {
     if (req.url === '/' || req.url === '/endpoints') {
@@ -128,6 +124,8 @@ export default async function (client: Client) {
   await registerRoutes(client);
 
   app.listen(webServerPort);
+
+  console.log(`[System] API running on port: ${webServerPort}`);
 }
 
 export async function registerRoutes(client: Client) {
@@ -173,6 +171,7 @@ export async function registerRoutes(client: Client) {
 
       try {
         await route.script(req, res, debugStream);
+        debugStream.close();
       } catch (error) {
         debugStream.close();
 
@@ -207,8 +206,6 @@ export async function registerRoutes(client: Client) {
           message: 'An error occurred while processing your request.',
           error: error,
         });
-      } finally {
-        debugStream.close();
       }
     };
 
@@ -230,4 +227,6 @@ export async function registerRoutes(client: Client) {
         break;
     }
   }
+
+  console.log('[System] Updated all API routes');
 }

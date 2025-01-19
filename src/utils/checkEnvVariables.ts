@@ -1,4 +1,4 @@
-import { createLogger, LoggerOptions } from './createLogger.js';
+import { createWarning } from './createLogger.js';
 
 export default function checkEnvVariables() {
   const requiredVariables = [
@@ -21,7 +21,7 @@ export default function checkEnvVariables() {
 
   requiredVariables.forEach((variable) => {
     if (!process.env[variable]) {
-      console.log(`Missing ${variable} from your .env file.`);
+      console.log(`[Error] Missing ${variable} from your .env file`);
       process.exit(1);
     }
   });
@@ -47,23 +47,13 @@ export default function checkEnvVariables() {
     }
   });
 
-  if (missingVariables.length > 0) {
-    const warningLogger = createLogger(
-      'checkEnvVariables-util',
-      LoggerOptions.Warning,
-      true
+  if (missingVariables.length > 0)
+    createWarning(
+      'Missing some environment variables. Please check your .env file',
+      'Certain actions/features will not work as intended & some modules related will be disabled',
+      'Check your .env file and set any missing variables',
+      'checkEnvVariables-util'
     );
-    warningLogger.write(
-      'Warning: Missing some environment variables. Please check your .env file.'
-    );
-    warningLogger.write(
-      'Result: Certain commands will not work as intended & some modules related will be disabled.'
-    );
-    warningLogger.write(
-      'Fix: Check your .env file and set any missing variables.'
-    );
-    warningLogger.close();
-  }
 
   return missingVariables;
 }

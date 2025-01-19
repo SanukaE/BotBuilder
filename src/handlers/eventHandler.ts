@@ -21,4 +21,6 @@ export default function (client: Client) {
       });
     });
   });
+
+  console.log('[System] All events are now handled');
 }

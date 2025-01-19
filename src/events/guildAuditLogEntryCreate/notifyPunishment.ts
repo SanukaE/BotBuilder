@@ -10,7 +10,6 @@ import {
   GuildAuditLogsActionType,
   GuildAuditLogsEntry,
   GuildAuditLogsTargetType,
-  User,
 } from 'discord.js';
 import config from '#config' assert { type: 'json' };
 
