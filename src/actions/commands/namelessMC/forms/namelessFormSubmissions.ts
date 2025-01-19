@@ -168,7 +168,7 @@ const command: CommandType = {
 
     const formFilter = new StringSelectMenuBuilder({
       customId: 'nameless-form-submissions-form-filter-collector',
-      disabled: formsData.length > 1,
+      disabled: formsData.length === 1,
       options: [
         { label: 'All', value: '0' },
         ...formsData.map((form) => ({
@@ -184,7 +184,7 @@ const command: CommandType = {
 
     const statusFilter = new StringSelectMenuBuilder({
       customId: 'nameless-form-submissions-status-filter-collector',
-      disabled: statusData.length > 1,
+      disabled: statusData.length === 1,
       options: [
         { label: 'All', value: '0' },
         ...statusData.map((status) => ({
@@ -200,7 +200,7 @@ const command: CommandType = {
 
     const searchBtn = new ButtonBuilder({
       customId: 'nameless-form-submissions-search-collector',
-      disabled: submissions.length > 1,
+      disabled: submissions.length === 1,
       emoji: '🔍',
       style: ButtonStyle.Success,
       label: 'Search for a submission',
@@ -412,8 +412,12 @@ const command: CommandType = {
 
       const modalResponse = await i.awaitModalSubmit({
         time: 0,
-        filter: (i) => i.customId === 'search-modal',
+        filter: (i) =>
+          i.user.id === interaction.user.id &&
+          i.customId === 'search-modal-collector',
       });
+
+      await modalResponse.deferReply({ ephemeral: true });
 
       const formId = modalResponse.fields.getTextInputValue('formID');
       const userId = modalResponse.fields.getTextInputValue('userID');
@@ -426,7 +430,7 @@ const command: CommandType = {
         return;
       }
 
-      const filteredData = submissions.filter((submission) => {
+      const searchedSubmission = submissions.find((submission) => {
         if (formId && submission.form_id !== parseInt(formId)) return false;
         if (userId && submission.user_id !== parseInt(userId)) return false;
         if (statusId && submission.status_id !== parseInt(statusId))
@@ -436,34 +440,20 @@ const command: CommandType = {
         return true;
       });
 
-      if (filteredData.length === 0) {
+      if (!searchedSubmission) {
         await modalResponse.followUp(
           'No submissions found matching your criteria!'
         );
         return;
       }
 
-      data = filteredData;
-      currentPageIndex = 0;
-
-      const pageData = data[currentPageIndex];
       embedMessage.setTitle(
-        `[\`${pageData.id}\`] ${pageData.data.submitter.username}'s ${pageData.data.form.title}`
+        `[\`${searchedSubmission.id}\`] ${searchedSubmission.data.submitter.username}'s ${searchedSubmission.data.form.title}`
       );
-      embedMessage.setFields(getEmbedFields(pageData.data));
+      embedMessage.setFields(getEmbedFields(searchedSubmission.data));
 
-      previousBtn.setDisabled(true);
-      nextBtn.setDisabled(data.length === 1);
-      pagesBtn.setLabel(`Pages 1 of ${data.length}`);
-
-      await i.update({
+      await modalResponse.followUp({
         embeds: [embedMessage],
-        components: [
-          firstActionRow,
-          secondActionRow,
-          thirdActionRow,
-          forthActionRow,
-        ],
       });
     });
   },
@@ -498,14 +488,17 @@ function getEmbedFields(submissionData: SubmissionDataType) {
     ...submissionData.fields.map((field) => {
       let fileData: any;
 
-      if (field.field_type === 10) fileData = parseDataURI(field.answer);
+      if (field.field_type === 10 && field.answer)
+        fileData = parseDataURI(field.answer);
 
       return {
         name: `❓ ${formatFieldName(field.question)}:`,
         value:
           field.field_type === 10
-            ? `[${fileData.fileName}](${fileData.url})`
-            : field.answer,
+            ? fileData
+              ? `[${fileData.fileName}](${fileData.url})`
+              : 'No answer'
+            : `${field.answer || 'No answer'}`,
         inline: true,
       };
     }),
