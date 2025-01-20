@@ -1,7 +1,7 @@
 import Redis from '#libs/Redis.js';
 import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
-import getEmbedPageData from '#utils/getEmbedPageData.js';
+import { createPageButtons, getPageData } from '#utils/getPageData.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -77,47 +77,21 @@ const command: CommandType = {
 
     debugStream.write('Embed created! Creating components...');
 
-    const nextBtn = new ButtonBuilder({
-      customId: 'mcstats-players-next-collector',
-      emoji: '➡',
-      style: ButtonStyle.Primary,
-      disabled: players.length === 1,
-    });
+    const buttonIds = [
+      'mcstats-players-previous-end-collector',
+      'mcstats-players-previous-collector',
+      'mcstats-players-pages-collector',
+      'mcstats-players-next-collector',
+      'mcstats-players-next-end-collector',
+    ];
 
-    const pagesBtn = new ButtonBuilder({
-      customId: 'mcstats-players-pages',
-      disabled: true,
-      label: `Page 1 of ${players.length}`,
-      style: ButtonStyle.Secondary,
-    });
-
-    const previousBtn = new ButtonBuilder({
-      customId: 'mcstats-players-previous-collector',
-      emoji: '⬅',
-      style: ButtonStyle.Primary,
-      disabled: true,
-    });
-
-    const actionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [previousBtn, pagesBtn, nextBtn],
-    });
-
-    const onlyOnePlayerBtn = new ButtonBuilder({
-      customId: 'mcstats-players-only-one',
-      disabled: true,
-      label: `Only one player is registered`,
-      style: ButtonStyle.Secondary,
-    });
-
-    const onlyOnePlayerBtnRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [onlyOnePlayerBtn],
-    });
+    const actionRow = createPageButtons(buttonIds, players);
 
     debugStream.write('Components created! Sending follow up...');
 
     const followUpMsg = await interaction.followUp({
       embeds: [embedMessage],
-      components: players.length > 1 ? [actionRow] : [onlyOnePlayerBtnRow],
+      components: [actionRow],
     });
 
     debugStream.write('Follow up sent!');
@@ -134,15 +108,10 @@ const command: CommandType = {
     let pageIndex = 0;
 
     collector.on('collect', async (i) => {
-      const result = getEmbedPageData(
-        players,
-        pageIndex,
-        i.customId.includes('next'),
-        actionRow
-      );
+      const result = getPageData(players, pageIndex, i.customId, actionRow);
 
       pageIndex = result.currentPageIndex;
-      const player = result.pageData;
+      const player = result.data;
 
       embedMessage.setTitle(player.username);
       embedMessage.setDescription(`UUID:\`\`\`${player.uuid}\`\`\``);

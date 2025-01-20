@@ -2,7 +2,7 @@ import Redis from '#libs/Redis.js';
 import StringMenuType from '#types/StringMenuType.js';
 import createEmbed from '#utils/createEmbed.js';
 import formatFieldName from '#utils/formatFieldName.js';
-import getEmbedPageData from '#utils/getEmbedPageData.js';
+import { createPageButtons, getPageData } from '#utils/getPageData.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -66,26 +66,13 @@ const stringMenu: StringMenuType = {
 
     debugStream.write('Data collected! Creating buttons...');
 
-    const previousBtn = new ButtonBuilder({
-      customId: 'nameless-notification-previous-collector',
-      style: ButtonStyle.Primary,
-      emoji: '⬅️',
-      disabled: true,
-    });
-
-    const pagesBtn = new ButtonBuilder({
-      customId: 'nameless-notification-pages',
-      disabled: true,
-      label: `Page 1 of ${notifications.length}`,
-      style: ButtonStyle.Secondary,
-    });
-
-    const nextBtn = new ButtonBuilder({
-      customId: 'nameless-notification-next-collector',
-      style: ButtonStyle.Primary,
-      emoji: '➡️',
-      disabled: notifications.length === 1,
-    });
+    const buttonIds = [
+      'nameless-notification-previous-end-collector',
+      'nameless-notification-previous-collector',
+      'nameless-notification-pages-collector',
+      'nameless-notification-next-collector',
+      'nameless-notification-next-end-collector',
+    ];
 
     const urlBtn = new ButtonBuilder({
       label: 'Open URL',
@@ -94,8 +81,9 @@ const stringMenu: StringMenuType = {
       url: notifications[0].url,
     });
 
-    const actionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [previousBtn, pagesBtn, nextBtn, urlBtn],
+    const firstActionRow = createPageButtons(buttonIds, notifications);
+    const secondActionRow = new ActionRowBuilder<ButtonBuilder>({
+      components: [urlBtn],
     });
 
     debugStream.write('Buttons created! Creating notification embed...');
@@ -116,7 +104,7 @@ const stringMenu: StringMenuType = {
 
     const followUpMsg = await interaction.followUp({
       embeds: [embedMessage],
-      components: [actionRow],
+      components: [firstActionRow, secondActionRow],
     });
 
     debugStream.write('Follow up sent! Creating component collector...');
@@ -129,16 +117,15 @@ const stringMenu: StringMenuType = {
     let currentPageIndex = 0;
 
     componentCollector.on('collect', async (i) => {
-      const result = getEmbedPageData(
+      const result = getPageData(
         notifications,
         currentPageIndex,
-        i.customId.includes('next'),
-        actionRow
+        i.customId,
+        firstActionRow
       );
 
       currentPageIndex = result.currentPageIndex;
-
-      const data = result.pageData;
+      const data = result.data;
 
       embedMessage.setTitle(
         `[${formatFieldName(data.type)}] ${data.message_short || ''}`
@@ -152,7 +139,7 @@ const stringMenu: StringMenuType = {
 
       await i.update({
         embeds: [embedMessage],
-        components: [actionRow],
+        components: [firstActionRow, secondActionRow],
       });
     });
 

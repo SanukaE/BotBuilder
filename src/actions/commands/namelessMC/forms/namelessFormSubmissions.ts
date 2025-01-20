@@ -3,7 +3,7 @@ import { NamelessMCFormFields } from '#utils/enums.js';
 import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
 import formatFieldName from '#utils/formatFieldName.js';
-import getEmbedPageData from '#utils/getEmbedPageData.js';
+import { createPageButtons, getPageData } from '#utils/getPageData.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -145,44 +145,14 @@ const command: CommandType = {
     debugStream.write('Embed created! Creating components...');
 
     const pageBtnIDs = [
+      'nameless-form-submissions-previous-end-collector',
       'nameless-form-submissions-previous-collector',
+      'nameless-form-submissions-pages-collector',
       'nameless-form-submissions-next-collector',
+      'nameless-form-submissions-next-end-collector',
     ];
 
-    const previousBtn = new ButtonBuilder({
-      customId: pageBtnIDs[0],
-      disabled: true,
-      emoji: '⬅',
-      style: ButtonStyle.Primary,
-    });
-
-    const nextBtn = new ButtonBuilder({
-      customId: pageBtnIDs[1],
-      disabled: submissions.length === 1,
-      emoji: '➡',
-      style: ButtonStyle.Primary,
-    });
-
-    const pagesBtn = new ButtonBuilder({
-      customId: 'nameless-form-submissions-pages-collector',
-      disabled: true,
-      style: ButtonStyle.Secondary,
-      label: `Pages 1 of ${submissions.length}`,
-    });
-
-    const onlyOneSubmissionBtn = new ButtonBuilder({
-      customId: 'nameless-submission-only-one',
-      disabled: true,
-      style: ButtonStyle.Secondary,
-      label: 'This is the only submission recorded',
-    });
-
-    const firstActionRow = new ActionRowBuilder<ButtonBuilder>({
-      components:
-        submissions.length === 1
-          ? [onlyOneSubmissionBtn]
-          : [previousBtn, pagesBtn, nextBtn],
-    });
+    const firstActionRow = createPageButtons(pageBtnIDs, submissions);
 
     const formFilter = new StringSelectMenuBuilder({
       customId: 'nameless-form-submissions-form-filter-collector',
@@ -246,6 +216,9 @@ const command: CommandType = {
 
     if (submissions.length === 1) return;
 
+    const [firstPageBtn, previousBtn, pagesBtn, nextBtn, lastPageBtn] =
+      firstActionRow.components;
+
     debugStream.write('Creating collectors...');
 
     let data = submissions;
@@ -258,15 +231,15 @@ const command: CommandType = {
     });
 
     pagesCollector.on('collect', async (i) => {
-      const result = getEmbedPageData(
+      const result = getPageData(
         data,
         currentPageIndex,
-        i.customId.split('-').includes('next'),
+        i.customId,
         firstActionRow
       );
-      currentPageIndex = result.currentPageIndex;
 
-      const pageData = result.pageData as SubmissionType;
+      currentPageIndex = result.currentPageIndex;
+      const pageData = result.data as SubmissionType;
 
       embedMessage.setTitle(
         `[\`${pageData.id}\`] ${pageData.data.submitter.username}'s ${pageData.data.form.title}`
@@ -291,6 +264,16 @@ const command: CommandType = {
 
     let formID = 0;
     let statusID = 0;
+
+    const updatePageBtn = () => {
+      firstPageBtn.setDisabled(true);
+      previousBtn.setDisabled(true);
+
+      pagesBtn.setLabel(`Page 1 of ${data.length}`);
+
+      nextBtn.setDisabled(data.length === 1);
+      lastPageBtn.setDisabled(data.length === 1);
+    };
 
     const formFilterCollector = followUpMsg.createMessageComponentCollector({
       componentType: ComponentType.StringSelect,
@@ -322,9 +305,7 @@ const command: CommandType = {
           : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png'
       );
 
-      previousBtn.setDisabled(true);
-      nextBtn.setDisabled(data.length === 1);
-      pagesBtn.setLabel(`Pages 1 of ${data.length}`);
+      updatePageBtn();
 
       await i.update({
         embeds: [embedMessage],
@@ -365,9 +346,7 @@ const command: CommandType = {
           : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png'
       );
 
-      previousBtn.setDisabled(true);
-      nextBtn.setDisabled(data.length === 1);
-      pagesBtn.setLabel(`Pages 1 of ${data.length}`);
+      updatePageBtn();
 
       await i.update({
         embeds: [embedMessage],

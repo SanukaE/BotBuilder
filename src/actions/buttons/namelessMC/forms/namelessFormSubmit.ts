@@ -2,7 +2,7 @@ import { NamelessMCFormFields } from '#utils/enums.js';
 import Redis from '#libs/Redis.js';
 import ButtonType from '#types/ButtonType.js';
 import createEmbed from '#utils/createEmbed.js';
-import getEmbedPageData from '#utils/getEmbedPageData.js';
+import { createPageButtons, getPageData } from '#utils/getPageData.js';
 import {
   ActionRowBuilder,
   Attachment,
@@ -193,34 +193,14 @@ const button: ButtonType = {
     debugStream.write('Embed created! Creating components...');
 
     const pagesButtonIds = [
+      `nameless-form-${form.id}-discord-submit-previous-end-collector`,
       `nameless-form-${form.id}-discord-submit-previous-collector`,
+      `nameless-form-${form.id}-discord-submit-pages-collector`,
       `nameless-form-${form.id}-discord-submit-next-collector`,
+      `nameless-form-${form.id}-discord-submit-next-end-collector`,
     ];
 
-    const previousBtn = new ButtonBuilder({
-      customId: pagesButtonIds[0],
-      disabled: true,
-      emoji: '⬅',
-      style: ButtonStyle.Primary,
-    });
-
-    const pagesBtn = new ButtonBuilder({
-      customId: `nameless-form-${form.id}-discord-submit-pages-collector`,
-      disabled: true,
-      style: ButtonStyle.Secondary,
-      label: `Pages 1 of ${questions.length}`,
-    });
-
-    const nextBtn = new ButtonBuilder({
-      customId: pagesButtonIds[1],
-      disabled: questions.length === 1,
-      emoji: '➡',
-      style: ButtonStyle.Primary,
-    });
-
-    const firstActionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [previousBtn, pagesBtn, nextBtn],
-    });
+    const firstActionRow = createPageButtons(pagesButtonIds, questions);
 
     const submitFormBtn = new ButtonBuilder({
       customId: `discord-form-submit-${form.id}-collector`,
@@ -264,15 +244,15 @@ const button: ButtonType = {
     let questionData: QuestionType;
 
     pagesCollector.on('collect', async (i) => {
-      const result = getEmbedPageData(
+      const result = getPageData(
         questions,
         currentPageIndex,
-        i.customId.split('-').includes('next'),
+        i.customId,
         firstActionRow
       );
-      questionData = result.pageData;
 
       currentPageIndex = result.currentPageIndex;
+      questionData = result.data;
 
       embedMessage.setTitle(questionData.field.name);
       embedMessage.setDescription(

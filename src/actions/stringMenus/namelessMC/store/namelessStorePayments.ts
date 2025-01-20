@@ -1,16 +1,9 @@
 import Redis from '#libs/Redis.js';
 import StringMenuType from '#types/StringMenuType.js';
 import createEmbed from '#utils/createEmbed.js';
-import getEmbedPageData from '#utils/getEmbedPageData.js';
+import { createPageButtons, getPageData } from '#utils/getPageData.js';
 import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  Colors,
-  ComponentType,
-  PermissionFlagsBits,
-} from 'discord.js';
+import { Colors, ComponentType, PermissionFlagsBits } from 'discord.js';
 
 const stringMenu: StringMenuType = {
   customID: 'nameless-store-payments',
@@ -84,30 +77,15 @@ const stringMenu: StringMenuType = {
 
     debugStream.write('Embed created! Creating buttons...');
 
-    const previousButton = new ButtonBuilder({
-      customId: 'nameless-store-payments-previous-collector',
-      style: ButtonStyle.Primary,
-      disabled: true,
-      emoji: '⬅️',
-    });
+    const buttonIds = [
+      'nameless-store-payments-previous-end-collector',
+      'nameless-store-payments-previous-collector',
+      'nameless-store-payments-pages-collector',
+      'nameless-store-payments-next-collector',
+      'nameless-store-payments-next-end-collector',
+    ];
 
-    const pagesButton = new ButtonBuilder({
-      customId: 'nameless-store-payments-pages-collector',
-      style: ButtonStyle.Secondary,
-      disabled: true,
-      label: `Pages 1 of ${storePayments.length}`,
-    });
-
-    const nextButton = new ButtonBuilder({
-      customId: 'nameless-store-payments-next-collector',
-      style: ButtonStyle.Primary,
-      disabled: storePayments.length == 1,
-      emoji: '➡️',
-    });
-
-    const actionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [previousButton, pagesButton, nextButton],
-    });
+    const actionRow = createPageButtons(buttonIds, storePayments);
 
     debugStream.write('Buttons created! Sending follow up...');
 
@@ -126,16 +104,15 @@ const stringMenu: StringMenuType = {
     let currentPageIndex = 0;
 
     collector.on('collect', async (i) => {
-      const result = getEmbedPageData(
+      const result = getPageData(
         storePayments,
         currentPageIndex,
-        i.customId.includes('next'),
+        i.customId,
         actionRow
       );
 
       currentPageIndex = result.currentPageIndex;
-
-      const newPaymentData = result.pageData;
+      const newPaymentData = result.data;
 
       const newEmbedMessage = await getPaymentEmbed(newPaymentData);
 
