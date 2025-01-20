@@ -1,6 +1,8 @@
 import Redis from '#libs/Redis.js';
 import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
+import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
+import { createPageButtons, getPageData } from '#utils/getPageData.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -53,55 +55,69 @@ const command: CommandType = {
       });
     }
 
-    let pages = Math.round(users.length / 10);
+    if (!users.length) {
+      debugStream.write('No users recorded! Sending reply...');
+      await interaction.followUp('No users are registered on the website.');
+      debugStream.write('Reply sent!');
+      return;
+    }
 
     debugStream.write('Data collected! Creating embed...');
 
+    const firstUser = users[0];
+
     const embedMessage = createEmbed({
-      title: 'NamelessMC Users',
+      title: firstUser.username,
       color: Colors.DarkGold,
-      thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
-      fields: getFields(users.slice(0, 10)),
+      thumbnail: {
+        url: await getNamelessUserAvatar(firstUser.id),
+      },
+      fields: getFields(firstUser),
     });
 
     debugStream.write('Embed created! Creating components...');
 
-    const previousButton = new ButtonBuilder({
-      customId: 'nameless-users-previous-collector',
-      style: ButtonStyle.Primary,
-      disabled: true,
-      emoji: '⬅️',
-    });
-
-    const pagesButton = new ButtonBuilder({
-      customId: 'nameless-users-pages-collector',
-      disabled: true,
-      label: `Pages 1 of ${pages}`,
-      style: ButtonStyle.Secondary,
-    });
-
-    const nextButton = new ButtonBuilder({
-      customId: 'nameless-users-next-collector',
-      style: ButtonStyle.Primary,
-      emoji: '➡️',
-      disabled: pages === 1,
-    });
+    const buttonIds = [
+      'nameless-users-previous-end-collector',
+      'nameless-users-previous-collector',
+      'nameless-users-pages-collector',
+      'nameless-users-next-collector',
+      'nameless-users-next-end-collector',
+    ];
 
     const selectMenu = new StringSelectMenuBuilder({
       customId: 'nameless-users-filter-collector',
       options: [
-        { label: 'All', value: 'all' },
-        { label: 'Banned', value: 'banned' },
-        { label: 'Verified', value: 'verified' },
-        { label: 'Discord Linked', value: 'discord_linked' },
+        {
+          label: 'All',
+          value: 'all',
+          emoji: '👥',
+          description: 'Gets a list of all the users.',
+        },
+        {
+          label: 'Banned',
+          value: 'banned',
+          emoji: '⚖',
+          description: 'Filters users that are banned.',
+        },
+        {
+          label: 'Verified',
+          value: 'verified',
+          emoji: '✔',
+          description: 'Filters users that are verified.',
+        },
+        {
+          label: 'Discord Linked',
+          value: 'discord_linked',
+          emoji: '🔗',
+          description: 'Filters users that have there discord accounts linked.',
+        },
       ],
       placeholder: 'Filter users by...',
+      disabled: users.length === 1,
     });
 
-    const firstActionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [previousButton, pagesButton, nextButton],
-    });
-
+    const firstActionRow = createPageButtons(buttonIds, users);
     const secondActionRow = new ActionRowBuilder<StringSelectMenuBuilder>({
       components: [selectMenu],
     });
@@ -113,7 +129,11 @@ const command: CommandType = {
       components: [firstActionRow, secondActionRow],
     });
 
-    debugStream.write('Message sent! Creating collectors...');
+    debugStream.write('Message sent!');
+
+    if (users.length === 1) return;
+
+    debugStream.write('Creating collectors...');
 
     let userData = users;
     let pageIndex = 0;
@@ -129,34 +149,29 @@ const command: CommandType = {
     });
 
     buttonCollector.on('collect', async (i) => {
-      if (i.customId === 'nameless-users-previous') {
-        if (pageIndex === 0) return;
-        pageIndex--;
-      }
+      const result = getPageData(
+        userData,
+        pageIndex,
+        i.customId,
+        firstActionRow
+      );
 
-      if (i.customId === 'nameless-users-next') {
-        if (pageIndex === pages) return;
-        pageIndex++;
-      }
+      pageIndex = result.currentPageIndex;
+      const user = result.data;
 
-      if (pageIndex === pages) nextButton.setDisabled(true);
-      else nextButton.setDisabled(false);
-
-      if (pageIndex === 0) previousButton.setDisabled(true);
-      else previousButton.setDisabled(false);
-
-      const start = pageIndex * 10;
-      const end = start + 10;
-
-      embedMessage.setFields(getFields(userData.slice(start, end)));
-
-      pagesButton.setLabel(`Page ${pageIndex + 1} of ${pages}`);
+      embedMessage.setFields(getFields(user));
 
       await i.update({
         embeds: [embedMessage],
-        components: [firstActionRow, secondActionRow],
+        components:
+          users.length === 1
+            ? [firstActionRow]
+            : [firstActionRow, secondActionRow],
       });
     });
+
+    const [firstPageBtn, previousBtn, pagesBtn, nextBtn, lastPageBtn] =
+      firstActionRow.components;
 
     selectMenuCollector.on('collect', async (i) => {
       const filter = i.values[0];
@@ -181,21 +196,24 @@ const command: CommandType = {
           break;
       }
 
-      pageIndex = 0;
-      pages = Math.round(userData.length / 10);
-
-      if (pages === 0) {
-        nextButton.setDisabled(true);
-        previousButton.setDisabled(true);
-      } else {
-        nextButton.setDisabled(false);
-        previousButton.setDisabled(true);
+      if (!userData.length) {
+        await i.followUp('There are no users under this category.');
+        return;
       }
 
-      embedMessage.setFields(getFields(userData.slice(0, 10)));
+      pageIndex = 0;
 
-      if (pages >= 1) pagesButton.setLabel(`Pages 1 of ${pages}`);
-      else pagesButton.setLabel(`No Data`);
+      firstPageBtn.setDisabled(true);
+      previousBtn.setDisabled(true);
+
+      pagesBtn.setLabel(`Page 1 of ${userData.length}`);
+
+      nextBtn.setDisabled(userData.length === 1);
+      lastPageBtn.setDisabled(userData.length === 1);
+
+      const user = userData[0];
+
+      embedMessage.setFields(getFields(user));
 
       await i.update({
         embeds: [embedMessage],
@@ -207,20 +225,24 @@ const command: CommandType = {
   },
 };
 
-function getFields(dataArray: any[]) {
-  return dataArray.map((user: any) => ({
-    name: user.username,
-    value: `ID: \`${user.id}\`\nBanned: ${
-      user.banned ? '✔' : '❌'
-    }\nVerified: ${user.verified ? '✔' : '❌'}\nIntegrations: ${
-      user.integrations
-        .filter((integration: any) => integration.verified)
-        .map(
-          ({ integration, username }: any) => `${integration}: \`${username}\``
-        )
-        .join('\n') || 'N/A'
-    }`,
-  }));
+function getFields(user: any) {
+  return [
+    { name: 'User ID:', value: `\`${user.id}\``, inline: true },
+    { name: 'Banned:', value: user.banned ? '✔' : '❌', inline: true },
+    { name: 'Verified:', value: user.verified ? '✔' : '❌', inline: true },
+    {
+      name: 'Integrations:',
+      value:
+        user.integrations
+          .filter((integration: any) => integration.verified)
+          .map(
+            ({ integration, username }: any) =>
+              `${integration}: \`${username}\``
+          )
+          .join('\n') || 'N/A',
+      inline: true,
+    },
+  ];
 }
 
 export default command;

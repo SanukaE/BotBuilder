@@ -94,7 +94,7 @@ const modal: ModalType = {
 
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
-      title: 'NamelessMC Store Payment',
+      title: 'Store Payment',
       fields: [
         {
           name: "🆔 ID's:",
@@ -151,7 +151,9 @@ const modal: ModalType = {
       thumbnail: {
         url: storePayment.customer_id
           ? await getNamelessUserAvatar(storePayment.customer_id)
-          : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+          : `https://www.google.com/s2/favicons?domain=${
+              process.env.NAMELESSMC_API_URL!.split('/')[1]
+            }&sz=128`,
       },
     });
 

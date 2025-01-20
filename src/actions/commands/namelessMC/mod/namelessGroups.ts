@@ -65,8 +65,12 @@ const command: CommandType = {
           inline: true,
         },
       ],
-      thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
-      title: 'NamelessMC Groups',
+      thumbnail: {
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
+      },
+      title: 'Website Groups',
       description:
         'The bellow two fields shows all of the groups your NamelessMC website has.',
     });

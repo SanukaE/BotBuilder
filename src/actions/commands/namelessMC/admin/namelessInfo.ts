@@ -33,7 +33,7 @@ const command: CommandType = {
       color: Colors.DarkGold,
       fields: [{ name: 'Support Server:', value: 'discord.gg/nameless' }],
       thumbnail: {
-        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: `https://www.google.com/s2/favicons?domain=namelessmc.com&sz=128`,
       },
       title: 'Information on NamelessMC',
       description: `💾 Version: \`${

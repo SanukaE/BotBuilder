@@ -73,7 +73,11 @@ const stringMenu: StringMenuType = {
         '• Website: Click "Fill form via website"\n\n' +
         "⚠️ Important: Your progress won't be saved if you leave the form incomplete. (This only apply's only for the website)\n\n" +
         'Good luck! 🍀',
-      thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
+      thumbnail: {
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
+      },
       fields: [
         { name: 'Total Questions:', value: questions.length, inline: true },
 

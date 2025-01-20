@@ -65,11 +65,13 @@ const command: CommandType = {
 
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
-      title: 'NamelessMC Store Payments',
+      title: 'Store Payments',
       description:
         'Use the select menu below to view payments under a specific status or click the "Search for Payment" button to search for a specific payment.',
       thumbnail: {
-        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
       },
       fields: [
         {

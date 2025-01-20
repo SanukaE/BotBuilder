@@ -186,7 +186,11 @@ const button: ButtonType = {
       title: firstQuestion.field.name,
       description: firstQuestion.field.info || 'No info available',
       url: form.url_full,
-      thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
+      thumbnail: {
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
+      },
       fields: getEmbedFields(firstQuestion),
     });
 

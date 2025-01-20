@@ -24,7 +24,9 @@ export default async function (namelessID: number) {
     );
 
   if (!responseData.exists)
-    return 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png';
+    return `https://www.google.com/s2/favicons?domain=${
+      process.env.NAMELESSMC_API_URL!.split('/')[1]
+    }&sz=128`;
 
   await Redis.set(
     `namelessmc-user-avatar-${namelessID}`,

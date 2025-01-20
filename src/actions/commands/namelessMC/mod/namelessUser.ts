@@ -74,7 +74,11 @@ const command: CommandType = {
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
       thumbnail: {
-        url: user.avatar_url || '',
+        url:
+          user.avatar_url ||
+          `https://www.google.com/s2/favicons?domain=${
+            process.env.NAMELESSMC_API_URL!.split('/')[1]
+          }&sz=128`,
       },
       title: `${user.user_title ? user.user_title + ' ' : ''}${
         user.displayname || 'N/A'

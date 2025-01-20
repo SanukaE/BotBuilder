@@ -137,7 +137,9 @@ const command: CommandType = {
       thumbnail: {
         url: firstSubmissions.user_id
           ? await getNamelessUserAvatar(firstSubmissions.user_id)
-          : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+          : `https://www.google.com/s2/favicons?domain=${
+              process.env.NAMELESSMC_API_URL!.split('/')[1]
+            }&sz=128`,
       },
       fields: getEmbedFields(firstSubmissions.data),
     });
@@ -467,7 +469,9 @@ const command: CommandType = {
         thumbnail: {
           url: searchedSubmission.user_id
             ? await getNamelessUserAvatar(searchedSubmission.user_id)
-            : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+            : `https://www.google.com/s2/favicons?domain=${
+                process.env.NAMELESSMC_API_URL!.split('/')[1]
+              }&sz=128`,
         },
         fields: getEmbedFields(searchedSubmission.data),
       });

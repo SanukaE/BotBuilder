@@ -63,11 +63,13 @@ const command: CommandType = {
 
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
-      title: 'NamelessMC Store Products',
+      title: 'Store Products',
       description:
         'Use the select menu below to view the products in a specific category.',
       thumbnail: {
-        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
       },
       fields: storeCategories.map((category: any) => ({
         name: `📁 ${category.name}`,

@@ -129,7 +129,7 @@ const stringMenu: StringMenuType = {
 async function getPaymentEmbed(paymentData: any) {
   const embedMessage = createEmbed({
     color: Colors.DarkGold,
-    title: 'NamelessMC Store Payment',
+    title: 'Store Payment',
     fields: [
       {
         name: "🆔 ID's:",
@@ -180,9 +180,10 @@ async function getPaymentEmbed(paymentData: any) {
       'Use the next/previous buttons attached to navigate throw each payment.',
     thumbnail: {
       url: paymentData.customer_id
-        ? (await getNamelessUserAvatar(paymentData.customer_id)) ||
-          'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png'
-        : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        ? await getNamelessUserAvatar(paymentData.customer_id)
+        : `https://www.google.com/s2/favicons?domain=${
+            process.env.NAMELESSMC_API_URL!.split('/')[1]
+          }&sz=128`,
     },
   });
 

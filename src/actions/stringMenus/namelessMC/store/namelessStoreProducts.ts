@@ -83,10 +83,12 @@ const stringMenu: StringMenuType = {
           product.hidden ? '✔' : '❌'
         }\nDisabled: ${product.disabled ? '✔' : '❌'}`,
       })),
-      title: 'NamelessMC Store Products',
+      title: 'Store Products',
       color: Colors.DarkGold,
       thumbnail: {
-        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
       },
     });
 

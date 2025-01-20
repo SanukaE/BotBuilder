@@ -49,7 +49,9 @@ const command: CommandType = {
         typeof servers === 'undefined'
           ? 'There are no servers registered to view.'
           : '',
-      thumbnail: { url: 'https://i.postimg.cc/dtHrNrdM/MCStatistics-Logo.png' },
+      thumbnail: {
+        url: `https://www.google.com/s2/favicons?domain=mcstatistics.org&sz=128`,
+      },
       fields:
         typeof servers === 'object'
           ? [
