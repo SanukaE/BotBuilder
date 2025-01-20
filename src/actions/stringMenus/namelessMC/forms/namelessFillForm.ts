@@ -1,5 +1,6 @@
 import Redis from '#libs/Redis.js';
 import StringMenuType from '#types/StringMenuType.js';
+import { NamelessMCFormFields } from '#utils/enums.js';
 import createEmbed from '#utils/createEmbed.js';
 import {
   ActionRowBuilder,
@@ -57,7 +58,9 @@ const stringMenu: StringMenuType = {
     debugStream.write('Data collected! Creating embed...');
 
     const questions = form.fields.filter(
-      (field: any) => field.type !== 5 && field.type !== 4
+      (field: any) =>
+        field.type !== NamelessMCFormFields.BARRIER &&
+        field.type !== NamelessMCFormFields.HELP_BOX
     );
 
     const embedMessage = createEmbed({

@@ -1,6 +1,7 @@
 import Redis from '#libs/Redis.js';
 import ModalType from '#types/ModalType.js';
 import createEmbed from '#utils/createEmbed.js';
+import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
 import { Colors, PermissionFlagsBits } from 'discord.js';
 
 const modal: ModalType = {
@@ -148,7 +149,9 @@ const modal: ModalType = {
       description:
         'Use the next/previous buttons attached to navigate throw each payment.',
       thumbnail: {
-        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: storePayment.customer_id
+          ? await getNamelessUserAvatar(storePayment.customer_id)
+          : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
       },
     });
 

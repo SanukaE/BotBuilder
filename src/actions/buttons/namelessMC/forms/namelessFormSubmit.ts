@@ -1,3 +1,4 @@
+import { NamelessMCFormFields } from '#utils/enums.js';
 import Redis from '#libs/Redis.js';
 import ButtonType from '#types/ButtonType.js';
 import createEmbed from '#utils/createEmbed.js';
@@ -15,23 +16,10 @@ import {
   TextInputStyle,
 } from 'discord.js';
 
-enum FieldTypes {
-  TEXT = 1,
-  OPTIONS,
-  TEXT_AREA,
-  HELP_BOX,
-  BARRIER,
-  NUMBER,
-  EMAIL_ADDRESS,
-  RADIO_CHECKBOX,
-  CHECKBOX,
-  FILE,
-}
-
 type FieldType = {
   id: number;
   name: string;
-  type: FieldTypes;
+  type: NamelessMCFormFields;
   required: boolean;
   min: number;
   max: number;
@@ -122,23 +110,23 @@ const button: ButtonType = {
       let isModal = false;
       let isStringMenu = false;
 
-      switch (field.type as FieldTypes) {
-        case FieldTypes.TEXT:
-        case FieldTypes.TEXT_AREA:
-        case FieldTypes.EMAIL_ADDRESS:
+      switch (field.type as NamelessMCFormFields) {
+        case NamelessMCFormFields.TEXT:
+        case NamelessMCFormFields.TEXT_AREA:
+        case NamelessMCFormFields.EMAIL_ADDRESS:
           builder = createModal(`${form.title}`, form.id, field);
           isModal = true;
           break;
 
-        case FieldTypes.OPTIONS:
-        case FieldTypes.RADIO_CHECKBOX:
-        case FieldTypes.CHECKBOX:
+        case NamelessMCFormFields.OPTIONS:
+        case NamelessMCFormFields.RADIO_CHECKBOX:
+        case NamelessMCFormFields.CHECKBOX:
           builder = createStringMenu(form.id, field);
           isStringMenu = true;
           break;
 
-        case FieldTypes.BARRIER:
-        case FieldTypes.HELP_BOX:
+        case NamelessMCFormFields.BARRIER:
+        case NamelessMCFormFields.HELP_BOX:
           continue;
       }
 
@@ -476,12 +464,12 @@ const button: ButtonType = {
       let isNumberInput = false;
       let isFileInput = false;
 
-      switch (questionData.field.type as FieldTypes) {
-        case FieldTypes.FILE:
+      switch (questionData.field.type as NamelessMCFormFields) {
+        case NamelessMCFormFields.FILE:
           isFileInput = true;
           break;
 
-        case FieldTypes.NUMBER:
+        case NamelessMCFormFields.NUMBER:
           isNumberInput = true;
           break;
 
@@ -561,7 +549,8 @@ function createModal(title: string, formID: string, field: any) {
     placeholder: field.placeholder || '',
     required: field.required,
     style:
-      field.type === FieldTypes.TEXT || field.type === FieldTypes.EMAIL_ADDRESS
+      field.type === NamelessMCFormFields.TEXT ||
+      field.type === NamelessMCFormFields.EMAIL_ADDRESS
         ? TextInputStyle.Short
         : TextInputStyle.Paragraph,
   });
@@ -581,14 +570,14 @@ function createStringMenu(formID: string, field: any) {
   let minValues: number;
   let maxValues: number;
 
-  switch (field.type as FieldTypes) {
-    case FieldTypes.CHECKBOX:
+  switch (field.type as NamelessMCFormFields) {
+    case NamelessMCFormFields.CHECKBOX:
       minValues = 0;
       maxValues = fieldOptions.length;
       break;
 
-    case FieldTypes.OPTIONS:
-    case FieldTypes.RADIO_CHECKBOX:
+    case NamelessMCFormFields.OPTIONS:
+    case NamelessMCFormFields.RADIO_CHECKBOX:
       minValues = 1;
       maxValues = 1;
       break;

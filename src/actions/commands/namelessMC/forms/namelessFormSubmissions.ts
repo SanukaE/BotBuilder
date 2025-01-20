@@ -1,4 +1,5 @@
 import Redis from '#libs/Redis.js';
+import { NamelessMCFormFields } from '#utils/enums.js';
 import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
 import formatFieldName from '#utils/formatFieldName.js';
@@ -15,6 +16,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
+import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
 
 type SubmissionDataType = {
   id: number;
@@ -24,7 +26,11 @@ type SubmissionDataType = {
   last_updated: number;
   updated_by_user: { id: number | null; username: string };
   status: { id: number; name: string; open: number };
-  fields: { question: string; field_type: number; answer: string }[];
+  fields: {
+    question: string;
+    field_type: NamelessMCFormFields;
+    answer: string;
+  }[];
 };
 
 type SubmissionType = {
@@ -129,7 +135,9 @@ const command: CommandType = {
       title: `[\`${firstSubmissions.id}\`] ${firstSubmissions.data.submitter.username}'s ${firstSubmissions.data.form.title}`,
       description: 'Use the menu below to navigate through each submission.',
       thumbnail: {
-        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: firstSubmissions.user_id
+          ? await getNamelessUserAvatar(firstSubmissions.user_id)
+          : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
       },
       fields: getEmbedFields(firstSubmissions.data),
     });
@@ -162,8 +170,18 @@ const command: CommandType = {
       label: `Pages 1 of ${submissions.length}`,
     });
 
+    const onlyOneSubmissionBtn = new ButtonBuilder({
+      customId: 'nameless-submission-only-one',
+      disabled: true,
+      style: ButtonStyle.Secondary,
+      label: 'This is the only submission recorded',
+    });
+
     const firstActionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [previousBtn, pagesBtn, nextBtn],
+      components:
+        submissions.length === 1
+          ? [onlyOneSubmissionBtn]
+          : [previousBtn, pagesBtn, nextBtn],
     });
 
     const formFilter = new StringSelectMenuBuilder({
@@ -212,14 +230,16 @@ const command: CommandType = {
 
     debugStream.write('Components created! Sending follow up...');
 
+    const allActionRows = [
+      firstActionRow,
+      secondActionRow,
+      thirdActionRow,
+      forthActionRow,
+    ];
+
     const followUpMsg = await interaction.followUp({
       embeds: [embedMessage],
-      components: [
-        firstActionRow,
-        secondActionRow,
-        thirdActionRow,
-        forthActionRow,
-      ],
+      components: submissions.length === 1 ? [firstActionRow] : allActionRows,
     });
 
     debugStream.write('Follow up sent!');
@@ -252,6 +272,11 @@ const command: CommandType = {
         `[\`${pageData.id}\`] ${pageData.data.submitter.username}'s ${pageData.data.form.title}`
       );
       embedMessage.setFields(getEmbedFields(pageData.data));
+      embedMessage.setThumbnail(
+        pageData.user_id
+          ? await getNamelessUserAvatar(pageData.user_id)
+          : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png'
+      );
 
       await i.update({
         embeds: [embedMessage],
@@ -291,6 +316,11 @@ const command: CommandType = {
         `[\`${pageData.id}\`] ${pageData.data.submitter.username}'s ${pageData.data.form.title}`
       );
       embedMessage.setFields(getEmbedFields(pageData.data));
+      embedMessage.setThumbnail(
+        pageData.user_id
+          ? await getNamelessUserAvatar(pageData.user_id)
+          : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png'
+      );
 
       previousBtn.setDisabled(true);
       nextBtn.setDisabled(data.length === 1);
@@ -329,6 +359,11 @@ const command: CommandType = {
         `[\`${pageData.id}\`] ${pageData.data.submitter.username}'s ${pageData.data.form.title}`
       );
       embedMessage.setFields(getEmbedFields(pageData.data));
+      embedMessage.setThumbnail(
+        pageData.user_id
+          ? await getNamelessUserAvatar(pageData.user_id)
+          : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png'
+      );
 
       previousBtn.setDisabled(true);
       nextBtn.setDisabled(data.length === 1);
@@ -447,13 +482,19 @@ const command: CommandType = {
         return;
       }
 
-      embedMessage.setTitle(
-        `[\`${searchedSubmission.id}\`] ${searchedSubmission.data.submitter.username}'s ${searchedSubmission.data.form.title}`
-      );
-      embedMessage.setFields(getEmbedFields(searchedSubmission.data));
+      const searchedSubmissionEmbed = createEmbed({
+        color: Colors.DarkGold,
+        title: `[\`${searchedSubmission.id}\`] ${searchedSubmission.data.submitter.username}'s ${searchedSubmission.data.form.title}`,
+        thumbnail: {
+          url: searchedSubmission.user_id
+            ? await getNamelessUserAvatar(searchedSubmission.user_id)
+            : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        },
+        fields: getEmbedFields(searchedSubmission.data),
+      });
 
       await modalResponse.followUp({
-        embeds: [embedMessage],
+        embeds: [searchedSubmissionEmbed],
       });
     });
   },
@@ -472,7 +513,7 @@ function getEmbedFields(submissionData: SubmissionDataType) {
       name: '⌛ Updated By:',
       value: `Username: ${
         submissionData.updated_by_user.username || 'N/A'
-      }\nTime: ${submissionData.last_updated}`,
+      }\nTime: <t:${submissionData.last_updated}>`,
     },
     {
       name: '📊 Status:',
@@ -488,13 +529,13 @@ function getEmbedFields(submissionData: SubmissionDataType) {
     ...submissionData.fields.map((field) => {
       let fileData: any;
 
-      if (field.field_type === 10 && field.answer)
+      if (field.field_type === NamelessMCFormFields.FILE && field.answer)
         fileData = parseDataURI(field.answer);
 
       return {
         name: `❓ ${formatFieldName(field.question)}:`,
         value:
-          field.field_type === 10
+          field.field_type === NamelessMCFormFields.FILE
             ? fileData
               ? `[${fileData.fileName}](${fileData.url})`
               : 'No answer'

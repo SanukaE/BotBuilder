@@ -2,6 +2,7 @@ import Redis from '#libs/Redis.js';
 import StringMenuType from '#types/StringMenuType.js';
 import createEmbed from '#utils/createEmbed.js';
 import getEmbedPageData from '#utils/getEmbedPageData.js';
+import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -79,7 +80,7 @@ const stringMenu: StringMenuType = {
 
     const paymentData = storePayments[0];
 
-    const embedMessage = getPaymentEmbed(paymentData, 1, storePayments.length);
+    const embedMessage = await getPaymentEmbed(paymentData);
 
     debugStream.write('Embed created! Creating buttons...');
 
@@ -136,11 +137,7 @@ const stringMenu: StringMenuType = {
 
       const newPaymentData = result.pageData;
 
-      const newEmbedMessage = getPaymentEmbed(
-        newPaymentData,
-        currentPageIndex + 1,
-        storePayments.length
-      );
+      const newEmbedMessage = await getPaymentEmbed(newPaymentData);
 
       await i.update({
         embeds: [newEmbedMessage],
@@ -152,7 +149,7 @@ const stringMenu: StringMenuType = {
   },
 };
 
-function getPaymentEmbed(paymentData: any, pageNo: number, maxPages: number) {
+async function getPaymentEmbed(paymentData: any) {
   const embedMessage = createEmbed({
     color: Colors.DarkGold,
     title: 'NamelessMC Store Payment',
@@ -205,7 +202,10 @@ function getPaymentEmbed(paymentData: any, pageNo: number, maxPages: number) {
     description:
       'Use the next/previous buttons attached to navigate throw each payment.',
     thumbnail: {
-      url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+      url: paymentData.customer_id
+        ? (await getNamelessUserAvatar(paymentData.customer_id)) ||
+          'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png'
+        : 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
     },
   });
 
