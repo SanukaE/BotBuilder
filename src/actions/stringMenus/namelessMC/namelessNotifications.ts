@@ -56,7 +56,7 @@ const stringMenu: StringMenuType = {
       await Redis.set(
         `namelessmc-user-notifications-${interaction.user.username}`,
         JSON.stringify(notifications),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 

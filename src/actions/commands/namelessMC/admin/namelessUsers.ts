@@ -51,7 +51,7 @@ const command: CommandType = {
       users = responseData.users;
 
       await Redis.set('namelessmc-users', JSON.stringify(users), {
-        EX: 60_000,
+        EX: 60,
       });
     }
 

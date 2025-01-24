@@ -36,7 +36,7 @@ const command: CommandType = {
       servers = responseData;
 
       await Redis.set('mcstatistics-information', JSON.stringify(servers), {
-        EX: 60_000,
+        EX: 60,
       });
     }
 

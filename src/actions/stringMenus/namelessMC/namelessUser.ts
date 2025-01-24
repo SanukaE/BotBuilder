@@ -49,7 +49,7 @@ const stringMenu: StringMenuType = {
       user = responseData;
 
       await Redis.set(`namelessmc-user-${username}`, JSON.stringify(user), {
-        EX: 60_000,
+        EX: 60,
       });
     }
 

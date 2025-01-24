@@ -38,7 +38,7 @@ const command: CommandType = {
       groups = responseData.groups;
 
       await Redis.set('namelessmc-groups', JSON.stringify(groups), {
-        EX: 60_000,
+        EX: 60,
       });
     }
 

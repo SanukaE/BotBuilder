@@ -52,7 +52,7 @@ const command: CommandType = {
       await Redis.set(
         `mcstatistics-player-${playerIGN}`,
         JSON.stringify(player),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 

@@ -37,7 +37,7 @@ const command: CommandType = {
       forms = responseData.forms;
 
       await Redis.set('namelessmc-forms', JSON.stringify(forms), {
-        EX: 60_000,
+        EX: 60,
       });
     }
 

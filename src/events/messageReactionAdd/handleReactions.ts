@@ -89,6 +89,9 @@ export default async function (
     debugLogger.close();
   } catch (error) {
     debugLogger.close();
+
+    if (reaction.isDevOnly) console.log(error);
+
     const errorMessageReply = await message.reply({
       content: `There was an error while running the command:\`\`\`${error}\`\`\``,
       allowedMentions: { repliedUser: false },

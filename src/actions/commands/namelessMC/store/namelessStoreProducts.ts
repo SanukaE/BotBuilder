@@ -49,7 +49,7 @@ const command: CommandType = {
       await Redis.set(
         'namelessmc-store-categories',
         JSON.stringify(storeCategories),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 

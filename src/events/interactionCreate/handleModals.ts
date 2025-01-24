@@ -74,6 +74,9 @@ export default async function (client: Client, interaction: Interaction) {
     debugLogger.close();
   } catch (error) {
     debugLogger.close();
+
+    if (modal.isDevOnly) console.log(error);
+
     await interaction.editReply(
       `There was an error while running the modal:\`\`\`${error}\`\`\``
     );

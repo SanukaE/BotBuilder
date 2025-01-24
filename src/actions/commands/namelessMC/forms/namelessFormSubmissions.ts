@@ -101,7 +101,7 @@ const command: CommandType = {
         'namelessmc-form-submissions',
         JSON.stringify(submissions),
         {
-          EX: 60_000,
+          EX: 60,
         }
       );
     }

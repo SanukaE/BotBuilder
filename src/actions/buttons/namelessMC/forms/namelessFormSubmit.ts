@@ -97,7 +97,7 @@ const button: ButtonType = {
       form = responseData;
 
       await Redis.set(`namelessmc-form-${formID}`, JSON.stringify(form), {
-        EX: 60_000,
+        EX: 60,
       });
     }
 

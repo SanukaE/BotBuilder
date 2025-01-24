@@ -53,7 +53,7 @@ const stringMenu: StringMenuType = {
       await Redis.set(
         'namelessmc-store-products',
         JSON.stringify(storeProducts),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 

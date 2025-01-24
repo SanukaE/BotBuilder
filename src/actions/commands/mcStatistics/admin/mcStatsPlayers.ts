@@ -39,7 +39,7 @@ const command: CommandType = {
       players = responseData.players;
 
       await Redis.set('mcstatistics-players', JSON.stringify(players), {
-        EX: 60_000,
+        EX: 60,
       });
     }
 

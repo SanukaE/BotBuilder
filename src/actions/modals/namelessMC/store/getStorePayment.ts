@@ -75,7 +75,7 @@ const modal: ModalType = {
       await Redis.set(
         'namelessmc-store-payments',
         JSON.stringify(storePayments),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 

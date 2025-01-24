@@ -1,12 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
-import {
-  createLogger,
-  createWarning,
-  LoggerOptions,
-} from '#utils/createLogger.js';
+import { createWarning } from '#utils/createLogger.js';
 import config from '../../config.json' assert { type: 'json' };
-import 'dotenv/config';
 
 export default function () {
   const geminiAPIKey = process.env.GEMINI_API_KEY;

@@ -59,7 +59,7 @@ const command: CommandType = {
         `mcstatistics-sessions-${playerIGN}`,
         JSON.stringify(sessions),
         {
-          EX: 60_000,
+          EX: 60,
         }
       );
     }

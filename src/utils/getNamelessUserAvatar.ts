@@ -31,7 +31,7 @@ export default async function (namelessID: number) {
   await Redis.set(
     `namelessmc-user-avatar-${namelessID}`,
     JSON.stringify(responseData.avatar_url),
-    { EX: 60_000 }
+    { EX: 60 }
   );
 
   return responseData.avatar_url;
