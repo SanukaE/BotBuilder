@@ -1,45 +1,29 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
-import { createLogger, LoggerOptions } from '#utils/createLogger.js';
+import { createWarning } from '#utils/createLogger.js';
 import config from '../../config.json' assert { type: 'json' };
-import 'dotenv/config';
 
 export default function () {
   const geminiAPIKey = process.env.GEMINI_API_KEY;
   const { geminiModel, disabledCategories } = config;
 
   if (!geminiAPIKey || (disabledCategories as string[]).includes('AI')) {
-    const warningLogger = createLogger(
-      `Gemini-libs`,
-      LoggerOptions.Warning,
-      true
+    createWarning(
+      'GEMINI_API_KEY is not set OR AI is disabled',
+      'All AI required features will be disabled',
+      'Please check if your API Key is correct in the .env file OR remove AI from config.json',
+      'Gemini-libs'
     );
-    warningLogger.write(
-      'Warning: GEMINI_API_KEY is not set OR AI is disabled.'
-    );
-    warningLogger.write('Result: All AI required features will be disabled.');
-    warningLogger.write(
-      'Fix: Please check if your API Key is correct in the .env file OR remove AI from the config.json file.'
-    );
-    warningLogger.close();
     return { enabled: false };
   }
 
-  if (!geminiModel) {
-    const warningLogger = createLogger(
-      `initializeAI-util`,
-      LoggerOptions.Warning,
-      true
+  if (!geminiModel)
+    createWarning(
+      'geminiModel is not set',
+      'All AI required features will be using "gemini-1.5-flash" model',
+      'Please set a model to use in config.json',
+      'Gemini-libs'
     );
-    warningLogger.write('Warning: geminiModel is not set.');
-    warningLogger.write(
-      'Result: All AI required features will be using "gemini-1.5-flash" model.'
-    );
-    warningLogger.write(
-      'Fix: Please set a model to use in the config.json file.'
-    );
-    warningLogger.close();
-  }
 
   const genAI = new GoogleGenerativeAI(geminiAPIKey);
   const fileManager = new GoogleAIFileManager(geminiAPIKey);

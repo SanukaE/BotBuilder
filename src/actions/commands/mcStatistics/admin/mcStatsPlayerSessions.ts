@@ -1,12 +1,9 @@
 import Redis from '#libs/Redis.js';
 import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
-import getEmbedPageData from '#utils/getEmbedPageData.js';
+import { createPageButtons, getPageData } from '#utils/getPageData.js';
 import {
-  ActionRowBuilder,
   ApplicationCommandOptionType,
-  ButtonBuilder,
-  ButtonStyle,
   Colors,
   ComponentType,
   PermissionFlagsBits,
@@ -62,7 +59,7 @@ const command: CommandType = {
         `mcstatistics-sessions-${playerIGN}`,
         JSON.stringify(sessions),
         {
-          EX: 60_000,
+          EX: 60,
         }
       );
     }
@@ -82,36 +79,21 @@ const command: CommandType = {
 
     debugStream.write('Embed created! Creating components...');
 
-    const previousBtn = new ButtonBuilder({
-      customId: 'mcstatistics-sessions-previous-collector',
-      disabled: true,
-      emoji: '⬅',
-      style: ButtonStyle.Primary,
-    });
+    const buttonIds = [
+      'mcstatistics-sessions-previous-end-collector',
+      'mcstatistics-sessions-previous-collector',
+      'mcstatistics-sessions-pages-collector',
+      'mcstatistics-sessions-next-collector',
+      'mcstatistics-sessions-next-end-collector',
+    ];
 
-    const pagesBtn = new ButtonBuilder({
-      customId: 'mcstatistics-sessions-pages',
-      disabled: true,
-      label: `Pages 1 of ${sessions.length}`,
-      style: ButtonStyle.Secondary,
-    });
-
-    const nextBtn = new ButtonBuilder({
-      customId: 'mcstatistics-sessions-next-collector',
-      disabled: sessions.length === 1,
-      emoji: '➡',
-      style: ButtonStyle.Primary,
-    });
-
-    const actionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [previousBtn, pagesBtn, nextBtn],
-    });
+    const actionRow = createPageButtons(buttonIds, sessions);
 
     debugStream.write('Components created! Sending follow up...');
 
     const followUpMsg = await interaction.followUp({
       embeds: [embedMessage],
-      components: sessions.length > 1 ? [actionRow] : [],
+      components: [actionRow],
     });
 
     debugStream.write('Follow up sent!');
@@ -128,16 +110,17 @@ const command: CommandType = {
     let currentPageIndex = 0;
 
     collector.on('collect', async (i) => {
-      const result = getEmbedPageData(
+      const result = getPageData(
         sessions,
         currentPageIndex,
-        i.customId.includes('next'),
+        i.customId,
         actionRow
       );
 
       currentPageIndex = result.currentPageIndex;
+      const pageData = result.data;
 
-      embedMessage.setFields(getFields(result.pageData));
+      embedMessage.setFields(getFields(pageData));
 
       await i.update({
         embeds: [embedMessage],

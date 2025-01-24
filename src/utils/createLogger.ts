@@ -63,3 +63,21 @@ export function createLogger(
     },
   };
 }
+
+export function createWarning(warning: string, result: string, fix: string, fileName: string) {
+  const warningLogger = createLogger(
+    fileName,
+    LoggerOptions.Warning,
+    true
+  );
+
+  warningLogger.write(`Warning: ${warning}`);
+  warningLogger.write(`Result: ${result}`);
+  warningLogger.write(`Fix: ${fix}`);
+
+  warningLogger.close();
+
+  console.log(
+    `[Warning] ${warning}. Check ApplicationLogs/warnings for more info.`
+  );
+};

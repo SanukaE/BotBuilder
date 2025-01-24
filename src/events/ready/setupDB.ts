@@ -21,7 +21,7 @@ export default async function () {
     await MySQL.query(tableSQL);
   }
 
-  Redis.on('connect', () => console.log(`[System] Connected to Redis!`));
+  Redis.on('connect', () => console.log(`[System] Connected to Redis`));
   Redis.on('error', (error) =>
     console.error(`[Error] ${error.message || error}`)
   );

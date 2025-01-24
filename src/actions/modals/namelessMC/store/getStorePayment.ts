@@ -1,6 +1,7 @@
 import Redis from '#libs/Redis.js';
 import ModalType from '#types/ModalType.js';
 import createEmbed from '#utils/createEmbed.js';
+import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
 import { Colors, PermissionFlagsBits } from 'discord.js';
 
 const modal: ModalType = {
@@ -74,7 +75,7 @@ const modal: ModalType = {
       await Redis.set(
         'namelessmc-store-payments',
         JSON.stringify(storePayments),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 
@@ -93,7 +94,7 @@ const modal: ModalType = {
 
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
-      title: 'NamelessMC Store Payment',
+      title: 'Store Payment',
       fields: [
         {
           name: "🆔 ID's:",
@@ -148,7 +149,11 @@ const modal: ModalType = {
       description:
         'Use the next/previous buttons attached to navigate throw each payment.',
       thumbnail: {
-        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: storePayment.customer_id
+          ? await getNamelessUserAvatar(storePayment.customer_id)
+          : `https://www.google.com/s2/favicons?domain=${
+              process.env.NAMELESSMC_API_URL!.split('/')[1]
+            }&sz=128`,
       },
     });
 

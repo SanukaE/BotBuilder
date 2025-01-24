@@ -6,7 +6,6 @@ import { ActionRowBuilder, Colors, StringSelectMenuBuilder } from 'discord.js';
 const command: CommandType = {
   name: 'nameless-forms',
   description: 'Get a list of all forms on the website.',
-  isDisabled: true, //! WIP
 
   async script(_, interaction, debugStream) {
     debugStream.write('Fetching data...');
@@ -38,7 +37,7 @@ const command: CommandType = {
       forms = responseData.forms;
 
       await Redis.set('namelessmc-forms', JSON.stringify(forms), {
-        EX: 60_000,
+        EX: 60,
       });
     }
 
@@ -61,7 +60,9 @@ const command: CommandType = {
       description:
         'Use the select menu bellow to pick a form you want to apply for.',
       thumbnail: {
-        url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
       },
     });
 

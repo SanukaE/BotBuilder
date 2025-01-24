@@ -47,7 +47,7 @@ const command: CommandType = {
       await Redis.set(
         `namelessmc-user-notifications-${interaction.user.username}`,
         JSON.stringify(notifications),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 
@@ -67,8 +67,12 @@ const command: CommandType = {
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
       description: "Use the drop down to pick which alert you'd like to view.",
-      title: 'NamelessMC Notifications',
-      thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
+      title: 'Website Notifications',
+      thumbnail: {
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
+      },
     });
 
     let notificationTypes: string[] = [];

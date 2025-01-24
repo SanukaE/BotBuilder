@@ -46,6 +46,8 @@ export default async function (client: Client) {
     for (const deletedCommand of deletedCommands) {
       await client.application!.commands.delete(deletedCommand.id!);
     }
+
+    console.log('[System] All slash commands are updated');
   } catch (error: any) {
     console.error(`[Error] ${error.message || error}`);
   }

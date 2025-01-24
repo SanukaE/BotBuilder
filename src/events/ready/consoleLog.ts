@@ -1,22 +1,5 @@
 import { Client } from 'discord.js';
 
 export default function (client: Client) {
-  const botBuilderText = `
-$$$$$$$\\             $$\\     $$$$$$$\\            $$\\ $$\\       $$\\                     
-$$  __$$\\            $$ |    $$  __$$\\           \\__|$$ |      $$ |                    
-$$ |  $$ | $$$$$$\\ $$$$$$\\   $$ |  $$ |$$\\   $$\\ $$\\ $$ | $$$$$$$ | $$$$$$\\   $$$$$$\\  
-$$$$$$$\\ |$$  __$$\\\\_$$  _|  $$$$$$$\\ |$$ |  $$ |$$ |$$ |$$  __$$ |$$  __$$\\ $$  __$$\\ 
-$$  __$$\\ $$ /  $$ | $$ |    $$  __$$\\ $$ |  $$ |$$ |$$ |$$ /  $$ |$$$$$$$$ |$$ |  \\__|
-$$ |  $$ |$$ |  $$ | $$ |$$\\ $$ |  $$ |$$ |  $$ |$$ |$$ |$$ |  $$ |$$   ____|$$ |      
-$$$$$$$  |\\$$$$$$  | \\$$$$  |$$$$$$$  |\\$$$$$$  |$$ |$$ |\\$$$$$$$ |\\$$$$$$$\\ $$ |      
-\\_______/  \\______/   \\____/ \\_______/  \\______/ \\__|\\__| \\_______| \\_______|\\__|      
-                                                                                       
-`;
-
-  console.log(botBuilderText);
-  console.log(
-    'Your Free, Open-Source, All-In-One Discord Companion. A project by Sanuka.\n\n'
-  );
-
-  console.log(`[System] Logged in as ${client.user?.tag}!`);
+  console.log(`[System] Logged in as ${client.user?.tag}`);
 }

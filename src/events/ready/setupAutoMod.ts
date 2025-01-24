@@ -5,23 +5,18 @@ import {
   Client,
 } from 'discord.js';
 import config from '#config' assert { type: 'json' };
-import { createLogger, LoggerOptions } from '#utils/createLogger.js';
+import { createWarning } from '#utils/createLogger.js';
 
 export default async function (client: Client) {
   const { productionGuildID, autoModEnvProtection } = config;
 
   if (!productionGuildID) {
-    const warningLogger = createLogger(
-      `setupAutoMod-readyEvent`,
-      LoggerOptions.Warning,
-      true
+    createWarning(
+      'Missing productionGuildID in config.json',
+      'AutoMod rules will not be set up',
+      'Add productionGuildID to config.json',
+      'setupAutoMod-readyEvent'
     );
-
-    warningLogger.write('Warning: Missing productionGuildID in config.json');
-    warningLogger.write('Result: AutoMod rules will not be set up');
-    warningLogger.write('Fix: Add productionGuildID to config.json');
-
-    warningLogger.close();
     return;
   }
 
@@ -33,6 +28,14 @@ export default async function (client: Client) {
     const existingRule = autoModRules.find(
       (rule) => rule.name === 'BotBuilder Env Variables'
     );
+
+    if (autoModEnvProtection)
+      createWarning(
+        'AutoMod Env Protection is enabled in config.json',
+        'Your environment variables has a risk of being leaked',
+        'Set autoModEnvProtection to false in config.json',
+        'setupAutoMod-readyEvent'
+      );
 
     if (!existingRule && autoModEnvProtection) {
       await guildAutoModRules.create({
@@ -56,6 +59,8 @@ export default async function (client: Client) {
           ],
         },
       });
+
+      console.log('[System] AutoMod Env Protection rule created');
     } else if (autoModEnvProtection) {
       await existingRule?.setKeywordFilter([
         `*${process.env.MYSQL_PASSWORD}*`,
@@ -63,12 +68,17 @@ export default async function (client: Client) {
         `*${process.env.REDIS_PASSWORD}*`,
         `*${process.env.GEMINI_API_KEY}*`,
       ]);
+
+      console.log('[System] AutoMod Env Protection rule updated');
     }
 
-    if (!autoModEnvProtection && existingRule)
+    if (!autoModEnvProtection && existingRule) {
       await existingRule.delete(
         'AutoMod Env Protection is disabled in config.'
       );
+
+      console.log('[System] AutoMod Env Protection rule deleted');
+    }
   } catch (error: any) {
     console.error(`[Error] ${error.message || error}`);
   }

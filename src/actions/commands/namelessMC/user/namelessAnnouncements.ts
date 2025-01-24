@@ -46,7 +46,7 @@ const command: CommandType = {
       await Redis.set(
         `namelessmc-user-announcements-${interaction.user.username}`,
         JSON.stringify(announcements),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 
@@ -57,8 +57,12 @@ const command: CommandType = {
       description: announcements.length
         ? 'Use the select menu to navigate each announcement.'
         : 'There are no announcements for you to view.',
-      thumbnail: { url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png' },
-      title: 'List of announcements',
+      thumbnail: {
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
+      },
+      title: 'Website Announcements',
     });
     const selectMenu = new StringSelectMenuBuilder({
       customId: 'nameless-announcement',

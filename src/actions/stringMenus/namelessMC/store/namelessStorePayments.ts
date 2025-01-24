@@ -1,15 +1,9 @@
 import Redis from '#libs/Redis.js';
 import StringMenuType from '#types/StringMenuType.js';
 import createEmbed from '#utils/createEmbed.js';
-import getEmbedPageData from '#utils/getEmbedPageData.js';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  Colors,
-  ComponentType,
-  PermissionFlagsBits,
-} from 'discord.js';
+import { createPageButtons, getPageData } from '#utils/getPageData.js';
+import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
+import { Colors, ComponentType, PermissionFlagsBits } from 'discord.js';
 
 const stringMenu: StringMenuType = {
   customID: 'nameless-store-payments',
@@ -56,7 +50,7 @@ const stringMenu: StringMenuType = {
       await Redis.set(
         'namelessmc-store-payments',
         JSON.stringify(storePayments),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 
@@ -79,34 +73,19 @@ const stringMenu: StringMenuType = {
 
     const paymentData = storePayments[0];
 
-    const embedMessage = getPaymentEmbed(paymentData, 1, storePayments.length);
+    const embedMessage = await getPaymentEmbed(paymentData);
 
     debugStream.write('Embed created! Creating buttons...');
 
-    const previousButton = new ButtonBuilder({
-      customId: 'nameless-store-payments-previous-collector',
-      style: ButtonStyle.Primary,
-      disabled: true,
-      emoji: '⬅️',
-    });
+    const buttonIds = [
+      'nameless-store-payments-previous-end-collector',
+      'nameless-store-payments-previous-collector',
+      'nameless-store-payments-pages-collector',
+      'nameless-store-payments-next-collector',
+      'nameless-store-payments-next-end-collector',
+    ];
 
-    const pagesButton = new ButtonBuilder({
-      customId: 'nameless-store-payments-pages-collector',
-      style: ButtonStyle.Secondary,
-      disabled: true,
-      label: `Pages 1 of ${storePayments.length}`,
-    });
-
-    const nextButton = new ButtonBuilder({
-      customId: 'nameless-store-payments-next-collector',
-      style: ButtonStyle.Primary,
-      disabled: storePayments.length == 1,
-      emoji: '➡️',
-    });
-
-    const actionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [previousButton, pagesButton, nextButton],
-    });
+    const actionRow = createPageButtons(buttonIds, storePayments);
 
     debugStream.write('Buttons created! Sending follow up...');
 
@@ -125,22 +104,17 @@ const stringMenu: StringMenuType = {
     let currentPageIndex = 0;
 
     collector.on('collect', async (i) => {
-      const result = getEmbedPageData(
+      const result = getPageData(
         storePayments,
         currentPageIndex,
-        i.customId.includes('next'),
+        i.customId,
         actionRow
       );
 
       currentPageIndex = result.currentPageIndex;
+      const newPaymentData = result.data;
 
-      const newPaymentData = result.pageData;
-
-      const newEmbedMessage = getPaymentEmbed(
-        newPaymentData,
-        currentPageIndex + 1,
-        storePayments.length
-      );
+      const newEmbedMessage = await getPaymentEmbed(newPaymentData);
 
       await i.update({
         embeds: [newEmbedMessage],
@@ -152,10 +126,10 @@ const stringMenu: StringMenuType = {
   },
 };
 
-function getPaymentEmbed(paymentData: any, pageNo: number, maxPages: number) {
+async function getPaymentEmbed(paymentData: any) {
   const embedMessage = createEmbed({
     color: Colors.DarkGold,
-    title: 'NamelessMC Store Payment',
+    title: 'Store Payment',
     fields: [
       {
         name: "🆔 ID's:",
@@ -205,7 +179,11 @@ function getPaymentEmbed(paymentData: any, pageNo: number, maxPages: number) {
     description:
       'Use the next/previous buttons attached to navigate throw each payment.',
     thumbnail: {
-      url: 'https://i.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+      url: paymentData.customer_id
+        ? await getNamelessUserAvatar(paymentData.customer_id)
+        : `https://www.google.com/s2/favicons?domain=${
+            process.env.NAMELESSMC_API_URL!.split('/')[1]
+          }&sz=128`,
     },
   });
 

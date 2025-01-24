@@ -34,7 +34,7 @@ export default async function (username: string): Promise<Number> {
     user = responseData;
 
     await Redis.set(`namelessmc-user-${username}`, JSON.stringify(user), {
-      EX: 60_000,
+      EX: 60,
     });
   }
 

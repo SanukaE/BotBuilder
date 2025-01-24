@@ -51,7 +51,7 @@ const stringMenu: StringMenuType = {
       await Redis.set(
         'namelessmc-store-products',
         JSON.stringify(storeProducts),
-        { EX: 60_000 }
+        { EX: 60 }
       );
     }
 
@@ -115,7 +115,9 @@ const stringMenu: StringMenuType = {
       ],
       color: Colors.DarkGold,
       thumbnail: {
-        url: 'https://interaction.postimg.cc/Kz6WKb69/Nameless-MC-Logo.png',
+        url: `https://www.google.com/s2/favicons?domain=${
+          process.env.NAMELESSMC_API_URL!.split('/')[1]
+        }&sz=128`,
       },
     });
 
