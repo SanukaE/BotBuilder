@@ -11,5 +11,8 @@
   "appMotto": "Your Free, Open-Source, All-In-One Discord Companion",
   "appActivity": "🤖 Powered by BotBuilder!",
   "punishmentAppealLink": "N/A",
-  "autoModEnvProtection": false
+  "autoModEnvProtection": false,
+  "memberRoleID": "",
+  "botRoleID": "",
+  "enableStickyRoles": true
 }
