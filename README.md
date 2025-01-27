@@ -124,7 +124,7 @@ Check out all these amazing servers that uses BotBuilder's help to manage them.
 
 ## 📄 License
 
-This project is licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
+This project is licensed under the [GPL v3.0 License](https://choosealicense.com/licenses/gpl-3.0/)
 
 ## 🙏 Special Thanks To
 
