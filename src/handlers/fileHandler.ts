@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import getAllFiles from '#utils/getAllFiles.js';
 import Gemini from '#libs/Gemini.js';
 import registerCommands from '../events/ready/registerCommands.js';
-import { registerRoutes } from '../events/ready/startWebServer.js';
+import { registerRoutes } from '../events/ready/setupAPI.js';
 import { Client } from 'discord.js';
 
 export default function (client: Client) {

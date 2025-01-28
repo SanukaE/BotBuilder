@@ -49,6 +49,8 @@ export default async function (client: Client) {
 
     console.log('[System] All slash commands are updated');
   } catch (error: any) {
-    console.error(`[Error] ${error.message || error}`);
+    console.error(
+      `[Error] Failed to register commands: ${error.message || error}`
+    );
   }
 }

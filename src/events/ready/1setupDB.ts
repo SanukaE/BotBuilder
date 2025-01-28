@@ -23,7 +23,9 @@ export default async function () {
 
   Redis.on('connect', () => console.log(`[System] Connected to Redis`));
   Redis.on('error', (error) =>
-    console.error(`[Error] ${error.message || error}`)
+    console.error(
+      `[Error] Failed to perform action with redis: ${error.message || error}`
+    )
   );
 
   await Redis.connect();

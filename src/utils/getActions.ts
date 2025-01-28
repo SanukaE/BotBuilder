@@ -20,7 +20,7 @@ export enum ActionTypes {
 }
 
 export async function getActions(actionType: ActionTypes) {
-  const { disabledCategories } = config;
+  const { disabledCategories, webServerPort } = config;
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -30,7 +30,10 @@ export async function getActions(actionType: ActionTypes) {
     true
   );
   const missingVariables = checkEnvVariables();
-  let skipCategories: string[] = [];
+  let skipCategories: string[] =
+    webServerPort === -1
+      ? ['api', ...disabledCategories, ...missingVariables]
+      : [...disabledCategories, ...missingVariables];
 
   const actions:
     | CommandType[]
@@ -41,20 +44,7 @@ export async function getActions(actionType: ActionTypes) {
     | StringMenuType[] = [];
 
   for (const actionCategory of actionCategories) {
-    missingVariables.forEach((variable) => {
-      if (actionCategory.endsWith(variable))
-        skipCategories.push(actionCategory);
-    });
-
-    disabledCategories.forEach((category) => {
-      if (
-        actionCategory.endsWith(category) &&
-        !skipCategories.includes(category)
-      )
-        skipCategories.push(actionCategory);
-    });
-
-    if (skipCategories.includes(actionCategory)) continue;
+    if (skipCategories.includes(actionCategory.split('\\').pop()!)) continue;
 
     const pushActions = async (categoryPath: string) => {
       const actionFiles = getAllFiles(categoryPath);

@@ -7,7 +7,7 @@
   "geminiModel": "gemini-1.5-flash",
   "disabledCategories": [],
   "webServerIP": "localhost",
-  "webServerPort": 3000,
+  "webServerPort": -1,
   "appMotto": "Your Free, Open-Source, All-In-One Discord Companion",
   "appActivity": "🤖 Powered by BotBuilder!",
   "punishmentAppealLink": "N/A",

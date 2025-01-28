@@ -18,8 +18,6 @@ const command: CommandType = {
   name: 'api-call',
   description:
     "Make a call to BotBuilder's API. Only for GET request endpoints.",
-  enableDebug: true,
-  isDevOnly: true,
   options: [
     {
       name: 'endpoint',

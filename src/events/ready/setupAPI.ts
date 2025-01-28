@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import config from '../../../config.json' assert { type: 'json' };
+import config from '#config' assert { type: 'json' };
 import {
   LoggerOptions,
   createLogger,
@@ -17,9 +17,14 @@ import { RowDataPacket } from 'mysql2';
 import getErrorSolution from '#utils/getErrorSolution.js';
 
 const app = express();
+const { webServerPort, disabledCategories } = config;
 
 export default async function (client: Client) {
-  const { webServerPort, disabledCategories } = config;
+  if (webServerPort === -1) {
+    console.log('[System] API is disabled.');
+    return;
+  }
+
   const missingVariables = checkEnvVariables();
 
   if (!webServerPort)
@@ -129,6 +134,8 @@ export default async function (client: Client) {
 }
 
 export async function registerRoutes(client: Client) {
+  if (webServerPort === -1) return;
+
   const routes = (await getActions(ActionTypes.Routes)) as RouteType[];
   const { developmentGuildID } = config;
 
