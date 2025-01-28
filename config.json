@@ -1,5 +1,5 @@
 {
-  "productionGuildID": "1055384504841285682",
+  "productionGuildID": "1220680255078010901",
   "developmentGuildID": "1220680255078010901",
   "isMaintenanceEnabled": false,
   "minecraftServerIP": "hypixel.net",
@@ -12,7 +12,9 @@
   "appActivity": "🤖 Powered by BotBuilder!",
   "punishmentAppealLink": "N/A",
   "autoModEnvProtection": false,
-  "memberRoleID": "",
-  "botRoleID": "",
-  "enableStickyRoles": true
+  "memberRoleID": "1333720644730355804",
+  "botRoleID": "1333720772530802718",
+  "enableStickyRoles": true,
+  "countChannelID": "1333717913290674197",
+  "countMuteDuration": 1
 }
