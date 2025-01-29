@@ -21,15 +21,15 @@ const { webServerPort, disabledCategories } = config;
 
 export default async function (client: Client) {
   if (webServerPort === -1) {
-    console.log('[System] API is disabled.');
+    console.log('[System] API is disabled');
     return;
   }
 
   const missingVariables = checkEnvVariables();
 
-  if (!webServerPort)
+  if (webServerPort === 0)
     createWarning(
-      'webServerPort is not set in config.json',
+      'webServerPort is set to 0',
       'Your operating system will assign an arbitrary unused port',
       'Please allocated a port for the webServer & set it in config.json',
       'startWebServer-readyEvent'

@@ -128,9 +128,9 @@ This project is licensed under the [MIT License](https://choosealicense.com/lice
 
 ## 🙏 Special Thanks To
 
-- The NamelessMC & MCStatistics team for their support
+- The [NamelessMC](https://namelessmc.com/) & [MCStatistics](https://mcstatistics.org/) team for their support
 - [Under Ctrl](https://www.youtube.com/@underctrl) for providing excellent Discord.js tutorials
-- The open-source community for their continuous support and contributions
+- The [Discord AntiScam](https://github.com/Discord-AntiScam/scam-links) community for their massive database of scam links
 - All contributors/donators who have helped improve this project
 
 Created with ❤️ by [SanukaE](https://github.com/SanukaE)
