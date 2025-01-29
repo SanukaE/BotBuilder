@@ -8,7 +8,7 @@ export default function (data?: APIEmbed) {
   return new EmbedBuilder({
     author: {
       name: 'Powered by BotBuilder',
-      url: 'https://github.com/SanukaE/BotBuilder',
+      url: 'https://builtbybit.com/resources/botbuilder.59151',
       icon_url: 'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp',
     },
 

@@ -13,23 +13,12 @@ export default function (client: Client) {
     const eventName = eventFolder.replace(/\\/g, '/').split('/').pop()!;
     const eventFiles = getAllFiles(eventFolder);
 
-    eventFiles.sort((a, b) => {
-      const aName = a.split(/[\/\\]/).pop() || '';
-      const bName = b.split(/[\/\\]/).pop() || '';
-      const aNum = parseInt(aName.match(/^\d+/)?.[0] || '0');
-      const bNum = parseInt(bName.match(/^\d+/)?.[0] || '0');
-      if (aNum === bNum) return aName.localeCompare(bName);
-      return aNum - bNum;
-    });
-
-    client.on(eventName, (...args) => {
-      eventFiles.forEach(async (eventFile) => {
+    client.on(eventName, async (...args) => {
+      for (const eventFile of eventFiles) {
         const fileUrl = pathToFileURL(eventFile).href;
         const eventFunction = await import(fileUrl);
         await eventFunction.default(client, ...args);
-      });
+      }
     });
   });
-
-  console.log('[System] All events are now handled');
 }

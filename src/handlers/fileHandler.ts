@@ -3,8 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import getAllFiles from '#utils/getAllFiles.js';
 import Gemini from '#libs/Gemini.js';
-import registerCommands from '../events/ready/registerCommands.js';
-import { registerRoutes } from '../events/ready/setupAPI.js';
+import registerCommands from '../events/ready/3registerCommands.js';
+import { registerRoutes } from '../events/ready/2setupAPI.js';
 import { Client } from 'discord.js';
 
 export default function (client: Client) {
