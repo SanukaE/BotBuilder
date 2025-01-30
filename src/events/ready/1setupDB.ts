@@ -1,20 +1,14 @@
-import { fileURLToPath } from 'url';
 import MySQL from '#libs/MySQL.js';
 import fs from 'fs';
-import path from 'path';
 import getAllFiles from '#utils/getAllFiles.js';
 import Redis from '#libs/Redis.js';
+import getPublicFile from '#utils/getPublicFile.js';
 
 export default async function () {
   await MySQL.query('CREATE DATABASE IF NOT EXISTS botbuilder');
   await MySQL.query('USE botbuilder');
 
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-
-  const tables = getAllFiles(
-    path.join(__dirname, '..', '..', '..', 'public', 'sql')
-  );
+  const tables = getAllFiles(getPublicFile('sql').filePath);
 
   for (const table of tables) {
     const tableSQL = fs.readFileSync(table, 'utf-8');

@@ -24,7 +24,7 @@ export default async function (
   if (staffRoleIDs.some((roleId) => message.member?.roles.cache.has(roleId)))
     return;
 
-  const faqAnswers = getPublicFile('faqAnswers.txt').fileData!.split(
+  const faqAnswers = getPublicFile('faqAnswers.txt', true).fileData!.split(
     '### END OF ANSWER ###'
   );
 

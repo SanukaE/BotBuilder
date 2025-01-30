@@ -5,7 +5,7 @@ import {
   createLogger,
   createWarning,
 } from '#utils/createLogger.js';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { pathToFileURL } from 'url';
 import path from 'path';
 import { Client } from 'discord.js';
 import getAllFiles from '#utils/getAllFiles.js';
@@ -15,6 +15,7 @@ import checkEnvVariables from '#utils/checkEnvVariables.js';
 import MySQL from '#libs/MySQL.js';
 import { RowDataPacket } from 'mysql2';
 import getErrorSolution from '#utils/getErrorSolution.js';
+import getPublicFile from '#utils/getPublicFile.js';
 
 const app = express();
 const { webServerPort, disabledCategories } = config;
@@ -68,13 +69,8 @@ export default async function (client: Client) {
     next();
   });
 
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-
-  const pathToPublic = path.join(__dirname, '..', '..', '..', 'public');
-
   app.get('/', (req, res) => {
-    res.sendFile(path.join(pathToPublic, 'apiEndpoints.html'), (error) => {
+    res.sendFile(getPublicFile('apiEndpoints.html').filePath, (error) => {
       if (!error) return;
 
       const errorLogger = createLogger(
