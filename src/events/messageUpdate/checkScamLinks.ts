@@ -23,6 +23,8 @@ export default async function (
           'Attempted to share scam link'
         );
 
+      await newMessage.channel.sendTyping();
+
       await newMessage.channel.send(
         `⚠️ Warning: ${newMessage.author.username} attempted to share a scam link by editing a message. Please be careful with links from unknown sources!`
       );

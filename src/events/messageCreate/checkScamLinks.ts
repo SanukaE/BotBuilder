@@ -22,6 +22,8 @@ export default async function (
           'Attempted to share scam link'
         );
 
+      await message.channel.sendTyping();
+
       await message.channel.send(
         `⚠️ Warning: ${message.author.username} attempted to share a scam link. Please be careful with links from unknown sources!`
       );
