@@ -17,6 +17,7 @@ import Gemini from '#libs/Gemini.js';
 import { Schema, SchemaType } from '@google/generative-ai';
 import getNamelessSuggestions from '#utils/getNamelessSuggestions.js';
 import createTempDataFile from '#utils/createTempDataFile.js';
+import config from '#config' assert { type: 'json' };
 
 const command: CommandType = {
   name: 'nameless-suggestion-create',
@@ -30,6 +31,8 @@ const command: CommandType = {
     const username = interaction.user.username;
 
     debugStream.write(`username: ${username}`);
+
+    const { checkDuplicateSuggestionWithAI } = config;
 
     debugStream.write('Creating embed...');
 
@@ -254,6 +257,7 @@ const command: CommandType = {
       const gemini = Gemini();
 
       if (
+        checkDuplicateSuggestionWithAI &&
         gemini.enabled &&
         gemini.model &&
         gemini.fileManager &&
