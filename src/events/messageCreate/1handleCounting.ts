@@ -6,6 +6,7 @@ export default async function (
   client: Client,
   message: OmitPartialGroupDMChannel<Message<boolean>>
 ) {
+  if (!message.deletable) return;
   if (!message.inGuild()) return;
 
   const { countChannelID, countMuteDuration } = config;

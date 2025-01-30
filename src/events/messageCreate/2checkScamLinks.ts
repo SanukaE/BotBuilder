@@ -4,6 +4,7 @@ export default async function (
   _: Client,
   message: OmitPartialGroupDMChannel<Message<boolean>>
 ) {
+  if (!message.deletable) return;
   if (!message.inGuild()) return;
   if (message.author.bot) return;
 

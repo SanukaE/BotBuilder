@@ -16,5 +16,7 @@
   "botRoleID": "1333720772530802718",
   "enableStickyRoles": true,
   "countChannelID": "1334114656461258784",
-  "countMuteDuration": 1
+  "countMuteDuration": 1,
+  "supportChannelID": "1334438746031915058",
+  "staffRoleIDs": ["1326823561758904353"]
 }
