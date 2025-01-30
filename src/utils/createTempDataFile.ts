@@ -11,7 +11,7 @@ export default function (fileName: string, data: any, expire = 60_000) {
   if (!fs.existsSync(pathToTempFiles)) fs.mkdirSync(pathToTempFiles);
 
   const filePath = path.join(pathToTempFiles, fileName);
-  fs.writeFileSync(filePath, JSON.stringify(data), {
+  fs.writeFileSync(filePath, data, {
     encoding: 'utf-8',
   });
 

@@ -289,7 +289,7 @@ const command: CommandType = {
             content: suggestion.content,
           }));
 
-        createTempDataFile('suggestions.json', openSuggestions);
+        createTempDataFile('suggestions.json', JSON.stringify(openSuggestions));
 
         const suggestionData = await gemini.fileManager.uploadFile(
           'temp/suggestions.json',
