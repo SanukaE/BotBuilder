@@ -182,7 +182,7 @@ async function getPaymentEmbed(paymentData: any) {
       url: paymentData.customer_id
         ? await getNamelessUserAvatar(paymentData.customer_id)
         : `https://www.google.com/s2/favicons?domain=${
-            process.env.NAMELESSMC_API_URL!.split('/')[1]
+            process.env.NAMELESSMC_API_URL!.split('/')[2]
           }&sz=128`,
     },
   });

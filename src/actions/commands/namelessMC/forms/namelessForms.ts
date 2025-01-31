@@ -61,7 +61,7 @@ const command: CommandType = {
         'Use the select menu bellow to pick a form you want to apply for.',
       thumbnail: {
         url: `https://www.google.com/s2/favicons?domain=${
-          process.env.NAMELESSMC_API_URL!.split('/')[1]
+          process.env.NAMELESSMC_API_URL!.split('/')[2]
         }&sz=128`,
       },
     });

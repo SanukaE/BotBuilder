@@ -75,7 +75,7 @@ const stringMenu: StringMenuType = {
         'Good luck! 🍀',
       thumbnail: {
         url: `https://www.google.com/s2/favicons?domain=${
-          process.env.NAMELESSMC_API_URL!.split('/')[1]
+          process.env.NAMELESSMC_API_URL!.split('/')[2]
         }&sz=128`,
       },
       fields: [
