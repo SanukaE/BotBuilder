@@ -22,7 +22,7 @@ const command: CommandType = {
     },
   ],
 
-  async script(client, interaction, debugStream) {
+  async script(_, interaction, debugStream) {
     debugStream.write('Initializing AI...');
     const { enabled, model, fileManager } = Gemini();
 
