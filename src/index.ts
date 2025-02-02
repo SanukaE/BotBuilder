@@ -3,7 +3,8 @@ import 'dotenv/config';
 import eventHandler from './handlers/eventHandler.js';
 import fileHandler from './handlers/fileHandler.js';
 import checkEnvVariables from '#utils/checkEnvVariables.js';
-import Gemini from '#libs/Gemini.js';
+import path from 'path';
+import fs from 'fs';
 import MySQL from '#libs/MySQL.js';
 import Redis from '#libs/Redis.js';
 
@@ -51,16 +52,11 @@ const handleShutdown = async () => {
   await MySQL.end();
   await Redis.disconnect();
 
-  const { fileManager } = Gemini();
-
-  if (fileManager) {
-    const uploadedFiles = (await fileManager.listFiles()).files;
-
-    if (uploadedFiles?.length > 0) {
-      for (const file of uploadedFiles) {
-        await fileManager.deleteFile(file.name);
-      }
-    }
+  try {
+    const tempFolder = path.join(process.cwd(), 'temp');
+    fs.rmSync(tempFolder, { recursive: true });
+  } catch (error) {
+    null;
   }
 
   console.log('Have a nice day!');

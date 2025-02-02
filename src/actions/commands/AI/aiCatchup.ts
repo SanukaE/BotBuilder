@@ -7,6 +7,7 @@ import createTempDataFile from '#utils/createTempDataFile.js';
 import getAllFiles from '#utils/getAllFiles.js';
 import { ApplicationCommandOptionType, Colors } from 'discord.js';
 import createEmbed from '#utils/createEmbed.js';
+import { Schema, SchemaType } from '@google/generative-ai';
 
 type Data = {
   username: string;
@@ -30,8 +31,8 @@ const command: CommandType = {
       description:
         'Specify the number of unread messages you want to catch up on.',
       type: ApplicationCommandOptionType.Integer,
-      min_value: 20,
-      max_value: 200,
+      min_value: 10,
+      max_value: 100,
       required: true,
     },
   ],
@@ -55,14 +56,13 @@ const command: CommandType = {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
-    const tempFilePaths = getAllFiles(
-      path.join(__dirname, '../../../../temp'),
-      false
-    ).filter((filePath) =>
+    const tempFilePath = getAllFiles(
+      path.join(__dirname, '../../../../temp')
+    ).find((filePath) =>
       filePath
-        .split('/')
-        .pop()!
-        .startsWith(`aiCatchup-${interaction.channelId}`)
+        .split('\\')
+        .pop()
+        ?.startsWith(`aiCatchup-${interaction.channelId}`)
     );
 
     let dataArray: Data[] = [];
@@ -125,16 +125,13 @@ const command: CommandType = {
       return tempDataArray;
     };
 
-    if (tempFilePaths.length) {
-      const tempFilePath = tempFilePaths[0];
-
-      const oldMessageNo = tempFilePath.split('/').pop()!.split('-')[2];
+    if (tempFilePath) {
+      const oldMessageNo = tempFilePath.split('\\').pop()!.split('-')[2];
       const oldTimestamp = tempFilePath
-        .split('/')
+        .split('\\')
         .pop()!
         .split('-')[3]
-        .split('.')
-        .shift()!;
+        .slice(0, -5);
 
       const remainingMsg = messageNo - Number(oldMessageNo);
 
@@ -221,6 +218,30 @@ const command: CommandType = {
       }
     );
 
+    const summarySchema: Schema = {
+      type: SchemaType.ARRAY,
+      description: 'A summary of the conversation',
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          heading: {
+            type: SchemaType.STRING,
+            description:
+              'A brief heading summarizing the main point or topic of the conversation segment.',
+          },
+          content: {
+            type: SchemaType.STRING,
+            description:
+              'A detailed description of the conversation segment, providing more context and information.',
+          },
+        },
+        required: ['heading', 'content'],
+      },
+    };
+
+    gemini.model!.generationConfig.responseMimeType = 'application/json';
+    gemini.model!.generationConfig.responseSchema = summarySchema;
+
     const result = await gemini.model!.generateContent([
       ...fileResults,
       {
@@ -229,7 +250,7 @@ const command: CommandType = {
           mimeType: configFileResponse.file.mimeType,
         },
       },
-      'Summarize the conversation from the provided "Messages" file. This file contains messages from a Discord channel, possible including multiple threads and attachments. The summary should be clear, concise, and under 2000 characters. Use markdown formatting where appropriate.',
+      'Generate a summary of the conversation from the provided "Messages" file. This file contains messages from a Discord channel, including potential threads and attachments. The summary should be clear, concise, and no longer than 2000 characters. Use markdown formatting where appropriate to enhance readability.',
     ]);
 
     debugStream.write('Summary generated! Sending follow up...');
@@ -237,8 +258,11 @@ const command: CommandType = {
     const embedMessage = createEmbed({
       color: Colors.Blue,
       title: 'Catchup',
-      description: result.response.text(),
-      footer: { text: 'AI can get somethings wrong sometimes' },
+      description: 'Please use caution as AI can make mistakes.',
+      fields: JSON.parse(result.response.text()).map((summary: any) => ({
+        name: summary.heading,
+        value: summary.content,
+      })),
     });
 
     await interaction.followUp({
