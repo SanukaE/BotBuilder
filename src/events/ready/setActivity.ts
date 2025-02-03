@@ -10,10 +10,4 @@ export default async function (client: Client) {
     url: 'https://github.com/SanukaE/BotBuilder',
     state: appActivity || '🤖 Powered by BotBuilder!',
   });
-
-  console.log(
-    `[System] ${client.user?.displayName}'s activity was set: ${
-      appActivity || '🤖 Powered by BotBuilder!'
-    }`
-  );
 }
