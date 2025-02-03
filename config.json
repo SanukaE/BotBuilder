@@ -19,5 +19,6 @@
   "countMuteDuration": 1,
   "supportChannelID": "1334438746031915058",
   "staffRoleIDs": ["1326823561758904353"],
-  "checkDuplicateSuggestionWithAI": false
+  "checkDuplicateSuggestionWithAI": false,
+  "enableMessageLinkPreview": true
 }
