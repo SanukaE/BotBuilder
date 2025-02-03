@@ -70,7 +70,7 @@ export default async function (client: Client) {
   });
 
   app.get('/', (req, res) => {
-    res.sendFile(getPublicFile('apiEndpoints.html').filePath, (error) => {
+    res.sendFile(getPublicFile('apiEndpoints.html')!.filePath, (error) => {
       if (!error) return;
 
       const errorLogger = createLogger(

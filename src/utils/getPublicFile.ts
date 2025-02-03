@@ -9,6 +9,8 @@ export default function (publicPathToFile: string, readFileContent = false) {
   const pathToPublic = path.join(__dirname, '..', '..', 'public');
   const filePath = path.join(pathToPublic, publicPathToFile);
 
+  if (!fs.existsSync(filePath)) return;
+
   if (readFileContent) {
     const fileData = fs.readFileSync(filePath, 'utf-8');
 

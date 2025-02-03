@@ -16,17 +16,18 @@ export default async function (
   message: OmitPartialGroupDMChannel<Message<boolean>>
 ) {
   if (!message.deletable) return;
-  if (!message.inGuild()) return;
-  if (message.author.bot) return;
+  if (message.author.bot || !message.inGuild()) return;
 
   const { supportChannelID, staffRoleIDs } = config;
   if (message.channelId !== supportChannelID) return;
   if (staffRoleIDs.some((roleId) => message.member?.roles.cache.has(roleId)))
     return;
 
-  const faqAnswers = getPublicFile('faqAnswers.txt', true).fileData!.split(
+  const faqAnswers = getPublicFile('faqAnswers.txt', true)?.fileData?.split(
     '### END OF ANSWER ###'
   );
+
+  if (!faqAnswers) return;
 
   const keyWords = getKeyWords(message.content.trim());
 
@@ -35,7 +36,8 @@ export default async function (
 
   const notSolvedBtn = new ButtonBuilder({
     customId: 'faq-answer-not-solved-collector',
-    label: "Doesn't help",
+    label: 'Delete Answer',
+    emoji: '🗑',
     style: ButtonStyle.Danger,
   });
 
@@ -57,7 +59,7 @@ export default async function (
       i.customId === 'faq-answer-not-solved-collector',
   });
 
-  buttonCollector.on('collect', async (i) => {
+  buttonCollector.on('collect', async () => {
     buttonCollector.stop("FAQ answer didn't help");
     if (answerMsg.deletable) await answerMsg.delete();
   });

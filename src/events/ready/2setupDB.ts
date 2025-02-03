@@ -8,7 +8,7 @@ export default async function () {
   await MySQL.query('CREATE DATABASE IF NOT EXISTS botbuilder');
   await MySQL.query('USE botbuilder');
 
-  const tables = getAllFiles(getPublicFile('sql').filePath);
+  const tables = getAllFiles(getPublicFile('sql')!.filePath);
 
   for (const table of tables) {
     const tableSQL = fs.readFileSync(table, 'utf-8');
