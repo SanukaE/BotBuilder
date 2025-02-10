@@ -7,6 +7,7 @@ export default async function (
   message: OmitPartialGroupDMChannel<Message<boolean>>
 ) {
   if (!message.deletable) return;
+  if (message.author.id === client.user?.id) return;
 
   const { enableAutoMessageTranslation, translationLanguage } = config;
   if (!enableAutoMessageTranslation) return;

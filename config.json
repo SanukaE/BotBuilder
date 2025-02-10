@@ -22,5 +22,6 @@
   "checkDuplicateSuggestionWithAI": false,
   "enableMessageLinkPreview": true,
   "enableAutoMessageTranslation": true,
-  "translationLanguage": "en"
+  "translationLanguage": "en",
+  "enableVoiceMessageTranscript": false
 }

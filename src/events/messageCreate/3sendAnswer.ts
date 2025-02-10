@@ -47,7 +47,10 @@ export default async function (
 
   await message.channel.sendTyping();
 
-  const answerMsg = await message.reply({ content: answer, components: [row] });
+  const answerMsg = await message.reply({
+    content: `> FAQ Answer` + answer,
+    components: [row],
+  });
 
   const buttonCollector = answerMsg.createMessageComponentCollector({
     componentType: ComponentType.Button,
