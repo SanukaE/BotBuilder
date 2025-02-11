@@ -1,6 +1,24 @@
 import { RowDataPacket } from 'mysql2';
 import MySQL from '#libs/MySQL.js';
 
+/**
+ * Generates a unique API key of 64 characters length containing uppercase letters, lowercase letters, and numbers.
+ * Checks for uniqueness in the database before returning the key.
+ * 
+ * @param maxAttempts - Maximum number of attempts to generate a unique key (default: 3)
+ * @returns Promise that resolves to a unique API key string
+ * @throws Error if unable to generate a unique key within the maximum attempts
+ * 
+ * @example
+ * ```typescript
+ * try {
+ *   const apiKey = await generateAPIKey();
+ *   console.log(apiKey); // e.g., "aB2cD3eF4..."
+ * } catch (error) {
+ *   console.error("Failed to generate API key:", error);
+ * }
+ * ```
+ */
 export default async function generateAPIKey(maxAttempts = 3) {
   let apiKey = '';
 

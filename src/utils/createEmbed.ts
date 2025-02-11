@@ -2,6 +2,19 @@ import { EmbedBuilder, APIEmbed } from 'discord.js';
 import config from '#config' assert { type: 'json' };
 import { client } from '../index.js';
 
+/**
+ * Creates a Discord embed with default BotBuilder branding
+ * @param data - Optional APIEmbed data to extend the default embed
+ * @returns A new EmbedBuilder instance with BotBuilder branding and optional custom data
+ * 
+ * @example
+ * ```typescript
+ * const embed = createEmbed({
+ *   title: 'My Custom Embed',
+ *   description: 'This is a custom embed with BotBuilder branding'
+ * });
+ * ```
+ */
 export default function (data?: APIEmbed) {
   const { appMotto } = config;
 

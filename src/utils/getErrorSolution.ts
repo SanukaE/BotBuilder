@@ -12,6 +12,24 @@ import ButtonType from '#types/ButtonType.js';
 import ModalType from '#types/ModalType.js';
 import StringMenuType from '#types/StringMenuType.js';
 
+/**
+ * Analyzes error logs and debug information to generate a solution for action-related issues.
+ * Utilizes Gemini AI to provide potential fixes based on error logs, debug logs, and action file contents.
+ * 
+ * @param action - The action object that needs error analysis. Can be one of:
+ *                 CommandType, ReactionType, RouteType, ButtonType, ModalType, or StringMenuType
+ * @param actionType - The type of action being analyzed (from ActionTypes enum)
+ * 
+ * @returns Promise<string | undefined> - Returns a generated solution string, or undefined if:
+ *          - Gemini is not enabled or properly configured
+ *          - Action is not in dev-only mode or debug is not enabled
+ *          - Required log files are not found
+ *          - Returns "No possible fix found" if necessary files are missing
+ * 
+ * @requires Gemini AI configuration
+ * @requires Action log files in specified directory structure
+ * @requires Debug mode and dev-only mode enabled on action
+ */
 export default async function (
   action:
     | CommandType

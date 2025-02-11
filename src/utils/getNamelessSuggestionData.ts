@@ -1,6 +1,26 @@
 import getNamelessSuggestions from './getNamelessSuggestions.js';
 
-export default async function () {
+/**
+ * Retrieves and processes nameless suggestion data to extract unique categories and statuses.
+ * 
+ * @returns {Promise<{
+ *   categories: Array<{ name: string; id: number }>;
+ *   status: Array<{ name: string; id: number }>;
+ * }>} An object containing:
+ *   - categories: Array of unique category objects with name and id
+ *   - status: Array of unique status objects with name and id
+ * 
+ * @remarks
+ * The function performs the following steps:
+ * 1. Fetches nameless suggestions
+ * 2. If no suggestions exist, returns empty arrays for both categories and status
+ * 3. Extracts all categories and status from suggestions
+ * 4. Reduces arrays to contain only unique entries based on id
+ */
+export default async function (): Promise<{
+  categories: Array<{ name: string; id: number; }>;
+  status: Array<{ name: string; id: number; }>;
+}> {
   const suggestions = await getNamelessSuggestions();
 
   if (!suggestions.length) return { categories: [], status: [] };

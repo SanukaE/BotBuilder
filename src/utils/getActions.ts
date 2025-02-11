@@ -10,6 +10,16 @@ import ButtonType from '#types/ButtonType.js';
 import ModalType from '#types/ModalType.js';
 import StringMenuType from '#types/StringMenuType.js';
 
+/**
+ * Enum representing different types of actions available in the system.
+ * @enum {string}
+ * @property {string} Commands - Represents command actions
+ * @property {string} Reactions - Represents reaction actions
+ * @property {string} Routes - Represents route actions
+ * @property {string} Buttons - Represents button actions
+ * @property {string} Modals - Represents modal actions
+ * @property {string} StringMenus - Represents string menu actions
+ */
 export enum ActionTypes {
   Commands = 'commands',
   Reactions = 'reactions',
@@ -19,6 +29,26 @@ export enum ActionTypes {
   StringMenus = 'stringMenus',
 }
 
+/**
+ * Retrieves actions of a specified type from the file system.
+ * 
+ * @param actionType - The type of actions to retrieve from the ActionTypes enum
+ * @returns Promise resolving to an array of action objects matching the specified type
+ *          (CommandType[], ReactionType[], RouteType[], ButtonType[], ModalType[], or StringMenuType[])
+ * 
+ * @remarks
+ * - Scans directories under 'actions/{actionType}' for action files
+ * - Skips disabled categories specified in config
+ * - Skips categories with missing required environment variables
+ * - Automatically skips 'api' category if webserver port is disabled (-1)
+ * - Recursively processes subcategories within each action category
+ * 
+ * @example
+ * ```typescript
+ * const commands = await getActions(ActionTypes.Commands);
+ * const reactions = await getActions(ActionTypes.Reactions);
+ * ```
+ */
 export async function getActions(actionType: ActionTypes) {
   const { disabledCategories, webServerPort } = config;
 

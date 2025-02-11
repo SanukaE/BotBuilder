@@ -13,6 +13,25 @@ export type LoggerType = {
   close: () => void;
 };
 
+/**
+ * Creates a logger instance for writing logs to a file.
+ * 
+ * @param name - The name of the log file (without extension)
+ * @param logger - The type of logger to create (debug, error, or warning)
+ * @param isEnabled - Whether the logger should actually write logs or be a no-op. Defaults to true.
+ * 
+ * @returns A LoggerType object with methods to:
+ * - write: Write a message to the log file
+ * - close: Close the log file and write an end message
+ * 
+ * @remarks
+ * - Creates log files in ApplicationLogs/<logger type> directory
+ * - Adds timestamps to debug and error logs
+ * - Log files are created in append mode
+ * - If logger is disabled, returns no-op functions
+ * - Automatically creates required directories if they don't exist
+ * - Adds START and END markers with timestamps when opening/closing the log
+ */
 export function createLogger(
   name: string,
   logger: LoggerOptions,
@@ -64,6 +83,19 @@ export function createLogger(
   };
 }
 
+/**
+ * Creates a warning log entry with structured information about an issue.
+ * 
+ * @param warning - The warning message describing the issue
+ * @param result - The result or current state that triggered the warning
+ * @param fix - The suggested fix or solution for the warning
+ * @param fileName - The name of the file to write the warning log to
+ * 
+ * @remarks
+ * - Creates a warning log file in ApplicationLogs/warnings directory
+ * - Writes three lines: warning message, result, and suggested fix
+ * - Also logs a condensed warning message to the console
+ */
 export function createWarning(warning: string, result: string, fix: string, fileName: string) {
   const warningLogger = createLogger(
     fileName,

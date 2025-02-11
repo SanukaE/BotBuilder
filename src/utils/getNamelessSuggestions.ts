@@ -32,6 +32,19 @@ type Suggestion = {
   dislikes: number[];
 };
 
+/**
+ * Fetches and caches suggestions from NamelessMC API.
+ * 
+ * This function first checks Redis cache for suggestions. If not found, it fetches from the API:
+ * 1. Gets all suggestions from the main endpoint
+ * 2. For each suggestion, fetches detailed data and caches individually
+ * 3. Caches the full suggestions array
+ * 
+ * All cache entries expire after 60 seconds.
+ * 
+ * @throws {Error} If the NamelessMC API request fails with an error
+ * @returns {Promise<Suggestion[]>} Array of suggestion objects containing detailed suggestion data
+ */
 export default async function () {
   const redisResult = await Redis.get('namelessmc-suggestions');
 

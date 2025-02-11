@@ -3,6 +3,29 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { ActionTypes } from './getActions.js';
 import getAllFiles from './getAllFiles.js';
 
+/**
+ * Finds and returns the file path of an action based on its name and type.
+ * Searches through action folders and their subcategories recursively.
+ * 
+ * @param actionName - The name, endpoint, or customID of the action to find
+ * @param actionType - The type of action to search for (from ActionTypes enum)
+ * @returns Promise that resolves to the file path of the action if found, undefined otherwise
+ * 
+ * @example
+ * ```typescript
+ * const filePath = await getActionFile('myAction', ActionTypes.COMMAND);
+ * ```
+ * 
+ * @remarks
+ * The function searches through the following properties of action files:
+ * - name
+ * - endpoint 
+ * - customID
+ * 
+ * The search is performed recursively through:
+ * 1. Root action files in a category
+ * 2. Files in subcategories
+ */
 export default async function (actionName: string, actionType: ActionTypes) {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);

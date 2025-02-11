@@ -1,6 +1,18 @@
 import { Client, APIApplicationCommandOption } from 'discord.js';
 import CommandType from '#types/CommandType.js';
 
+/**
+ * Retrieves and formats registered Discord slash commands for a client
+ * @param client - The Discord.js Client instance
+ * @returns Promise containing array of formatted command objects conforming to CommandType
+ * @throws Will throw an error if command fetching fails
+ * 
+ * @example
+ * ```typescript
+ * const commands = await getRegisteredCommands(discordClient);
+ * console.log(commands); // Array of CommandType objects
+ * ```
+ */
 export default async function (client: Client) {
   try {
     // Retrieve global commands
