@@ -40,7 +40,7 @@ export const client = new Client({
 });
 
 eventHandler(client);
-fileHandler(client);
+const closeWatchers = fileHandler(client);
 
 client.login(process.env.APP_TOKEN);
 
@@ -51,6 +51,8 @@ const handleShutdown = async () => {
 
   await MySQL.end();
   await Redis.disconnect();
+
+  closeWatchers();
 
   try {
     const tempFolder = path.join(process.cwd(), 'temp');

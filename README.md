@@ -47,24 +47,6 @@ pnpm install
 
 4. Create a `config.json` file in the root directory. (see [Configuration Variables](https://github.com/SanukaE/BotBuilder/wiki/Variables) section on the wiki)
 
-## 💻 Development
-
-Start the development server:
-
-```sh
-npm run dev
-```
-
-or
-
-```sh
-pnpm dev
-```
-
-Your bot will be online and the API endpoints will be available at http://localhost:3000.
-
-> **Note**: The endpoints URL depends on what values you have set in the config.
-
 ## 🏗️ Building for Production
 
 Create a production build:
@@ -124,7 +106,7 @@ Check out all these amazing servers that uses BotBuilder's help to manage them.
 
 ## 📄 License
 
-This project is licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
+This project is licensed under the [GPL v3.0 License](https://choosealicense.com/licenses/gpl-3.0/)
 
 ## 🙏 Special Thanks To
 

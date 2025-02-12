@@ -129,7 +129,7 @@ export default async function (client: Client) {
   console.log(`[System] API running on port: ${webServerPort}`);
 }
 
-export async function registerRoutes(client: Client) {
+async function registerRoutes(client: Client) {
   if (webServerPort === -1) return;
 
   const routes = (await getActions(ActionTypes.Routes)) as RouteType[];

@@ -2,6 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+type FileData = {
+  fileData?: string;
+  pathToPublic: string;
+  filePath: string;
+};
+
 /**
  * Retrieves file paths and optionally reads file content from the public directory
  * @param publicPathToFile - Relative path to the file within the public directory
@@ -11,7 +17,10 @@ import { fileURLToPath } from 'url';
  * @returns {string} pathToPublic - Absolute path to the public directory
  * @returns {string} filePath - Absolute path to the requested file
  */
-export default function (publicPathToFile: string, readFileContent = false): object | undefined {
+export default function (
+  publicPathToFile: string,
+  readFileContent = false
+): FileData | undefined {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
