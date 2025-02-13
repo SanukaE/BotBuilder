@@ -1,5 +1,18 @@
 import Redis from '#libs/Redis.js';
 
+/**
+ * Retrieves a user's avatar URL from NamelessMC API with Redis caching
+ * 
+ * @param namelessID - The NamelessMC user ID to fetch the avatar for
+ * @returns Promise<string> URL of the user's avatar or website favicon if user doesn't exist
+ * @throws {Error} When the NamelessMC API request fails
+ * 
+ * @description
+ * First checks Redis cache for existing avatar URL
+ * If not found, fetches from NamelessMC API
+ * If user exists, caches result in Redis for 60 seconds
+ * If user doesn't exist, returns website favicon as fallback
+ */
 export default async function (namelessID: number) {
   const redisResult = await Redis.get(`namelessmc-user-avatar-${namelessID}`);
 
@@ -25,7 +38,7 @@ export default async function (namelessID: number) {
 
   if (!responseData.exists)
     return `https://www.google.com/s2/favicons?domain=${
-      process.env.NAMELESSMC_API_URL!.split('/')[1]
+      process.env.NAMELESSMC_API_URL!.split('/')[2]
     }&sz=128`;
 
   await Redis.set(

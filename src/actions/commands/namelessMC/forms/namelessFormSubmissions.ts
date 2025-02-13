@@ -138,7 +138,7 @@ const command: CommandType = {
         url: firstSubmissions.user_id
           ? await getNamelessUserAvatar(firstSubmissions.user_id)
           : `https://www.google.com/s2/favicons?domain=${
-              process.env.NAMELESSMC_API_URL!.split('/')[1]
+              process.env.NAMELESSMC_API_URL!.split('/')[2]
             }&sz=128`,
       },
       fields: getEmbedFields(firstSubmissions.data),
@@ -470,7 +470,7 @@ const command: CommandType = {
           url: searchedSubmission.user_id
             ? await getNamelessUserAvatar(searchedSubmission.user_id)
             : `https://www.google.com/s2/favicons?domain=${
-                process.env.NAMELESSMC_API_URL!.split('/')[1]
+                process.env.NAMELESSMC_API_URL!.split('/')[2]
               }&sz=128`,
         },
         fields: getEmbedFields(searchedSubmission.data),

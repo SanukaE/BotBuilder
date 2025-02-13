@@ -70,7 +70,7 @@ const command: CommandType = {
         'Use the select menu below to view payments under a specific status or click the "Search for Payment" button to search for a specific payment.',
       thumbnail: {
         url: `https://www.google.com/s2/favicons?domain=${
-          process.env.NAMELESSMC_API_URL!.split('/')[1]
+          process.env.NAMELESSMC_API_URL!.split('/')[2]
         }&sz=128`,
       },
       fields: [

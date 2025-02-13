@@ -1,192 +1,130 @@
+import Gemini from '#libs/Gemini.js';
+import getAllFiles from '#utils/getAllFiles.js';
+import { Client } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import getAllFiles from '#utils/getAllFiles.js';
-import Gemini from '#libs/Gemini.js';
-import registerCommands from '../events/ready/registerCommands.js';
-import { registerRoutes } from '../events/ready/startWebServer.js';
-import { Client } from 'discord.js';
 
 export default function (client: Client) {
-  return; //! W.I.P: Could cause crashes if allowed to run at it's current state
+  return; //!W.I.P
+
+  let actionFilePaths: string[] = [];
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
-  const actionTypePaths = getAllFiles(
-    path.join(__dirname, '..', '..', 'src', 'actions'),
+  const actionTypes = getAllFiles(
+    path.join(__dirname, '../../src/actions'),
     true
   );
 
-  for (const actionTypePath of actionTypePaths) {
-    fs.watch(actionTypePath, (eventType, fileName) => {
-      if (!fileName) return;
-      addListeners(actionTypePath, client);
-    });
+  for (const actionType of actionTypes) {
+    const actionCategories = getAllFiles(actionType, true);
 
-    addListeners(actionTypePath, client);
-  }
-}
+    for (const actionCategory of actionCategories) {
+      actionFilePaths.push(...getAllFiles(actionCategory));
 
-function addListeners(actionTypePath: string, client: Client) {
-  const actionCategoryPaths = getAllFiles(actionTypePath, true);
-
-  for (const actionCategoryPath of actionCategoryPaths) {
-    listenToFiles(actionCategoryPath, actionTypePath, client);
-
-    const actionSubCategoryPaths = getAllFiles(actionCategoryPath, true);
-
-    for (const actionSubCategoryPath of actionSubCategoryPaths) {
-      listenToFiles(actionSubCategoryPath, actionTypePath, client);
-    }
-  }
-}
-
-function listenToFiles(
-  actionCategoryPath: string,
-  actionTypePath: string,
-  client: Client
-) {
-  fs.watch(actionCategoryPath, async (eventType, fileName) => {
-    switch (eventType) {
-      case 'change':
-        await handleFileChange(actionCategoryPath, fileName, actionTypePath);
-        break;
-
-      case 'rename':
-        await handleFileRename(actionCategoryPath, fileName, actionTypePath);
-        break;
-    }
-
-    switch (true) {
-      case actionTypePath.endsWith('commands'):
-        setTimeout(async () => {
-          await registerCommands(client);
-        }, 20_000);
-        break;
-
-      case actionTypePath.endsWith('routes'):
-        setTimeout(async () => {
-          await registerRoutes(client);
-        }, 20_000);
-        break;
-    }
-  });
-}
-
-//Called when file is modified
-async function handleFileChange(
-  fileDir: string,
-  fileName: string | null,
-  actionTypePath: string
-) {
-  if (!fileName) return;
-
-  const filePath = path.join(fileDir, fileName);
-  let actionData = fs.readFileSync(filePath, 'utf-8');
-
-  const actionTypeName = actionTypePath.split('\\').pop()!;
-  const templateCode = getTemplateCode(fileName, actionTypeName);
-
-  if (
-    actionData.includes(templateCode) ||
-    actionData === '' ||
-    !actionData.includes('AI Help:')
-  )
-    return;
-
-  const { enabled, model, fileManager } = Gemini();
-  if (!enabled) return;
-
-  const problemRegex = /\/\*([\s\S]*?)\*\//g;
-
-  let match;
-  const aiProblems: { start: number; end: number; content: string }[] = [];
-
-  while ((match = problemRegex.exec(actionData)) !== null) {
-    const commentContent = match[1].trim();
-
-    if (commentContent.startsWith('AI Help:')) {
-      aiProblems.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        content: commentContent.replace(/^AI Help:\s*/, '').trim(),
+      getAllFiles(actionCategory, true).forEach((cat) => {
+        actionFilePaths.push(...getAllFiles(cat));
       });
     }
   }
 
-  for (const problem of aiProblems) {
-    const actionFileUpload = await fileManager?.uploadFile(filePath, {
-      mimeType: 'text/typescript',
-      displayName: fileName.split('.')[0],
-    })!;
+  let watchers: fs.FSWatcher[] = [];
 
-    const result = await model?.generateContent([
-      {
-        fileData: {
-          mimeType: 'text/typescript',
-          fileUri: actionFileUpload.file.uri,
-        },
-      },
-      {
-        text: `Ignoring all the comments that start with "AI Help:" or "AI Solution:".\n${problem.content}`,
-      },
-    ]);
+  for (const filePath of actionFilePaths) {
+    const watcher = fs.watch(filePath, async (eventType, filename) => {
+      if (eventType === 'change' && !filename?.includes('~'))
+        await handleUpdate(filePath).catch((err) =>
+          console.log(
+            `[Error] Failed to check for update: ${err.message || err}`
+          )
+        );
+    });
 
-    const solutionComment = `/*AI Solution:\n${result?.response.text()}\n*/`;
-    actionData =
-      actionData.slice(0, problem.start) +
-      solutionComment +
-      actionData.slice(problem.end);
+    watchers.push(watcher);
   }
 
-  fs.writeFileSync(filePath, actionData, 'utf-8');
+  return () => watchers.forEach((watcher) => watcher.close());
 }
 
-//Called when file is renamed, created or deleted
-async function handleFileRename(
-  fileDirPath: string,
-  fileName: string | null,
-  actionTypePath: string
-) {
-  if (!fileName) return;
+async function handleUpdate(filePath: string) {
+  if (!(fs.existsSync(filePath) && fs.statSync(filePath).isFile()))
+    throw new Error(
+      `The specified path "${filePath}" either does not exist or is not a valid file.`
+    );
 
-  let filePath = path.join(fileDirPath, fileName);
+  if (path.extname(filePath).toLowerCase() !== '.ts') return;
 
-  //On File delete
-  if (!fs.existsSync(filePath)) return;
+  let fileContent = fs.readFileSync(filePath, 'utf-8');
+  if (fileContent === '') return;
 
-  const actionTypeName = actionTypePath.split('\\').pop()!;
-  const fileStream = fs.createWriteStream(filePath, { flags: 'a' });
-  const templateCode = getTemplateCode(fileName, actionTypeName);
+  const commentRegex = /\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//g;
+  const matches = fileContent.matchAll(commentRegex);
+  const prompts = Array.from(matches);
 
-  const actionData = fs.readFileSync(filePath, 'utf-8');
+  if (prompts.length === 0) return;
 
-  //Checks if file was renamed
-  if (actionData.includes(templateCode) || actionData.length > 0) return;
+  const gemini = Gemini();
 
-  fileStream.write(templateCode);
-  fileStream.close();
-}
+  if (!gemini.enabled) {
+    fs.writeFileSync(
+      filePath,
+      fileContent.replaceAll(commentRegex, '//AI is disabled')
+    );
+    return;
+  }
 
-function getTemplateCode(fileName: string, actionType: string) {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
+  const extractedPrompts = prompts.map((match) => match[1].trim());
 
-  const pathToTemplate = path.join(
-    __dirname,
-    '..',
-    '..',
-    'public',
-    'templateCode',
-    `${actionType}.txt`
-  );
+  const fileUploadResult = await gemini.fileManager!.uploadFile(filePath, {
+    mimeType: 'text/typescript',
+    displayName: 'Source File',
+  });
 
-  let templateCode = fs.readFileSync(pathToTemplate, 'utf-8');
+  for (const helpPrompt of extractedPrompts) {
+    fileContent = fileContent.replace(commentRegex, '//Processing...');
 
-  templateCode = templateCode
-    .replaceAll('{{actionName}}', fileName.split('.')[0])
-    .replaceAll('{{fileName}}', fileName);
+    fs.writeFileSync(filePath, fileContent);
 
-  return templateCode;
+    try {
+      const result = await gemini.model!.generateContent([
+        {
+          fileData: {
+            fileUri: fileUploadResult.file.uri,
+            mimeType: fileUploadResult.file.mimeType,
+          },
+        },
+        helpPrompt,
+      ]);
+
+      const solution = result.response.text();
+
+      if (solution === '') {
+        fileContent = fileContent.replace(
+          /\/\/Processing\.\.\./g,
+          '//A solution cannot be found'
+        );
+
+        fs.writeFileSync(filePath, fileContent);
+        continue;
+      }
+
+      fileContent = fileContent.replace(
+        /\/\/Processing\.\.\./g,
+        `/*AI Solution:\n${solution}*/`
+      );
+
+      fs.writeFileSync(filePath, fileContent);
+    } catch (error: any) {
+      console.log(`[Error] Failed to get AI help: ${error.message || error}`);
+
+      fileContent = fileContent.replace(
+        /\/\/Processing\.\.\./g,
+        '//Processing Failed! Please check console.'
+      );
+
+      fs.writeFileSync(filePath, fileContent);
+    }
+  }
 }

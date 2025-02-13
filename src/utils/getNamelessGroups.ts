@@ -1,6 +1,20 @@
 import Redis from '#libs/Redis.js';
 import { createLogger, LoggerOptions } from './createLogger.js';
 
+/**
+ * Retrieves groups from NamelessMC API or Redis cache.
+ * 
+ * @param includeStaff - Whether to include staff groups in the result. Defaults to false.
+ * @returns Promise resolving to an array of group objects containing name and ID.
+ *          Each group object has the format: { name: string, value: string }
+ *          Returns empty array if API request fails.
+ * 
+ * @remarks
+ * - First attempts to get groups from Redis cache using key 'namelessmc-groups'
+ * - If cache miss, fetches from NamelessMC API and caches result for 60 seconds
+ * - Logs errors to file if API request fails
+ * - Can filter out staff groups based on includeStaff parameter
+ */
 export default async function (includeStaff = false) {
   const redisResult = await Redis.get('namelessmc-groups');
 

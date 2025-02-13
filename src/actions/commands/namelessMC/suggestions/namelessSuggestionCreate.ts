@@ -17,6 +17,7 @@ import Gemini from '#libs/Gemini.js';
 import { Schema, SchemaType } from '@google/generative-ai';
 import getNamelessSuggestions from '#utils/getNamelessSuggestions.js';
 import createTempDataFile from '#utils/createTempDataFile.js';
+import config from '#config' assert { type: 'json' };
 
 const command: CommandType = {
   name: 'nameless-suggestion-create',
@@ -31,6 +32,8 @@ const command: CommandType = {
 
     debugStream.write(`username: ${username}`);
 
+    const { checkDuplicateSuggestionWithAI } = config;
+
     debugStream.write('Creating embed...');
 
     const embedMessage = createEmbed({
@@ -40,7 +43,7 @@ const command: CommandType = {
       fields: [{ name: 'Category:', value: 'Not set' }],
       thumbnail: {
         url: `https://www.google.com/s2/favicons?domain=${
-          process.env.NAMELESSMC_API_URL!.split('/')[1]
+          process.env.NAMELESSMC_API_URL!.split('/')[2]
         }&sz=128`,
       },
     });
@@ -254,6 +257,7 @@ const command: CommandType = {
       const gemini = Gemini();
 
       if (
+        checkDuplicateSuggestionWithAI &&
         gemini.enabled &&
         gemini.model &&
         gemini.fileManager &&
@@ -285,7 +289,7 @@ const command: CommandType = {
             content: suggestion.content,
           }));
 
-        createTempDataFile('suggestions.json', openSuggestions);
+        createTempDataFile('suggestions.json', JSON.stringify(openSuggestions));
 
         const suggestionData = await gemini.fileManager.uploadFile(
           'temp/suggestions.json',

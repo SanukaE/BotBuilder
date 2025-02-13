@@ -4,6 +4,25 @@ import {
 } from 'discord.js';
 import CommandType from '#types/CommandType.js';
 
+/**
+ * Compares a local command with a registered command to determine if they are different.
+ *
+ * @param localCommand - The local command to compare
+ * @param registeredCommand - The registered command to compare against
+ * @returns {boolean} True if commands are different, false if they are the same
+ *
+ * Checks the following differences:
+ * - Command descriptions
+ * - Number of options
+ * - For each option:
+ *   - Existence of matching option by name
+ *   - Option descriptions
+ *   - Required status
+ *   - Option type
+ *   - Minimum and maximum values (if applicable)
+ *   - Number of choices
+ *   - Choice names and values
+ */
 export default function areCommandsDifferent(
   localCommand: CommandType,
   registeredCommand: CommandType
@@ -21,6 +40,17 @@ export default function areCommandsDifferent(
     if (localOption.description !== registeredOption.description) return true;
     if (localOption.required !== registeredOption.required) return true;
     if (localOption.type !== registeredOption.type) return true;
+
+    if (
+      'min_value' in localOption &&
+      localOption.min_value !== (registeredOption as any).min_value
+    )
+      return true;
+    if (
+      'max_value' in localOption &&
+      localOption.max_value !== (registeredOption as any).max_value
+    )
+      return true;
 
     const localChoices = (
       localOption as APIApplicationCommandOption & {

@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS afk_users (
+    userID VARCHAR(255) NOT NULL,
+    afkMessage VARCHAR(255) NOT NULL,
+    PRIMARY KEY (userID)
+);

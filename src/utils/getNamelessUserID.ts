@@ -1,5 +1,23 @@
 import Redis from '#libs/Redis.js';
 
+/**
+ * Retrieves a NamelessMC user ID by their Discord username.
+ * First checks Redis cache, then falls back to NamelessMC API if not found.
+ * 
+ * @param username - The Discord username to look up
+ * @returns Promise resolving to the NamelessMC user ID
+ * @throws {Error} If the API request fails or user is not found/linked
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   const userId = await getNamelessUserID('discord#1234');
+ *   console.log(userId); // 123
+ * } catch (err) {
+ *   console.error('Failed to get user ID:', err);
+ * }
+ * ```
+ */
 export default async function (username: string): Promise<Number> {
   let user: any;
 

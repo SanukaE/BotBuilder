@@ -47,24 +47,6 @@ pnpm install
 
 4. Create a `config.json` file in the root directory. (see [Configuration Variables](https://github.com/SanukaE/BotBuilder/wiki/Variables) section on the wiki)
 
-## 💻 Development
-
-Start the development server:
-
-```sh
-npm run dev
-```
-
-or
-
-```sh
-pnpm dev
-```
-
-Your bot will be online and the API endpoints will be available at http://localhost:3000.
-
-> **Note**: The endpoints URL depends on what values you have set in the config.
-
 ## 🏗️ Building for Production
 
 Create a production build:
@@ -128,9 +110,9 @@ This project is licensed under the [GPL v3.0 License](https://choosealicense.com
 
 ## 🙏 Special Thanks To
 
-- The NamelessMC & MCStatistics team for their support
+- The [NamelessMC](https://namelessmc.com/) & [MCStatistics](https://mcstatistics.org/) team for their support
 - [Under Ctrl](https://www.youtube.com/@underctrl) for providing excellent Discord.js tutorials
-- The open-source community for their continuous support and contributions
+- The [Discord AntiScam](https://github.com/Discord-AntiScam/scam-links) community for their massive database of scam links
 - All contributors/donators who have helped improve this project
 
 Created with ❤️ by [SanukaE](https://github.com/SanukaE)

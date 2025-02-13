@@ -19,7 +19,13 @@ export default async function (
   user: User | PartialUser,
   details: MessageReactionEventDetails
 ) {
-  const { developmentGuildID, isMaintenanceEnabled } = config;
+  const { developmentGuildID, isMaintenanceEnabled, countChannelID } = config;
+  if (
+    (messageReaction.message.channelId === countChannelID &&
+      messageReaction.emoji.toString() === '✔') ||
+    messageReaction.emoji.toString() === '❌'
+  )
+    return;
   const message = messageReaction.message;
 
   const reactions = (await getActions(ActionTypes.Reactions)) as ReactionType[];

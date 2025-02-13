@@ -4,7 +4,6 @@
   "description": "A discord bot setup that has anything a server owner could wish for.",
   "main": "build/index.js",
   "scripts": {
-    "dev": "tsc-watch --onFirstSuccess \"node build/index.js\" --noClear --silent",
     "build": "tsc",
     "start": "node build/index.js"
   },
@@ -24,11 +23,11 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "mysql2": "^3.11.5",
+    "natural": "^8.0.1",
     "redis": "^4.7.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
-    "tsc-watch": "^6.2.1",
     "typescript": "^5.7.2"
   }
 }
