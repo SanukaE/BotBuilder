@@ -6,6 +6,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 export default function (client: Client) {
+  return; //!W.I.P
+
   let actionFilePaths: string[] = [];
 
   const __filename = fileURLToPath(import.meta.url);
