@@ -40,13 +40,6 @@ const command: CommandType = {
       url: 'https://builtbybit.com/resources/botbuilder.59151/',
     });
 
-    const sourceCodeBtn = new ButtonBuilder({
-      emoji: '👨‍💻',
-      label: 'View Source Code',
-      style: ButtonStyle.Link,
-      url: 'https://github.com/SanukaE/BotBuilder',
-    });
-
     const supportBtn = new ButtonBuilder({
       emoji: '❤',
       label: 'Support The Project',
@@ -55,7 +48,7 @@ const command: CommandType = {
     });
 
     const row = new ActionRowBuilder<ButtonBuilder>({
-      components: [downloadBtn, sourceCodeBtn, supportBtn],
+      components: [downloadBtn, supportBtn],
     });
 
     debugStream.write('Buttons created! Sending follow up...');

@@ -48,7 +48,7 @@ export default async function (
   await message.channel.sendTyping();
 
   const answerMsg = await message.reply({
-    content: `> FAQ Answer` + answer,
+    content: `> FAQ Answer\n\n` + answer,
     components: [row],
   });
 
