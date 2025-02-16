@@ -7,15 +7,8 @@ export default function () {
   const geminiAPIKey = process.env.GEMINI_API_KEY;
   const { geminiModel, disabledCategories } = config;
 
-  if (!geminiAPIKey || (disabledCategories as string[]).includes('AI')) {
-    createWarning(
-      'GEMINI_API_KEY is not set OR AI is disabled',
-      'All AI required features will be disabled',
-      'Please check if your API Key is correct in the .env file OR remove AI from config.json',
-      'Gemini-libs'
-    );
+  if (!geminiAPIKey || (disabledCategories as string[]).includes('AI'))
     return { enabled: false };
-  }
 
   if (!geminiModel)
     createWarning(

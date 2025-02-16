@@ -5,9 +5,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-export default function (client: Client) {
-  return; //!W.I.P
+const filesInProcess = new Set<string>();
 
+export default function (client: Client) {
   let actionFilePaths: string[] = [];
 
   const __filename = fileURLToPath(import.meta.url);
@@ -49,6 +49,8 @@ export default function (client: Client) {
 }
 
 async function handleUpdate(filePath: string) {
+  if (filesInProcess.has(filePath)) return;
+
   if (!(fs.existsSync(filePath) && fs.statSync(filePath).isFile()))
     throw new Error(
       `The specified path "${filePath}" either does not exist or is not a valid file.`
@@ -59,19 +61,24 @@ async function handleUpdate(filePath: string) {
   let fileContent = fs.readFileSync(filePath, 'utf-8');
   if (fileContent === '') return;
 
-  const commentRegex = /\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//g;
-  const matches = fileContent.matchAll(commentRegex);
+  const matches = fileContent.matchAll(/\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//g);
   const prompts = Array.from(matches);
 
   if (prompts.length === 0) return;
+
+  filesInProcess.add(filePath);
 
   const gemini = Gemini();
 
   if (!gemini.enabled) {
     fs.writeFileSync(
       filePath,
-      fileContent.replaceAll(commentRegex, '//AI is disabled')
+      fileContent.replaceAll(
+        /\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//g,
+        '//AI is disabled'
+      )
     );
+    filesInProcess.delete(filePath);
     return;
   }
 
@@ -83,7 +90,10 @@ async function handleUpdate(filePath: string) {
   });
 
   for (const helpPrompt of extractedPrompts) {
-    fileContent = fileContent.replace(commentRegex, '//Processing...');
+    fileContent = fileContent.replace(
+      /\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//,
+      '//Processing...'
+    );
 
     fs.writeFileSync(filePath, fileContent);
 
@@ -96,13 +106,14 @@ async function handleUpdate(filePath: string) {
           },
         },
         helpPrompt,
+        "Your response is used to replace the '//Processing...' comment with a multi line comment containing your response. So do not use markdown & try responding in text only. Ignore comments with prefix 'AI Help:', 'AI Solution:' or 'Processing...'.",
       ]);
 
       const solution = result.response.text();
 
       if (solution === '') {
         fileContent = fileContent.replace(
-          /\/\/Processing\.\.\./g,
+          /\/\/Processing\.\.\./,
           '//A solution cannot be found'
         );
 
@@ -111,7 +122,7 @@ async function handleUpdate(filePath: string) {
       }
 
       fileContent = fileContent.replace(
-        /\/\/Processing\.\.\./g,
+        /\/\/Processing\.\.\./,
         `/*AI Solution:\n${solution}*/`
       );
 
@@ -120,11 +131,13 @@ async function handleUpdate(filePath: string) {
       console.log(`[Error] Failed to get AI help: ${error.message || error}`);
 
       fileContent = fileContent.replace(
-        /\/\/Processing\.\.\./g,
+        /\/\/Processing\.\.\./,
         '//Processing Failed! Please check console.'
       );
 
       fs.writeFileSync(filePath, fileContent);
+    } finally {
+      filesInProcess.delete(filePath);
     }
   }
 }
