@@ -60,7 +60,7 @@ export default async function (client: Client) {
         },
       });
 
-      console.log('[System] AutoMod Env Protection rule created');
+      console.log('[System] AutoMod Env Protection rule created.');
     } else if (autoModEnvProtection) {
       await existingRule?.setKeywordFilter([
         `*${process.env.MYSQL_PASSWORD}*`,
@@ -69,7 +69,7 @@ export default async function (client: Client) {
         `*${process.env.GEMINI_API_KEY}*`,
       ]);
 
-      console.log('[System] AutoMod Env Protection rule updated');
+      console.log('[System] AutoMod Env Protection rule updated.');
     }
 
     if (!autoModEnvProtection && existingRule) {
@@ -77,7 +77,7 @@ export default async function (client: Client) {
         'AutoMod Env Protection is disabled in config.'
       );
 
-      console.log('[System] AutoMod Env Protection rule deleted');
+      console.log('[System] AutoMod Env Protection rule deleted.');
     }
   } catch (error: any) {
     console.error(`[Error] ${error.message || error}`);

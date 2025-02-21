@@ -22,7 +22,7 @@ const { webServerPort, disabledCategories } = config;
 
 export default async function (client: Client) {
   if (webServerPort === -1) {
-    console.log('[System] API is disabled');
+    console.log('[System] API is disabled.');
     return;
   }
 
