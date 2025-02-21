@@ -6,8 +6,6 @@ import { GenerateContentResult } from '@google/generative-ai';
 const command: CommandType = {
   name: 'ai-ask',
   description: 'Ask the AI a question',
-  enableDebug: true,
-  isDevOnly: true,
   options: [
     {
       name: 'question',
