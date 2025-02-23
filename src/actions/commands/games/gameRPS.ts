@@ -90,6 +90,8 @@ const command: CommandType = {
       ephemeral: true,
     });
 
+    await interaction.channel.sendTyping();
+
     const gameMessage = await interaction.channel.send({
       content: `<@${interaction.user.id}> vs ${
         playerTwo ? `<@${playerTwo.id}>` : 'Computer'

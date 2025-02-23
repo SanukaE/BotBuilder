@@ -41,7 +41,7 @@ const command: CommandType = {
       type: ApplicationCommandOptionType.Role,
     },
   ],
-  permissions: [PermissionFlagsBits.Administrator],
+  permissions: [PermissionFlagsBits.ManageRoles],
 
   async script(client, interaction, debugStream) {
     const { staffRoleIDs } = config;

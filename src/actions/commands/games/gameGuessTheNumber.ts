@@ -59,6 +59,8 @@ const command: CommandType = {
       ephemeral: true,
     });
 
+    await interaction.channel.sendTyping();
+
     const gameMessage = await interaction.channel.send({
       content:
         'Lets see who is good with numbers here. First player to guess the number correct wins! Good Luck.',
