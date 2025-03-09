@@ -23,7 +23,7 @@ const command: CommandType = {
     );
 
     const focusedValues = rows.filter((row) =>
-      row.title.startWith(focusedOption)
+      row.title.startsWith(focusedOption)
     );
     if (!focusedValues.length) return;
 
