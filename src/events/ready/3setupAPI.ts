@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import {
   LoggerOptions,
   createLogger,

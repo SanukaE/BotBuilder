@@ -1,5 +1,5 @@
 import { EmbedBuilder, APIEmbed } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import { client } from '../index.js';
 
 /**

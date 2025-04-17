@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
 import { createWarning } from '#utils/createLogger.js';
-import config from '../../config.json' assert { type: 'json' };
+import config from '../../config.json' with { type: 'json' };
 
 export default function () {
   const geminiAPIKey = process.env.GEMINI_API_KEY;

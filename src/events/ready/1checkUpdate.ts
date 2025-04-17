@@ -1,5 +1,5 @@
 import { Client } from 'discord.js';
-import localPackage from '../../../package.json' assert { type: 'json' };
+import localPackage from '../../../package.json' with { type: 'json' };
 
 export default async function (_: Client) {
   try {

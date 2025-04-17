@@ -6,7 +6,7 @@ import {
   OmitPartialGroupDMChannel,
   StringSelectMenuBuilder,
 } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 
 export default async function (
   client: Client,

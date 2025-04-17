@@ -2,7 +2,7 @@ import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import getAllFiles from './getAllFiles.js';
 import checkEnvVariables from './checkEnvVariables.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import CommandType from '#types/CommandType.js';
 import ReactionType from '#types/ReactionType.js';
 import { RouteType } from '#types/RouteType.js';

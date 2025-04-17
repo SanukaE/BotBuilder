@@ -1,4 +1,4 @@
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import Gemini from '#libs/Gemini.js';
 import createTempDataFile from '#utils/createTempDataFile.js';
 import { Schema, SchemaType } from '@google/generative-ai';

@@ -8,7 +8,7 @@ import {
   OmitPartialGroupDMChannel,
 } from 'discord.js';
 import natural from 'natural';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import getPublicFile from '#utils/getPublicFile.js';
 
 export default async function (
