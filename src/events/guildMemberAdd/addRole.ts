@@ -1,5 +1,5 @@
 import { Client, GuildMember } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import MySQL from '#libs/MySQL.js';
 import { RowDataPacket } from 'mysql2';
 

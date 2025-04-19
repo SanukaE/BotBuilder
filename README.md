@@ -19,7 +19,7 @@ For detailed setup instructions and deployment guides, please refer to our [Inst
 
 Before you begin, ensure you have installed:
 
-- [Node.js](https://nodejs.org) (version 18 or higher) 📦
+- [Node.js](https://nodejs.org) (version v22) 📦
 - [pnpm](https://pnpm.io/) (optional) 🏃‍♂️
 
 ## 🛠️ Installation

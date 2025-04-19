@@ -3,7 +3,6 @@ import CommandType from '#types/CommandType.js';
 import createEmbed from '#utils/createEmbed.js';
 import {
   ActionRowBuilder,
-  ApplicationCommandOptionType,
   Colors,
   PermissionFlagsBits,
   StringSelectMenuBuilder,

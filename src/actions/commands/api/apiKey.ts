@@ -3,7 +3,7 @@ import createEmbed from '#utils/createEmbed.js';
 import MySQL from '#libs/MySQL.js';
 import generateAPIKey from '#utils/generateAPIKey.js';
 import { RowDataPacket } from 'mysql2';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 const command: CommandType = {

@@ -7,7 +7,7 @@ import {
   PartialUser,
   Message,
 } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import { ActionTypes, getActions } from '#utils/getActions.js';
 import ReactionType from '#types/ReactionType.js';
 import { LoggerOptions, createLogger } from '#utils/createLogger.js';

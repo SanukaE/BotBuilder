@@ -5,8 +5,6 @@ import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
 import { createPageButtons, getPageData } from '#utils/getPageData.js';
 import {
   ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   Colors,
   ComponentType,
   PermissionFlagsBits,

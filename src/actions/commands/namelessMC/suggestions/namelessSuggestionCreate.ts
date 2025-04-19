@@ -17,7 +17,7 @@ import Gemini from '#libs/Gemini.js';
 import { Schema, SchemaType } from '@google/generative-ai';
 import getNamelessSuggestions from '#utils/getNamelessSuggestions.js';
 import createTempDataFile from '#utils/createTempDataFile.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 
 const command: CommandType = {
   name: 'nameless-suggestion-create',

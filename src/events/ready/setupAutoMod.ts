@@ -4,7 +4,7 @@ import {
   AutoModerationRuleTriggerType,
   Client,
 } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import { createWarning } from '#utils/createLogger.js';
 
 export default async function (client: Client) {

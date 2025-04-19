@@ -1,6 +1,6 @@
 import CommandType from '#types/CommandType.js';
 import { PermissionFlagsBits } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 
 const command: CommandType = {
   name: 'nameless-update-bot',

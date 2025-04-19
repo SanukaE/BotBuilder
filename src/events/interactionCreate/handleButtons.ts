@@ -1,5 +1,5 @@
 import { Client, Interaction, ButtonInteraction } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import { getActions, ActionTypes } from '#utils/getActions.js';
 import ButtonType from '#types/ButtonType.js';
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';

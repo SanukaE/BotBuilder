@@ -1,5 +1,5 @@
 import { Client, Colors, Message, OmitPartialGroupDMChannel } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import createEmbed from '#utils/createEmbed.js';
 
 export default async function (

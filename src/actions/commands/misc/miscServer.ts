@@ -5,7 +5,7 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 import CommandType from '#types/CommandType.js';
-import config from '#config' assert { type: 'json' };
+import config from '#config' with { type: 'json' };
 import createEmbed from '#utils/createEmbed.js';
 
 const command: CommandType = {
