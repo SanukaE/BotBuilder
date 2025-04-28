@@ -94,8 +94,7 @@ const command: CommandType = {
       .setColor('Green')
       .setTitle(responseData.hostname || address)
       .setDescription(
-        responseData.motd?.clean[0]?.trim + responseData.motd?.clean[1]?.trim ||
-          ''
+        (responseData.motd?.clean[0]?.trim() || '') + (`\n${responseData.motd?.clean[1]?.trim() || ''}`)
       )
       .setThumbnail(`https://api.mcsrvstat.us/icon/${address}`);
     debugLogger.write('Embed message created! Adding fields...');
@@ -115,7 +114,7 @@ const command: CommandType = {
       if (unwantedFields.includes(key)) continue;
 
       debugLogger.write(`Adding field: ${key}`);
-      const fieldName = key[0].toUpperCase + key.slice(1);
+      const fieldName = key[0].toUpperCase() + key.slice(1);
 
       switch (key) {
         case 'players':
@@ -139,7 +138,7 @@ const command: CommandType = {
 
         default:
           embedMessage.addFields({
-            name: (key === 'ip' ? fieldName.toUpperCase : fieldName) + ':',
+            name: (key === 'ip' ? fieldName.toUpperCase() : fieldName) + ':',
             value: `\`${value}\``,
             inline: true,
           });
