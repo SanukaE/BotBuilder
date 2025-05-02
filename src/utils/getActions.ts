@@ -64,7 +64,7 @@ export async function getActions(actionType: ActionTypes) {
     webServerPort === -1
       ? ['api', ...disabledCategories, ...missingVariables]
       : [...disabledCategories, ...missingVariables];
-
+  
   const actions:
     | CommandType[]
     | ReactionType[]
@@ -74,7 +74,7 @@ export async function getActions(actionType: ActionTypes) {
     | StringMenuType[] = [];
 
   for (const actionCategory of actionCategories) {
-    if (skipCategories.includes(actionCategory.split('\\').pop()!)) continue;
+    if (skipCategories.includes(actionCategory.split('/').pop()!)) continue;
 
     const pushActions = async (categoryPath: string) => {
       const actionFiles = getAllFiles(categoryPath);
@@ -96,6 +96,6 @@ export async function getActions(actionType: ActionTypes) {
       await pushActions(actionSubCategory);
     }
   }
-
+  
   return actions;
 }
