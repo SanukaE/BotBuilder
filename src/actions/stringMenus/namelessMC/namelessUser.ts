@@ -71,8 +71,19 @@ const stringMenu: StringMenuType = {
       } (\`${user.username}\`)`,
     });
 
+    const hasData = (data: any | any[]) => {
+      if(data === null || data === undefined || data.length === 0) return false;
+
+      return true;
+    };
+
     switch (choice) {
       case 'fields':
+        if(!hasData(user.profile_fields)) {
+          embedMessage.setDescription('❌ No profile fields found.');
+          break;
+        }
+
         const fields: any[] = Object.values(user.profile_fields);
 
         fields.forEach((data) => {
@@ -85,6 +96,11 @@ const stringMenu: StringMenuType = {
         break;
 
       case 'groups':
+        if(!hasData(user.groups)) {
+          embedMessage.setDescription('❌ No groups found.');
+          break;
+        }
+
         const groups: string[] = user.groups.map((group: any) => group.name);
 
         embedMessage.addFields({
@@ -95,6 +111,11 @@ const stringMenu: StringMenuType = {
         break;
 
       case 'integrations':
+        if(!hasData(user.integrations)) {
+          embedMessage.setDescription('❌ No integrations found.');
+          break;
+        }
+        
         const integrations: any[] = user.integrations;
 
         integrations.forEach((data) => {
