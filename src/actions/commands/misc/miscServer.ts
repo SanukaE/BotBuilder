@@ -19,7 +19,7 @@ const command: CommandType = {
     },
     {
       name: 'bedrock',
-      description: 'Is the server bedrock?',
+      description: 'Is the server bedrock? (default: false)',
       type: ApplicationCommandOptionType.Boolean,
     },
   ],
