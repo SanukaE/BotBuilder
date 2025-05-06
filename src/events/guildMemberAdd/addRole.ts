@@ -19,9 +19,9 @@ export default async function (_: Client, member: GuildMember) {
       [member.id]
     );
 
-    if (!result[0].roles) return;
-
-    const userRoles = JSON.parse(result[0].roles as string);
+    if (!result?.length || !result[0].roles) return; //Check if roles exist in the database
+    const userRoles = result[0].roles as string[];
+    if(!userRoles || !Array.isArray(userRoles) || userRoles.length === 0) return;
 
     for (const roleID of userRoles) {
       await member.roles.add(roleID, 'Sticky Role');

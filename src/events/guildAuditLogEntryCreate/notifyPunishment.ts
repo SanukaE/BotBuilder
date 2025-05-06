@@ -18,8 +18,7 @@ export default async function (
   auditLogEntry: GuildAuditLogsEntry<
     AuditLogEvent,
     GuildAuditLogsActionType,
-    GuildAuditLogsTargetType,
-    AuditLogEvent
+    GuildAuditLogsTargetType
   >,
   guild: Guild
 ) {
