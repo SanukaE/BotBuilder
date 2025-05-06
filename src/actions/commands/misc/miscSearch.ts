@@ -43,18 +43,28 @@ const command: CommandType = {
 
     debugStream.write('Checking if AI is available...');
     if (enabled && model) {
-      debugStream.write('Getting result from model...');
-      const result = await model.generateContent(
-        'Respond in less than 2000 charters:\n' + query
-      );
+      try {
+        debugStream.write('Getting result from model...');
+        const result = await model.generateContent(
+          'Respond in less than 2000 charters:\n' + query
+        );
 
-      debugStream.write('Getting answer from result...');
-      const answer = result.response.text();
+        debugStream.write('Getting answer from result...');
+        const answer = result.response.text();
 
-      debugStream.write('Answer received! Setting embed description...');
-      if (answer.length > 2000) {
-        embedMessage.setDescription(answer.slice(0, 1998) + '...');
-      } else embedMessage.setDescription(answer);
+        debugStream.write('Answer received! Setting embed description...');
+        if (answer.length > 2000) {
+          embedMessage.setDescription(answer.slice(0, 1998) + '...');
+        } else embedMessage.setDescription(answer);
+      }
+      catch (err) {
+        debugStream.write('Error getting answer from model!');
+        debugStream.write(err as string);
+
+        embedMessage.setDescription(
+          query + '\n\n*An error occurred while trying to get an answer from AI. Sorry for the inconvience.*'
+        );
+      }
     } else {
       debugStream.write(
         'AI is not available! Setting query as embed description...'
