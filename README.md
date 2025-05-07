@@ -8,7 +8,7 @@ Your Free, Open-Source, All-In-One Discord Companion
 - 🤖 A.I integration
 - 👨‍💻 BuiltIn A.P.I System
 - ⚡ Fast and reliable performance
-- 📘 Helpful Wiki
+- 📘 Helpful Wiki (W.I.P)
 - 🔜 Many more to features to come...
 
 ## ⚙ Getting Started
