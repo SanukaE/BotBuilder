@@ -1,0 +1,27 @@
+[
+  {
+    "messageLinkPreview": true,
+    "autoMessageTranslation": true,
+    "voiceMessageTranscript": true
+  },
+  {
+    "messageLinkPreview": {
+      "name": "Message Link Preview",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable link previews for messages in the bot."
+    },
+    "autoMessageTranslation": {
+      "name": "Auto Message Translation",
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically translate messages in the bot to the default language."
+    },
+    "voiceMessageTranscript": {
+      "name": "Voice Message Transcript",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable transcription of voice messages in the bot."
+    }
+  }
+]

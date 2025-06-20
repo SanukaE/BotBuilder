@@ -3,7 +3,7 @@ import createEmbed from '#utils/createEmbed.js';
 import MySQL from '#libs/MySQL.js';
 import generateAPIKey from '#utils/generateAPIKey.js';
 import { RowDataPacket } from 'mysql2';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 const command: CommandType = {
@@ -16,7 +16,7 @@ const command: CommandType = {
     debugStream.write(`userID: ${userID}`);
 
     debugStream.write('Getting data from config...');
-    const { webServerIP, webServerPort } = config;
+    const { webServerIP, webServerPort } = getConfig("application") as { webServerIP: string; webServerPort: number }; ;
     debugStream.write(`webServerIP: ${webServerIP}`);
     debugStream.write(`webServerPort: ${webServerPort}`);
 

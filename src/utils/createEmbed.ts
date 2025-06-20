@@ -1,5 +1,5 @@
 import { EmbedBuilder, APIEmbed } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from './getConfig.js';
 import { client } from '../index.js';
 
 /**
@@ -16,7 +16,7 @@ import { client } from '../index.js';
  * ```
  */
 export default function (data?: APIEmbed) {
-  const { appMotto } = config;
+  const { appMotto } = getConfig('application') as { appMotto: string };
 
   return new EmbedBuilder({
     author: {

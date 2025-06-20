@@ -1,0 +1,13 @@
+[
+  {
+    "verifySuggestion": true
+  },
+  {
+    "verifySuggestion": {
+      "name": "Verify Suggestion",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable verification of suggestions before they are processed."
+    }
+  }
+]

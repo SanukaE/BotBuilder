@@ -4,11 +4,11 @@ import {
   AutoModerationRuleTriggerType,
   Client,
 } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import { createWarning } from '#utils/createLogger.js';
 
 export default async function (client: Client) {
-  const { productionGuildID, autoModEnvProtection } = config;
+  const { productionGuildID, autoModEnvProtection } = getConfig("application", "moderation") as { productionGuildID: string; autoModEnvProtection: boolean };
 
   if (!productionGuildID) {
     createWarning(

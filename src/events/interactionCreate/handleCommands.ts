@@ -1,5 +1,5 @@
 import { Client, Interaction, ChatInputCommandInteraction } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import { getActions, ActionTypes } from '#utils/getActions.js';
 import CommandType from '#types/CommandType.js';
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';
@@ -7,7 +7,7 @@ import getErrorSolution from '#utils/getErrorSolution.js';
 
 export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isChatInputCommand()) return;
-  const { developmentGuildID, isMaintenanceEnabled } = config;
+  const { developmentGuildID, isMaintenanceEnabled } = getConfig("application") as { developmentGuildID: string; isMaintenanceEnabled: boolean };
 
   await interaction.deferReply({ ephemeral: true });
 

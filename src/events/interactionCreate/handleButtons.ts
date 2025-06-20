@@ -1,5 +1,5 @@
 import { Client, Interaction, ButtonInteraction } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import { getActions, ActionTypes } from '#utils/getActions.js';
 import ButtonType from '#types/ButtonType.js';
 import { createLogger, LoggerOptions } from '#utils/createLogger.js';
@@ -9,7 +9,7 @@ export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isButton()) return;
   if (interaction.customId.endsWith('collector')) return;
 
-  const { developmentGuildID, isMaintenanceEnabled } = config;
+  const { developmentGuildID, isMaintenanceEnabled } = getConfig("application") as { developmentGuildID: string; isMaintenanceEnabled: boolean };
 
   await interaction.deferReply({ ephemeral: true });
 

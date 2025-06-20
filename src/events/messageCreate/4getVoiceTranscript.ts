@@ -1,4 +1,4 @@
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import Gemini from '#libs/Gemini.js';
 import createTempDataFile from '#utils/createTempDataFile.js';
 import { Schema, SchemaType } from '@google/generative-ai';
@@ -9,8 +9,8 @@ export default async function (
   client: Client,
   message: OmitPartialGroupDMChannel<Message<boolean>>
 ) {
-  const { enableVoiceMessageTranscript, translationLanguage } = config;
-  if (!enableVoiceMessageTranscript) return;
+  const { voiceMessageTranscript, defaultLanguage } = getConfig("application", "misc") as { voiceMessageTranscript: boolean; defaultLanguage: string };
+  if (!voiceMessageTranscript) return;
 
   if (!message.deletable) return;
   if (message.author.id === client.user?.id) return;
@@ -76,12 +76,12 @@ export default async function (
       transcriptResult.response.text()
     );
 
-    if (transcriptData.origin === translationLanguage) return;
+    if (transcriptData.origin === defaultLanguage) return;
     else {
       const translateResult = await translate(
         transcriptData.transcript,
         undefined,
-        translationLanguage,
+        defaultLanguage,
         true
       );
 

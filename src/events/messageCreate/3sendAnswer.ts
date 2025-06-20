@@ -8,7 +8,7 @@ import {
   OmitPartialGroupDMChannel,
 } from 'discord.js';
 import natural from 'natural';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import getPublicFile from '#utils/getPublicFile.js';
 
 export default async function (
@@ -18,7 +18,7 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.bot || !message.inGuild()) return;
 
-  const { supportChannelID, staffRoleIDs } = config;
+  const { supportChannelID, staffRoleIDs } = getConfig("support", "moderation") as { supportChannelID: string; staffRoleIDs: string[] };
   if (message.channelId !== supportChannelID) return;
   if (staffRoleIDs.some((roleId) => message.member?.roles.cache.has(roleId)))
     return;

@@ -7,7 +7,7 @@ import {
   PartialUser,
   Message,
 } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import { ActionTypes, getActions } from '#utils/getActions.js';
 import ReactionType from '#types/ReactionType.js';
 import { LoggerOptions, createLogger } from '#utils/createLogger.js';
@@ -19,9 +19,9 @@ export default async function (
   user: User | PartialUser,
   details: MessageReactionEventDetails
 ) {
-  const { developmentGuildID, isMaintenanceEnabled, countChannelID } = config;
+  const { developmentGuildID, isMaintenanceEnabled, channelID } = getConfig("application", "counting") as { developmentGuildID: string; isMaintenanceEnabled: boolean; channelID: string };
   if (
-    (messageReaction.message.channelId === countChannelID &&
+    (messageReaction.message.channelId === channelID &&
       messageReaction.emoji.toString() === '✔') ||
     messageReaction.emoji.toString() === '❌'
   )

@@ -5,7 +5,7 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 import CommandType from '#types/CommandType.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import createEmbed from '#utils/createEmbed.js';
 
 const command: CommandType = {
@@ -26,15 +26,15 @@ const command: CommandType = {
 
   async script(_, interaction, debugLogger) {
     debugLogger.write(
-      'Getting minecraftServerIP & isMinecraftServerBedrock from config.json...'
+      'Getting serverIP & bedrock from config.json...'
     );
-    const { minecraftServerIP, isMinecraftServerBedrock } = config;
-    debugLogger.write(`minecraftServerIP: ${minecraftServerIP}`);
-    debugLogger.write(`isMinecraftServerBedrock: ${isMinecraftServerBedrock}`);
+    const { serverIP, bedrock } = getConfig("minecraft") as { serverIP: string; bedrock: boolean };
+    debugLogger.write(`serverIP: ${serverIP}`);
+    debugLogger.write(`bedrock: ${bedrock}`);
 
     debugLogger.write('Getting data from command options:');
     const address =
-      interaction.options.getString('address') || minecraftServerIP;
+      interaction.options.getString('address') || serverIP;
     let isBedrock = interaction.options.getBoolean('bedrock');
     debugLogger.write(`address: ${address}`);
     debugLogger.write(`isBedrock: ${isBedrock}`);
@@ -50,12 +50,12 @@ const command: CommandType = {
 
     //to prevent user from entering isBedrock while forgetting to add an address
     debugLogger.write(
-      'Checking if isBedrock is a boolean & address = minecraftServerIP...'
+      'Checking if isBedrock is a boolean & address = serverIP...'
     );
-    if (typeof isBedrock === 'boolean' && address === minecraftServerIP) {
-      isBedrock = isMinecraftServerBedrock;
+    if (typeof isBedrock === 'boolean' && address === serverIP) {
+      isBedrock = bedrock;
       debugLogger.write(
-        'The condition came out to be true, isBedrock is now equal to isMinecraftServerBedrock.'
+        'The condition came out to be true, isBedrock is now equal to bedrock.'
       );
     } else debugLogger.write('Condition is false!');
 

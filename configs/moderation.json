@@ -1,0 +1,48 @@
+[
+  {
+    "appealLink": "N/A",
+    "autoModEnvProtection": false,
+    "memberRoleID": "1333720644730355804",
+    "botRoleID": "1333720772530802718",
+    "stickyRoles": true,
+    "staffRoleIDs": ["1326823561758904353"]
+  },
+  {
+    "appealLink": {
+      "name": "Appeal Link",
+      "type": "string",
+      "default": "N/A",
+      "description": "Link for users to appeal moderation actions."
+    },
+    "autoModEnvProtection": {
+      "name": "Auto Mod Environment Protection",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable or disable automatic environment protection by the moderation bot."
+    },
+    "memberRoleID": {
+      "name": "Member Role ID",
+      "type": "string",
+      "default": "1333720644730355804",
+      "description": "Role ID assigned to regular members."
+    },
+    "botRoleID": {
+      "name": "Bot Role ID",
+      "type": "string",
+      "default": "1333720772530802718",
+      "description": "Role ID assigned to bots."
+    },
+    "stickyRoles": {
+      "name": "Sticky Roles",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable sticky roles for members."
+    },
+    "staffRoleIDs": {
+      "name": "Staff Role IDs",
+      "type": "array:string",
+      "default": ["1326823561758904353"],
+      "description": "List of role IDs assigned to staff members."
+    }
+  }
+]

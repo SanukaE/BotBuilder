@@ -1,11 +1,11 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleAIFileManager } from '@google/generative-ai/server';
 import { createWarning } from '#utils/createLogger.js';
-import config from '../../config.json' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 
 export default function () {
   const geminiAPIKey = process.env.GEMINI_API_KEY;
-  const { geminiModel, disabledCategories } = config;
+  const { geminiModel, disabledCategories } = getConfig("ai", "application") as { geminiModel: string; disabledCategories: string[] };
 
   if (!geminiAPIKey || (disabledCategories as string[]).includes('AI'))
     return { enabled: false };

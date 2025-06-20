@@ -1,8 +1,8 @@
 import { Client, ActivityType } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 
 export default async function (client: Client) {
-  const { appActivity } = config;
+  const { appActivity } = getConfig("application") as { appActivity: string };
 
   client.user?.setActivity({
     name: 'BotBuilder',

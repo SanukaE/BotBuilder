@@ -1,6 +1,6 @@
 import CommandType from '#types/CommandType.js';
 import { PermissionFlagsBits } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 
 const command: CommandType = {
   name: 'nameless-update-bot',
@@ -14,7 +14,7 @@ const command: CommandType = {
 
     debugStream.write('Data gotten! Getting config guild id...');
 
-    const { productionGuildID } = config;
+    const { productionGuildID } = getConfig("application") as { productionGuildID: string };
 
     debugStream.write('Making API request...');
 

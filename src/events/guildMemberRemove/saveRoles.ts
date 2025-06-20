@@ -1,13 +1,13 @@
 import { Client, GuildMember, PartialGuildMember } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import MySQL from '#libs/MySQL.js';
 
 export default async function (
   _: Client,
   member: GuildMember | PartialGuildMember
 ) {
-  const { enableStickyRoles, memberRoleID, botRoleID } = config;
-  if (!enableStickyRoles) return;
+  const { memberRoleID, botRoleID, stickyRoles } = getConfig("moderation") as { memberRoleID: string; botRoleID: string; stickyRoles: boolean };
+  if (!stickyRoles) return;
 
   const roleIDs = member.roles.cache
     .filter((role) => role.id !== memberRoleID && role.id !== botRoleID)

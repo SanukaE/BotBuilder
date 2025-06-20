@@ -1,0 +1,69 @@
+[
+  {
+    "productionGuildID": "1220680255078010901",
+    "developmentGuildID": "1220680255078010901",
+    "isMaintenanceEnabled": false,
+    "disabledCategories": [],
+    "webServerIP": "localhost",
+    "webServerPort": -1,
+    "appMotto": "Your Free, Open-Source, All-In-One Discord Companion",
+    "appActivity": "🤖 Powered by BotBuilder!",
+    "defaultLanguage": "en"
+  },
+  {
+    "productionGuildID": {
+      "name": "Production Guild ID",
+      "type": "string",
+      "default": "1220680255078010901",
+      "description": "The ID of the production guild where the bot operates."
+    },
+    "developmentGuildID": {
+      "name": "Development Guild ID",
+      "type": "string",
+      "default": "1220680255078010901",
+      "description": "The ID of the development guild for testing and development purposes."
+    },
+    "isMaintenanceEnabled": {
+      "name": "Maintenance Mode",
+      "type": "boolean",
+      "default": false,
+      "description": "Enable or disable maintenance mode for the bot."
+    },
+    "disabledCategories": {
+      "name": "Disabled Categories",
+      "type": "array:string",
+      "default": [],
+      "description": "List of categories that are disabled in the bot."
+    },
+    "webServerIP": {
+      "name": "Web Server IP",
+      "type": "string",
+      "default": "localhost",
+      "description": "The IP address of the web server hosting the bot's API."
+    },
+    "webServerPort": {
+      "name": "Web Server Port",
+      "type": "number",
+      "default": -1,
+      "description": "The port number for the web server. Use -1 to disable the web server."
+    },
+    "appMotto": {
+      "name": "Application Motto",
+      "type": "string",
+      "default": "Your Free, Open-Source, All-In-One Discord Companion",
+      "description": "The motto of the application displayed in the bot's activity."
+    },
+    "appActivity": {
+      "name": "Application Activity",
+      "type": "string",
+      "default": "🤖 Powered by BotBuilder!",
+      "description": "The activity message displayed by the bot in Discord."
+    },
+    "defaultLanguage": {
+      "name": "Default Language",
+      "type": "string",
+      "default": "en",
+      "description": "The default language for the bot's responses and commands. (W.I.P)"
+    }
+  }
+]

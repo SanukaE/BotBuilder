@@ -4,7 +4,7 @@ import {
   PermissionFlagsBits,
   TextChannel,
 } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 
 const command: CommandType = {
   name: 'admin-purge',
@@ -68,7 +68,7 @@ const command: CommandType = {
   ],
 
   async script(client, interaction, debugStream) {
-    const { staffRoleIDs } = config;
+    const { staffRoleIDs } = getConfig("moderation") as { staffRoleIDs: string[] };
 
     debugStream.write('Getting data from interaction...');
 
@@ -104,7 +104,7 @@ const command: CommandType = {
 
     debugStream.write('Filtering messages...');
 
-    const filteredMessages = messages.filter((message) => {
+    const filteredMessages = messages.filter((message: any) => {
       if (includeBots === false && message.author.bot) return false;
       if (
         includeStaff === false &&

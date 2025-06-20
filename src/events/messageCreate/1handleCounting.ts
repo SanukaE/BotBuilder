@@ -1,5 +1,5 @@
 import { Client, Colors, Message, OmitPartialGroupDMChannel } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import createEmbed from '#utils/createEmbed.js';
 
 export default async function (
@@ -9,8 +9,8 @@ export default async function (
   if (!message.deletable) return;
   if (!message.inGuild()) return;
 
-  const { countChannelID, countMuteDuration } = config;
-  if (message.channelId !== countChannelID) return;
+  const { channelID, muteDuration } = getConfig("counting") as { channelID: string; muteDuration: number };
+  if (message.channelId !== channelID) return;
   if (message.author.id === client.user?.id) return;
 
   const newNumber = Number(message.content);
@@ -50,7 +50,7 @@ export default async function (
 
     await message.react('❌');
 
-    if (countMuteDuration) {
+    if (muteDuration) {
       await message.channel.edit({
         permissionOverwrites: [{ id: message.member!, deny: ['SendMessages'] }],
       });
@@ -61,7 +61,7 @@ export default async function (
             { id: message.member!, allow: ['SendMessages'] },
           ],
         });
-      }, countMuteDuration * 24 * 60 * 60_000);
+      }, muteDuration * 24 * 60 * 60_000);
     }
 
     await message.channel.sendTyping();

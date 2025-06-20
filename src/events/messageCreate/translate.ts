@@ -1,5 +1,5 @@
 import { Client, Message, OmitPartialGroupDMChannel } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import { translate } from 'bing-translate-api';
 
 export default async function (
@@ -9,8 +9,8 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.id === client.user?.id) return;
 
-  const { enableAutoMessageTranslation, translationLanguage } = config;
-  if (!enableAutoMessageTranslation) return;
+  const { autoMessageTranslation, defaultLanguage } = getConfig("misc", "application") as { autoMessageTranslation: boolean; defaultLanguage: string };
+  if (!autoMessageTranslation) return;
 
   if (message.author.bot) return;
 
@@ -19,11 +19,11 @@ export default async function (
   const translationData = await translate(
     message.content,
     undefined,
-    translationLanguage,
+    defaultLanguage,
     true
   ).catch((err) => console.log(`[Error] Failed to translate: ${err}`));
 
-  if (!translationData || translationData.language.from === translationLanguage)
+  if (!translationData || translationData.language.from === defaultLanguage)
     return;
 
   await message.channel.sendTyping();

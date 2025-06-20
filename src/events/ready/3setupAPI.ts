@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import {
   LoggerOptions,
   createLogger,
@@ -18,7 +18,7 @@ import getErrorSolution from '#utils/getErrorSolution.js';
 import getPublicFile from '#utils/getPublicFile.js';
 
 const app = express();
-const { webServerPort, disabledCategories } = config;
+const { webServerPort, disabledCategories } = getConfig("application") as { webServerPort: number; disabledCategories: string[] };
 
 export default async function (client: Client) {
   if (webServerPort === -1) {
@@ -133,7 +133,7 @@ async function registerRoutes(client: Client) {
   if (webServerPort === -1) return;
 
   const routes = (await getActions(ActionTypes.Routes)) as RouteType[];
-  const { developmentGuildID } = config;
+  const { developmentGuildID } = getConfig("application") as { developmentGuildID: string };
 
   for (const route of routes) {
     if (route.isDisabled) continue;

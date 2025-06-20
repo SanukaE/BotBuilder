@@ -1,0 +1,13 @@
+[
+  {
+    "supportChannelID": "1334438746031915058"
+  },
+  {
+    "supportChannelID": {
+      "name": "Support Channel ID",
+      "type": "string",
+      "default": "1334438746031915058",
+      "description": "The ID of the channel where support requests are handled."
+    }
+  }
+]

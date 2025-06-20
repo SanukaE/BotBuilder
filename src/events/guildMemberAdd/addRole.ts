@@ -1,10 +1,10 @@
 import { Client, GuildMember } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import MySQL from '#libs/MySQL.js';
 import { RowDataPacket } from 'mysql2';
 
 export default async function (_: Client, member: GuildMember) {
-  const { memberRoleID, botRoleID, enableStickyRoles } = config;
+  const { memberRoleID, botRoleID, stickyRoles } = getConfig("moderation") as { memberRoleID: string; botRoleID: string; stickyRoles: boolean };
 
   try {
     if (!member.user.bot && memberRoleID)
@@ -12,7 +12,7 @@ export default async function (_: Client, member: GuildMember) {
     else if (member.user.bot && botRoleID)
       await member.roles.add(botRoleID, 'Auto Role');
 
-    if (!enableStickyRoles) return;
+    if (!stickyRoles) return;
 
     const [result] = await MySQL.query<RowDataPacket[]>(
       'SELECT roles FROM user_roles WHERE userID = ?',

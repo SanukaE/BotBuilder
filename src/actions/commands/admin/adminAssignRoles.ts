@@ -1,6 +1,6 @@
 import CommandType from '#types/CommandType.js';
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 
 const command: CommandType = {
   name: 'admin-assign-roles',
@@ -44,7 +44,7 @@ const command: CommandType = {
   permissions: [PermissionFlagsBits.ManageRoles],
 
   async script(client, interaction, debugStream) {
-    const { staffRoleIDs } = config;
+    const { staffRoleIDs } = getConfig("moderation") as { staffRoleIDs: string[] };
 
     debugStream.write('Getting data from interaction...');
 
@@ -65,11 +65,11 @@ const command: CommandType = {
 
     const members = await interaction.guild!.members.fetch();
 
-    const filteredMembers = members.filter((member) => {
+    const filteredMembers = members.filter((member: any) => {
       if (!includeBots && member.user.bot) return false;
       if (
         !includeStaff &&
-        member.roles.cache.some((role) => staffRoleIDs.includes(role.id))
+        member.roles.cache.some((role: any) => staffRoleIDs.includes(role.id))
       )
         return false;
       if (mustNotHaveRole && member.roles.cache.has(mustNotHaveRole.id))

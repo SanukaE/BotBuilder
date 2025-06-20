@@ -12,7 +12,6 @@
     "rootDir": "./src",
     "outDir": "build",
     "paths": {
-      "#config": ["../config.json"],
       "#utils/*": ["./utils/*"],
       "#types/*": ["./types/*"],
       "#libs/*": ["./libs/*"]

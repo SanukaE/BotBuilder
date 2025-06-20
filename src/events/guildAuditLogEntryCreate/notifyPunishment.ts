@@ -11,7 +11,7 @@ import {
   GuildAuditLogsEntry,
   GuildAuditLogsTargetType,
 } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 
 export default async function (
   client: Client,
@@ -38,7 +38,7 @@ export default async function (
   const executor = await client.users.fetch(executorId);
 
   if (targetUser.bot) return;
-  const { punishmentAppealLink } = config;
+  const { appealLink } = getConfig("moderation") as { appealLink: string };
 
   const embedMessage = createEmbed({
     color:
@@ -69,7 +69,7 @@ export default async function (
     embedMessage.setFields({
       name: 'Appeal:',
       value:
-        action === AuditLogEvent.MemberBanAdd ? punishmentAppealLink : 'N/A',
+        action === AuditLogEvent.MemberBanAdd ? appealLink : 'N/A',
     });
   } else {
     embedMessage.setDescription(`

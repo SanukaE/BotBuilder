@@ -6,7 +6,7 @@ import {
   Colors,
 } from 'discord.js';
 import CommandType from '#types/CommandType.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 import createEmbed from '#utils/createEmbed.js';
 import MySQL from '#libs/MySQL.js';
 import { RowDataPacket } from 'mysql2';
@@ -41,7 +41,7 @@ const command: CommandType = {
     debugStream.write(`value: ${value}`);
 
     debugStream.write('Getting config data...');
-    const { webServerIP, webServerPort } = config;
+    const { webServerIP, webServerPort } = getConfig("application") as { webServerIP: string; webServerPort: number };
     debugStream.write(`webServerIP: ${webServerIP}`);
     debugStream.write(`webServerPort: ${webServerPort}`);
 

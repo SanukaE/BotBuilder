@@ -6,7 +6,7 @@ import {
   OmitPartialGroupDMChannel,
   StringSelectMenuBuilder,
 } from 'discord.js';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 
 export default async function (
   client: Client,
@@ -15,9 +15,9 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.bot || !message.inGuild()) return;
 
-  const { enableMessageLinkPreview } = config;
+  const { messageLinkPreview } = getConfig("misc") as { messageLinkPreview: boolean };
 
-  if (!enableMessageLinkPreview) return;
+  if (!messageLinkPreview) return;
 
   const messagePattern =
     /https?:\/\/(?:ptb\.|canary\.)?discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/g;

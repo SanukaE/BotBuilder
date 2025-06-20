@@ -3,7 +3,7 @@ import MySQL from '#libs/MySQL.js';
 import generateAPIKey from '#utils/generateAPIKey.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { RowDataPacket } from 'mysql2';
-import config from '#config' assert { type: 'json' };
+import getConfig from '#utils/getConfig.js';
 
 const command: CommandType = {
   name: 'api-create',
@@ -24,7 +24,7 @@ const command: CommandType = {
     );
     debugStream.write('Data received! Getting values from config...');
 
-    const { webServerIP, webServerPort } = config;
+    const { webServerIP, webServerPort } = getConfig("application") as { webServerIP: string; webServerPort: number };
     debugStream.write(`webServerIP: ${webServerIP}`);
     debugStream.write(`webServerPort: ${webServerPort}`);
 
