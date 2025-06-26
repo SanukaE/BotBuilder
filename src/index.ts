@@ -7,6 +7,8 @@ import path from 'path';
 import fs from 'fs';
 import MySQL from '#libs/MySQL.js';
 import Redis from '#libs/Redis.js';
+import { fileURLToPath } from 'url';
+import setup from '#utils/setup.js';
 
 console.log(`
 $$$$$$$\\             $$\\     $$$$$$$\\            $$\\ $$\\       $$\\                     
@@ -22,6 +24,18 @@ $$$$$$$  |\\$$$$$$  | \\$$$$  |$$$$$$$  |\\$$$$$$  |$$ |$$ |\\$$$$$$$ |\\$$$$$$$
 console.log(
   'Your Free, Open-Source, All-In-One Discord Companion. A project by Sanuka.\n\n'
 );
+
+console.log("[System] Check for environment file...");
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const envFilePath = path.join(__dirname, '../.env');
+
+if (!fs.existsSync(envFilePath)) {
+  console.log('[System] .env file not found! Running setup...');
+  await setup();
+} else console.log('[System] .env file found!');
 
 checkEnvVariables();
 
