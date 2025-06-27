@@ -5,6 +5,10 @@
     "voiceMessageTranscript": true
   },
   {
+    "name": "Miscellaneous",
+    "description": "Settings related to message handling and bot behavior."
+  },
+  {
     "messageLinkPreview": {
       "name": "Message Link Preview",
       "type": "boolean",

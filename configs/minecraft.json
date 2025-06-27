@@ -4,6 +4,10 @@
     "bedrock": false
   },
   {
+    "name": "Minecraft",
+    "description": "Configuration for Minecraft server connection settings."
+  },
+  {
     "serverIP": {
       "name": "Minecraft Server IP",
       "type": "string",

@@ -4,6 +4,10 @@
     "muteDuration": 1
   },
   {
+    "name": "Counting",
+    "description": "Configuration for the counting feature in the bot."
+  },
+  {
     "channelID": {
       "name": "Channel ID",
       "type": "string",

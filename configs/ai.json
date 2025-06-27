@@ -5,6 +5,10 @@
     "videoModel": "veo-2.0-generate-001"
   },
   {
+    "name": "Artificial Intelligence",
+    "description": "Configuration for AI models used in the bot."
+  },
+  {
     "geminiModel": {
       "name": "Gemini Model",
       "type": "option",

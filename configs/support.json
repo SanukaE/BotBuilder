@@ -3,6 +3,10 @@
     "supportChannelID": "1334438746031915058"
   },
   {
+    "name": "Support",
+    "description": "Configuration for support request handling in the bot."
+  },
+  {
     "supportChannelID": {
       "name": "Support Channel ID",
       "type": "string",

@@ -3,6 +3,10 @@
     "verifySuggestion": true
   },
   {
+    "name": "NamelessMC",
+    "description": "Configuration for NamelessMC integration in the bot."
+  },
+  {
     "verifySuggestion": {
       "name": "Verify Suggestion",
       "type": "boolean",

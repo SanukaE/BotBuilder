@@ -11,6 +11,10 @@
     "defaultLanguage": "en"
   },
   {
+    "name": "Application",
+    "description": "Configuration for the bot's application settings."
+  },
+  {
     "productionGuildID": {
       "name": "Production Guild ID",
       "type": "string",

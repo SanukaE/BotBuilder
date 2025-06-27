@@ -8,6 +8,10 @@
     "staffRoleIDs": ["1326823561758904353"]
   },
   {
+    "name": "Moderation",
+    "description": "Configuration for moderation settings and role management in the bot."
+  },
+  {
     "appealLink": {
       "name": "Appeal Link",
       "type": "string",
