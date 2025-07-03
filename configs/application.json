@@ -4,11 +4,10 @@
     "developmentGuildID": "1220680255078010901",
     "isMaintenanceEnabled": false,
     "disabledCategories": [],
-    "webServerIP": "localhost",
-    "webServerPort": -1,
     "appMotto": "Your Free, Open-Source, All-In-One Discord Companion",
     "appActivity": "🤖 Powered by BotBuilder!",
-    "defaultLanguage": "en"
+    "defaultLanguage": "en",
+    "serverInvite": "https://discord.gg/HUCE56pP"
   },
   {
     "name": "Application",
@@ -35,21 +34,9 @@
     },
     "disabledCategories": {
       "name": "Disabled Categories",
-      "type": "array:string",
+      "type": "string[]",
       "default": [],
       "description": "List of categories that are disabled in the bot."
-    },
-    "webServerIP": {
-      "name": "Web Server IP",
-      "type": "string",
-      "default": "localhost",
-      "description": "The IP address of the web server hosting the bot's API."
-    },
-    "webServerPort": {
-      "name": "Web Server Port",
-      "type": "number",
-      "default": -1,
-      "description": "The port number for the web server. Use -1 to disable the web server."
     },
     "appMotto": {
       "name": "Application Motto",
@@ -68,6 +55,12 @@
       "type": "string",
       "default": "en",
       "description": "The default language for the bot's responses and commands. (W.I.P)"
+    },
+    "serverInvite": {
+      "name": "Server Invite",
+      "type": "string",
+      "default": "https://discord.gg/HUCE56pP",
+      "description": "The invite link for your Discord server."
     }
   }
 ]

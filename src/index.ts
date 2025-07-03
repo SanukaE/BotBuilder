@@ -1,16 +1,19 @@
-import { Client, GatewayIntentBits } from 'discord.js';
-import 'dotenv/config';
-import eventHandler from './handlers/eventHandler.js';
-import fileHandler from './handlers/fileHandler.js';
-import checkEnvVariables from '#utils/checkEnvVariables.js';
-import path from 'path';
-import fs from 'fs';
-import MySQL from '#libs/MySQL.js';
-import Redis from '#libs/Redis.js';
-import { fileURLToPath } from 'url';
-import setup from '#utils/setup.js';
+import { Client, GatewayIntentBits } from "discord.js";
+import "dotenv/config";
+import eventHandler from "./handlers/eventHandler.js";
+import fileHandler from "./handlers/fileHandler.js";
+import checkEnvVariables from "#utils/checkEnvVariables.js";
+import path from "path";
+import fs from "fs";
+import MySQL from "#libs/MySQL.js";
+import Redis from "#libs/Redis.js";
+import { fileURLToPath } from "url";
+import setup from "#utils/setup.js";
 
-console.log(`
+function logWelcomeMsg() {
+  console.clear();
+
+  console.log(`
 $$$$$$$\\             $$\\     $$$$$$$\\            $$\\ $$\\       $$\\                     
 $$  __$$\\            $$ |    $$  __$$\\           \\__|$$ |      $$ |                    
 $$ |  $$ | $$$$$$\\ $$$$$$\\   $$ |  $$ |$$\\   $$\\ $$\\ $$ | $$$$$$$ | $$$$$$\\   $$$$$$\\  
@@ -21,21 +24,25 @@ $$$$$$$  |\\$$$$$$  | \\$$$$  |$$$$$$$  |\\$$$$$$  |$$ |$$ |\\$$$$$$$ |\\$$$$$$$
 \\_______/  \\______/   \\____/ \\_______/  \\______/ \\__|\\__| \\_______| \\_______|\\__|      
                                                                                        
 `);
-console.log(
-  'Your Free, Open-Source, All-In-One Discord Companion. A project by Sanuka.\n\n'
-);
+  console.log(
+    "Your Free, Open-Source, All-In-One Discord Companion. A project by Sanuka.\n\n"
+  );
+}
+
+logWelcomeMsg();
 
 console.log("[System] Check for environment file...");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const envFilePath = path.join(__dirname, '../.env');
+const envFilePath = path.join(__dirname, "../.env");
 
 if (!fs.existsSync(envFilePath)) {
-  console.log('[System] .env file not found! Running setup...');
+  console.log("[System] .env file not found! Running setup...");
   await setup();
-} else console.log('[System] .env file found!');
+  logWelcomeMsg();
+} else console.log("[System] .env file found!");
 
 checkEnvVariables();
 
@@ -59,7 +66,7 @@ const closeWatchers = fileHandler(client);
 client.login(process.env.APP_TOKEN);
 
 const handleShutdown = async () => {
-  console.log('\n\nBotBuilder is shutting down...');
+  console.log("\n\nBotBuilder is shutting down...");
 
   await client.destroy();
 
@@ -69,15 +76,15 @@ const handleShutdown = async () => {
   closeWatchers();
 
   try {
-    const tempFolder = path.join(process.cwd(), 'temp');
+    const tempFolder = path.join(process.cwd(), "temp");
     fs.rmSync(tempFolder, { recursive: true });
   } catch (error) {
     null;
   }
 
-  console.log('Have a nice day!');
+  console.log("Have a nice day!");
   process.exit(0);
 };
 
-process.on('SIGINT', handleShutdown);
-process.on('SIGTERM', handleShutdown);
+process.on("SIGINT", handleShutdown);
+process.on("SIGTERM", handleShutdown);
