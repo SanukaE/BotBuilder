@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS message_tags (
+    userID VARCHAR(255) NOT NULL,
+    title VARCHAR(256) NOT NULL,
+    description VARCHAR(4096) NOT NULL,
+    PRIMARY KEY (userID)
+);
