@@ -1,15 +1,15 @@
-import MySQL from '#libs/MySQL.js';
-import CommandType from '#types/CommandType.js';
-import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord.js';
-import { RowDataPacket } from 'mysql2';
+import MySQL from "#libs/MySQL.js";
+import CommandType from "#types/CommandType.js";
+import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
+import { RowDataPacket } from "mysql2";
 
 const command: CommandType = {
-  name: 'admin-embed-delete',
-  description: 'Delete an existing embed.',
+  name: "embed-delete",
+  description: "Delete an existing embed.",
   options: [
     {
-      name: 'embed-title',
-      description: 'The title of the embed you want to delete',
+      name: "embed-title",
+      description: "The title of the embed you want to delete",
       type: ApplicationCommandOptionType.String,
       autocomplete: true,
       required: true,
@@ -19,7 +19,7 @@ const command: CommandType = {
 
   async handleAutoComplete(client, interaction, focusedOption) {
     const [rows] = await MySQL.query<RowDataPacket[]>(
-      'SELECT title FROM embeds'
+      "SELECT title FROM embeds"
     );
 
     const focusedValues = rows.filter((row) =>
@@ -33,37 +33,37 @@ const command: CommandType = {
   },
 
   async script(client, interaction, debugStream) {
-    debugStream.write('Getting data from interaction...');
+    debugStream.write("Getting data from interaction...");
 
-    const embedTitle = interaction.options.getString('embed-title', true);
+    const embedTitle = interaction.options.getString("embed-title", true);
     debugStream.write(`embedTitle: ${embedTitle}`);
 
-    debugStream.write('Checking if embed exist...');
+    debugStream.write("Checking if embed exist...");
 
     const [existingEmbed] = await MySQL.query<RowDataPacket[]>(
-      'SELECT * FROM embeds WHERE title = ?',
+      "SELECT * FROM embeds WHERE title = ?",
       [embedTitle]
     );
 
     if (!existingEmbed.length) {
       debugStream.write("Embed doesn't exist! Sending reply...");
-      await interaction.editReply('No embed found with that title.');
-      debugStream.write('Reply sent!');
+      await interaction.editReply("No embed found with that title.");
+      debugStream.write("Reply sent!");
       return;
     }
 
-    debugStream.write('Embed exist! Deleting it...');
+    debugStream.write("Embed exist! Deleting it...");
 
-    await MySQL.query('DELETE FROM embeds WHERE title = ?', [embedTitle]);
+    await MySQL.query("DELETE FROM embeds WHERE title = ?", [embedTitle]);
 
-    debugStream.write('Embed deleted! Sending follow up...');
+    debugStream.write("Embed deleted! Sending follow up...");
 
     await interaction.followUp({
       content: `Successfully deleted embed "${embedTitle}"`,
       ephemeral: true,
     });
 
-    debugStream.write('Follow up sent!');
+    debugStream.write("Follow up sent!");
   },
 };
 

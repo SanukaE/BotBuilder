@@ -4,7 +4,7 @@ import { ApplicationCommandOptionType } from "discord.js";
 import { RowDataPacket } from "mysql2";
 
 const command: CommandType = {
-  name: "misc-message-tag-create",
+  name: "message-tag-create",
   description: "Create a new message tag.",
   options: [
     {

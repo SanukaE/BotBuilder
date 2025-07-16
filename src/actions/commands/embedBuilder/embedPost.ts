@@ -9,7 +9,7 @@ import {
 import { RowDataPacket } from "mysql2";
 
 const command: CommandType = {
-  name: "admin-embed-post",
+  name: "embed-post",
   description:
     "Post an already created embed to the current channel or a channel you select",
   isGuildOnly: true,

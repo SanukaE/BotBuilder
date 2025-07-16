@@ -1,10 +1,11 @@
 import MySQL from "#libs/MySQL.js";
 import CommandType from "#types/CommandType.js";
+import createEmbed from "#utils/createEmbed.js";
 import { ApplicationCommandOptionType } from "discord.js";
 import { RowDataPacket } from "mysql2";
 
 const command: CommandType = {
-  name: "misc-message-tag-delete",
+  name: "message-tag-preview",
   description: "Delete a message tag.",
   options: [
     {
@@ -46,12 +47,12 @@ const command: CommandType = {
       return;
     }
 
-    await MySQL.query("DELETE FROM message_tags WHERE title = ?, userID = ?", [
-      tagTitle,
-      interaction.user.id,
-    ]);
+    const embedTag = createEmbed({
+      title: existingTags[0].title,
+      description: existingTags[0].description,
+    });
 
-    await interaction.followUp(`Successfully deleted tag "${tagTitle}"`);
+    await interaction.followUp({ embeds: [embedTag] });
   },
 };
 

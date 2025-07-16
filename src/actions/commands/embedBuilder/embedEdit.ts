@@ -773,7 +773,7 @@ class EmbedEditor {
 }
 
 const command: CommandType = {
-  name: "admin-embed-edit",
+  name: "embed-edit",
   description:
     "Edit an existing embed with improved interface and error handling.",
   options: [
