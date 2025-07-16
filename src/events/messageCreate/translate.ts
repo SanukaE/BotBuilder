@@ -1,15 +1,19 @@
-import { Client, Message, OmitPartialGroupDMChannel } from 'discord.js';
-import getConfig from '#utils/getConfig.js';
-import { translate } from 'bing-translate-api';
+import { Client, Message, OmitPartialGroupDMChannel } from "discord.js";
+import getConfig from "#utils/getConfig.js";
+import { translate } from "bing-translate-api";
 
 export default async function (
   client: Client,
   message: OmitPartialGroupDMChannel<Message<boolean>>
 ) {
+  if (!message.inGuild()) return;
   if (!message.deletable) return;
   if (message.author.id === client.user?.id) return;
 
-  const { autoMessageTranslation, defaultLanguage } = getConfig("misc", "application") as { autoMessageTranslation: boolean; defaultLanguage: string };
+  const { autoMessageTranslation, defaultLanguage } = getConfig(
+    "misc",
+    "application"
+  ) as { autoMessageTranslation: boolean; defaultLanguage: string };
   if (!autoMessageTranslation) return;
 
   if (message.author.bot) return;
