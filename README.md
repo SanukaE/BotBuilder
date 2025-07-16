@@ -115,7 +115,8 @@ This project is licensed under the [GPL v3.0 License](https://choosealicense.com
 - [Under Ctrl](https://www.youtube.com/@underctrl) for providing excellent Discord.js tutorials
 - The [Discord AntiScam](https://github.com/Discord-AntiScam/scam-links) community for their massive database of scam links
 - [Thirukumaran](https://github.com/Thiru-kumaran-R) for his [Riddles-API](https://github.com/Thiru-kumaran-R/Riddles-API)
-- [RazorSh4rk](https://github.com/RazorSh4rk) for his [Random-Word-API](https://github.com/RazorSh4rk/random-word-api/)
+- [RazorSh4rk](https://github.com/RazorSh4rk) for his [random-word-api](https://github.com/RazorSh4rk/random-word-api/)
+- [meetDeveloper](https://github.com/meetDeveloper) for his [freeDictionaryAPI](https://github.com/meetDeveloper/freeDictionaryAPI)
 - And to all contributors/donators who have helped improve this project
 
 Created with ❤️ by [SanukaE](https://github.com/SanukaE)
