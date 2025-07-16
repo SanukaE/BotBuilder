@@ -1,5 +1,5 @@
-import CommandType from '#types/CommandType.js';
-import createEmbed from '#utils/createEmbed.js';
+import CommandType from "#types/CommandType.js";
+import createEmbed from "#utils/createEmbed.js";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -9,39 +9,39 @@ import {
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
-} from 'discord.js';
+} from "discord.js";
 
 const command: CommandType = {
-  name: 'game-guess-the-number',
-  description: 'Guess the number game',
+  name: "game-guess-the-number",
+  description: "Guess the number game",
 
   async script(client, interaction, debugStream) {
-    debugStream.write('Generating random number...');
+    debugStream.write("Generating random number...");
     const randomNumber = Math.round(Math.random() * 1000);
     debugStream.write(`randomNumber: ${randomNumber}`);
 
-    debugStream.write('Getting hints...');
+    debugStream.write("Getting hints...");
     const hints = getHints(randomNumber);
 
     hints.forEach((hint, i) => debugStream.write(`Hint ${i + 1}: ${hint}`));
 
-    debugStream.write('Creating game menu...');
+    debugStream.write("Creating game menu...");
 
     const gameEmbed = createEmbed({
-      title: 'Guess the Number',
+      title: "Guess the Number",
       description:
         "I'm thinking of a number between 0 and 1000. Can you guess it?",
       color: Colors.Blue,
       fields: hints.map((hint, i) => ({ name: `Hint ${i + 1}`, value: hint })),
       thumbnail: {
-        url: 'https://i.postimg.cc/1tC0Vymb/Guess-The-Number.png',
+        url: "https://i.postimg.cc/1tC0Vymb/Guess-The-Number.png",
       },
     });
 
     const answerBtn = new ButtonBuilder({
-      customId: 'game-guess-the-number-collector',
-      emoji: '🎲',
-      label: 'Enter Guess',
+      customId: "game-guess-the-number-collector",
+      emoji: "🎲",
+      label: "Enter Guess",
       style: ButtonStyle.Success,
     });
 
@@ -49,29 +49,20 @@ const command: CommandType = {
       components: [answerBtn],
     });
 
-    debugStream.write('Menu created! Sending menu...');
+    debugStream.write("Menu created! Sending menu...");
 
-    if (!interaction.channel?.isSendable())
-      throw new Error('Channel is not sendable!');
-
-    await interaction.followUp({
-      content: 'Ready? Good Luck! 🍀',
-      ephemeral: true,
-    });
-
-    await interaction.channel.sendTyping();
-
-    const gameMessage = await interaction.channel.send({
+    const gameMessage = await interaction.followUp({
       content:
-        'Lets see who is good with numbers here. First player to guess the number correct wins! Good Luck.',
+        "Can you guess the number correctly before the time runs out? Good luck!",
       embeds: [gameEmbed],
       components: [answerBtnRow],
     });
 
-    debugStream.write('Menu sent! Creating collector...');
+    debugStream.write("Menu sent! Creating collector...");
 
     const collector = gameMessage.createMessageComponentCollector({
       componentType: ComponentType.Button,
+      filter: (i) => i.user.id === interaction.user.id,
       time: 5 * 60 * 1000, //5min
     });
 
@@ -79,11 +70,11 @@ const command: CommandType = {
     let hasWinner = false;
 
     const answerInput = new TextInputBuilder({
-      customId: 'game-guess-the-number-answer',
+      customId: "game-guess-the-number-answer",
       label: "What's the number?",
-      placeholder: 'Enter your guess',
+      placeholder: "Enter your guess (0-1000)",
       style: TextInputStyle.Short,
-      maxLength: 1000,
+      maxLength: 4,
       required: true,
     });
 
@@ -91,29 +82,36 @@ const command: CommandType = {
       components: [answerInput],
     });
 
-    const answerModel = new ModalBuilder({
-      customId: 'game-guess-the-number-answer-collector',
-      title: 'Guess The Number!',
+    const answerModal = new ModalBuilder({
+      customId: "game-guess-the-number-answer-collector",
+      title: "Guess The Number!",
       components: [answerRow],
     });
 
-    collector.on('collect', async (i) => {
-      await i.showModal(answerModel);
+    collector.on("collect", async (i) => {
+      await i.showModal(answerModal);
 
-      const modalResponse = await i.awaitModalSubmit({
-        time: 0,
-        filter: (i) => i.customId === 'game-guess-the-number-answer-collector',
-      });
+      const modalResponse = await i
+        .awaitModalSubmit({
+          time: 60_000, // 1 minute timeout for modal
+          filter: (modalInteraction) =>
+            modalInteraction.customId ===
+            "game-guess-the-number-answer-collector",
+        })
+        .catch(() => null);
+
+      if (!modalResponse) return;
 
       await modalResponse.deferUpdate();
 
-      const guess = Number(
-        modalResponse.fields.getTextInputValue('game-guess-the-number-answer')
+      const guessInput = modalResponse.fields.getTextInputValue(
+        "game-guess-the-number-answer"
       );
+      const guess = Number(guessInput);
 
-      if (isNaN(guess)) {
+      if (isNaN(guess) || guess < 0 || guess > 1000) {
         await modalResponse.followUp({
-          content: 'Please enter a valid number.',
+          content: "Please enter a valid number between 0 and 1000.",
           ephemeral: true,
         });
         return;
@@ -121,7 +119,7 @@ const command: CommandType = {
 
       if (guesses.includes(guess)) {
         await modalResponse.followUp({
-          content: 'Someone has already guessed that number.',
+          content: "You have already guessed that number.",
           ephemeral: true,
         });
         return;
@@ -131,80 +129,87 @@ const command: CommandType = {
 
       if (guess === randomNumber) {
         await modalResponse.followUp({
-          content: 'Congratulations! You guessed the number correctly!',
+          content: "🎉 Congratulations! You guessed the number correctly!",
           ephemeral: true,
         });
 
-        await gameMessage.edit({
-          content: `Congratulations <@${modalResponse.user.id}>! You guessed the number correctly! The number was ${randomNumber}.`,
+        await interaction.editReply({
+          content: `🎉 **You Won!** You guessed the number correctly! The number was **${randomNumber}**.`,
           components: [],
         });
 
         hasWinner = true;
-        collector.stop('Game Over!');
+        collector.stop("Game Over!");
         return;
-      } else
+      } else {
+        let hint = "";
+        if (guess < randomNumber) {
+          hint = " The number is higher!";
+        } else {
+          hint = " The number is lower!";
+        }
+
         await modalResponse.followUp({
-          content: `Sorry, that's not the number. Keep trying!`,
+          content: `Sorry, that's not the number.${hint} Keep trying! (${
+            10 - guesses.length
+          } guesses remaining)`,
           ephemeral: true,
         });
+      }
 
       if (guesses.length >= 10) {
-        await gameMessage.edit({
-          content: `Game Over! No one guessed the number correctly. The number was ${randomNumber}.`,
+        await interaction.editReply({
+          content: `😔 **Game Over!** You couldn't guess the number correctly. The number was **${randomNumber}**.`,
           components: [],
         });
 
-        collector.stop('Game Over!');
+        collector.stop("Game Over!");
         return;
       }
     });
 
-    collector.on('end', async () => {
-      if (!hasWinner)
-        await gameMessage.edit({
-          content: `Game Over! No one guessed the number correctly. The number was ${randomNumber}.`,
+    collector.on("end", async () => {
+      if (!hasWinner) {
+        await interaction.editReply({
+          content: `⏰ **Time's Up!** You couldn't guess the number correctly. The number was **${randomNumber}**.`,
           components: [],
         });
-
-      setTimeout(async () => {
-        if (gameMessage.deletable) await gameMessage.delete();
-      }, 10_000);
+      }
     });
   },
 };
 
-function getHints(randomNumber: number) {
+function getHints(randomNumber: number): string[] {
   const hints: string[] = [];
 
   if (randomNumber % 2 === 0) {
-    hints.push('The number is even');
+    hints.push("The number is even");
   } else {
-    hints.push('The number is odd');
+    hints.push("The number is odd");
   }
 
   if (randomNumber > 500) {
-    hints.push('The number is greater than 500');
+    hints.push("The number is greater than 500");
   } else {
-    hints.push('The number is less than or equal to 500');
+    hints.push("The number is less than or equal to 500");
   }
 
   if (randomNumber % 5 === 0) {
-    hints.push('The number is divisible by 5');
+    hints.push("The number is divisible by 5");
   } else {
-    hints.push('The number is not divisible by 5');
+    hints.push("The number is not divisible by 5");
   }
 
   if (randomNumber > 250 && randomNumber < 750) {
-    hints.push('The number is in the middle range (250-750)');
+    hints.push("The number is in the middle range (250-750)");
   } else {
-    hints.push('The number is in the outer ranges (0-250 or 750-1000)');
+    hints.push("The number is in the outer ranges (0-250 or 750-1000)");
   }
 
   if (randomNumber % 10 === 0) {
-    hints.push('The number is divisible by 10');
+    hints.push("The number is divisible by 10");
   } else {
-    hints.push('The number is not divisible by 10');
+    hints.push("The number is not divisible by 10");
   }
 
   return hints;

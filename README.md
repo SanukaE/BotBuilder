@@ -91,6 +91,7 @@ Need help or want to join our community? Connect with us on Discord:
 [![Discord](https://img.shields.io/discord/1055384504841285682?color=7289da&logo=discord&logoColor=white)](https://discord.gg/fpkASGjwYT)
 
 Our Discord server is the best place to:
+
 - Get real-time support
 - Share your projects
 - Meet other developers
@@ -100,7 +101,7 @@ Our Discord server is the best place to:
 
 Check out all these amazing servers that uses BotBuilder's help to manage them.
 
-*Be the first server to use BotBuilder.*
+_Be the first server to use BotBuilder._
 
 > **Note:** To add your server to the list please open a ticket on our [support](https://discord.gg/fpkASGjwYT) server.
 
@@ -113,6 +114,7 @@ This project is licensed under the [GPL v3.0 License](https://choosealicense.com
 - The [NamelessMC](https://namelessmc.com/) & [MCStatistics](https://mcstatistics.org/) team for their support
 - [Under Ctrl](https://www.youtube.com/@underctrl) for providing excellent Discord.js tutorials
 - The [Discord AntiScam](https://github.com/Discord-AntiScam/scam-links) community for their massive database of scam links
-- All contributors/donators who have helped improve this project
+- [Thirukumaran](https://github.com/Thiru-kumaran-R) for his [Riddles-API](https://github.com/Thiru-kumaran-R/Riddles-API)
+- And to all contributors/donators who have helped improve this project
 
 Created with ❤️ by [SanukaE](https://github.com/SanukaE)

@@ -19,7 +19,8 @@ const command: CommandType = {
 
   async handleAutoComplete(client, interaction, focusedOption) {
     const [rows] = await MySQL.query<RowDataPacket[]>(
-      "SELECT title FROM message_tags"
+      "SELECT title FROM message_tags WHERE userID = ?",
+      [interaction.user.id]
     );
 
     const focusedValues = rows.filter((row) =>
@@ -36,8 +37,8 @@ const command: CommandType = {
     const tagTitle = interaction.options.getString("title", true);
 
     const [existingTags] = await MySQL.query<RowDataPacket[]>(
-      "SELECT * FROM message_tags WHERE title = ?",
-      [tagTitle]
+      "SELECT * FROM message_tags WHERE title = ?, userID = ?",
+      [tagTitle, interaction.user.id]
     );
 
     if (!existingTags.length) {
@@ -45,7 +46,10 @@ const command: CommandType = {
       return;
     }
 
-    await MySQL.query("DELETE FROM message_tags WHERE title = ?", [tagTitle]);
+    await MySQL.query("DELETE FROM message_tags WHERE title = ?, userID = ?", [
+      tagTitle,
+      interaction.user.id,
+    ]);
 
     await interaction.followUp(`Successfully deleted tag "${tagTitle}"`);
   },
