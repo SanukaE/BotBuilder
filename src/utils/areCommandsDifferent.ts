@@ -1,8 +1,8 @@
 import {
   APIApplicationCommandOption,
   APIApplicationCommandOptionChoice,
-} from 'discord.js';
-import CommandType from '#types/CommandType.js';
+} from "discord.js";
+import CommandType from "#types/CommandType.js";
 
 /**
  * Compares a local command with a registered command to determine if they are different.
@@ -42,12 +42,12 @@ export default function areCommandsDifferent(
     if (localOption.type !== registeredOption.type) return true;
 
     if (
-      'min_value' in localOption &&
+      "min_value" in localOption &&
       localOption.min_value !== (registeredOption as any).min_value
     )
       return true;
     if (
-      'max_value' in localOption &&
+      "max_value" in localOption &&
       localOption.max_value !== (registeredOption as any).max_value
     )
       return true;
