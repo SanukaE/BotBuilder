@@ -6,10 +6,10 @@ import {
   ComponentType,
   Message,
   OmitPartialGroupDMChannel,
-} from 'discord.js';
-import natural from 'natural';
-import getConfig from '#utils/getConfig.js';
-import getPublicFile from '#utils/getPublicFile.js';
+} from "discord.js";
+import natural from "natural";
+import getConfig from "#utils/getConfig.js";
+import getPublicFile from "#utils/getPublicFile.js";
 
 export default async function (
   _: Client,
@@ -18,13 +18,16 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.bot || !message.inGuild()) return;
 
-  const { supportChannelID, staffRoleIDs } = getConfig("support", "moderation") as { supportChannelID: string; staffRoleIDs: string[] };
+  const { supportChannelID, staffRoleIDs } = getConfig(
+    "support",
+    "moderation"
+  ) as { supportChannelID: string; staffRoleIDs: string[] };
   if (message.channelId !== supportChannelID) return;
   if (staffRoleIDs.some((roleId) => message.member?.roles.cache.has(roleId)))
     return;
 
-  const faqAnswers = getPublicFile('faqAnswers.txt', true)?.fileData?.split(
-    '### END OF ANSWER ###'
+  const faqAnswers = getPublicFile("faqAnswers.txt", true)?.fileData?.split(
+    "### END OF ANSWER ###"
   );
 
   if (!faqAnswers) return;
@@ -35,9 +38,9 @@ export default async function (
   if (!answer) return;
 
   const notSolvedBtn = new ButtonBuilder({
-    customId: 'faq-answer-not-solved-collector',
-    label: 'Delete Answer',
-    emoji: '🗑',
+    customId: "faq-answer-not-solved-collector",
+    label: "Delete Answer",
+    emoji: "🗑",
     style: ButtonStyle.Danger,
   });
 
@@ -59,27 +62,27 @@ export default async function (
         staffRoleIDs.some((roleId) =>
           message.member?.roles.cache.has(roleId)
         )) &&
-      i.customId === 'faq-answer-not-solved-collector',
+      i.customId === "faq-answer-not-solved-collector",
   });
 
-  buttonCollector.on('collect', async () => {
+  buttonCollector.on("collect", async () => {
     buttonCollector.stop("FAQ answer didn't help");
     if (answerMsg.deletable) await answerMsg.delete();
   });
 }
 
-function getKeyWords(query: String) {
+function getKeyWords(query: string) {
   const tokenizer = new natural.WordTokenizer();
   const words = tokenizer.tokenize(query.toLowerCase());
 
-  const stopWords = new Set(natural.stopwords);
-  const keywords = words.filter((word) => !stopWords.has(word));
+  const stopWordsSet = new Set(natural.stopwords);
+  const keywords = words.filter((word: string) => !stopWordsSet.has(word));
 
   return keywords;
 }
 
 function findBestMatch(keywords: string[], values: string[]) {
-  let bestMatch = '';
+  let bestMatch = "";
   let highestMatchCount = 0;
 
   values.forEach((value) => {

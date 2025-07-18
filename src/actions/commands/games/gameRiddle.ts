@@ -5,6 +5,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  MessageFlags,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
@@ -62,7 +63,7 @@ const command: CommandType = {
         riddleData.riddle +
         ` \`[Category: ${riddleData.category}]\`\n> ⏳ You have 5 min to answer!`,
       components: [actionRow],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
 
     const collector = followUp.createMessageComponentCollector({
@@ -117,13 +118,13 @@ const command: CommandType = {
         hasWon = true;
         await modalSubmit.reply({
           content: "🎉 That's correct! Well done!",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         collector.stop("Game Over!");
       } else {
         await modalSubmit.reply({
           content: "❌ Sorry, that's not correct. Keep trying!",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
     });
@@ -138,7 +139,7 @@ const command: CommandType = {
         }\n\n**Riddle:** ${riddleData.riddle}\n**Category:** ${
           riddleData.category
         }\n**Answer:** \`${riddleData.answer}\``,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     });
   },

@@ -1,36 +1,44 @@
-import Gemini from '#libs/Gemini.js';
-import CommandType from '#types/CommandType.js';
-import createEmbed from '#utils/createEmbed.js';
-import { Schema, SchemaType } from '@google/generative-ai';
-import { ApplicationCommandOptionType, Colors } from 'discord.js';
+import Gemini from "#libs/Gemini.js";
+import CommandType from "#types/CommandType.js";
+import createEmbed from "#utils/createEmbed.js";
+import getConfig from "#utils/getConfig.js";
+import {
+  createPartFromUri,
+  createUserContent,
+  Schema,
+  Type,
+} from "@google/genai";
+import { ApplicationCommandOptionType, Colors } from "discord.js";
 
 const command: CommandType = {
-  name: 'ai-grammar-check',
-  description: 'Check your grammar, spelling & get an overall rating',
+  name: "ai-grammar-check",
+  description: "Check your grammar, spelling & get an overall rating",
   options: [
     {
-      name: 'content',
-      description: 'The content you want to check',
+      name: "content",
+      description: "The content you want to check",
       type: ApplicationCommandOptionType.String,
     },
     {
-      name: 'file',
+      name: "file",
       description:
-        'The file which you want to check. (only supports pdf, txt, rtf & md files)',
+        "The file which you want to check. (only supports pdf, txt, rtf & md files)",
       type: ApplicationCommandOptionType.Attachment,
     },
   ],
 
   async script(_, interaction, debugStream) {
-    debugStream.write('Getting data from interaction...');
+    const { geminiModel } = getConfig("ai") as { geminiModel: string };
 
-    const userContent = interaction.options.getString('content');
-    const userFile = interaction.options.getAttachment('file');
+    debugStream.write("Getting data from interaction...");
+
+    const userContent = interaction.options.getString("content");
+    const userFile = interaction.options.getAttachment("file");
 
     debugStream.write(
       `userContent: ${
         userContent && userContent.length > 10
-          ? userContent.slice(0, 10) + '...'
+          ? userContent.slice(0, 10) + "..."
           : userContent
       }`
     );
@@ -38,23 +46,23 @@ const command: CommandType = {
 
     if (!userContent && !userFile) {
       debugStream.write(
-        'Both userContent & userFile are not provided. Sending response...'
+        "Both userContent & userFile are not provided. Sending response..."
       );
       await interaction.editReply(
-        'Please provide either a text or a file to check.'
+        "Please provide either a text or a file to check."
       );
-      debugStream.write('Response sent!');
+      debugStream.write("Response sent!");
       return;
     }
 
     if (userFile) {
-      debugStream.write('Checking if file type is valid...');
+      debugStream.write("Checking if file type is valid...");
 
       const supportedFileTypes = [
-        'application/pdf',
-        'text/plain',
-        'text/md',
-        'text/rtf',
+        "application/pdf",
+        "text/plain",
+        "text/md",
+        "text/rtf",
       ];
 
       if (
@@ -62,150 +70,166 @@ const command: CommandType = {
           userFile.contentType?.startsWith(type)
         )
       ) {
-        debugStream.write('File type is not supported! Sending response...');
+        debugStream.write("File type is not supported! Sending response...");
         await interaction.editReply(
-          'Sorry, but your file type is not supported. (Supported file types are pdf, txt, rtf & md)'
+          "Sorry, but your file type is not supported. (Supported file types are pdf, txt, rtf & md)"
         );
-        debugStream.write('Response sent!');
+        debugStream.write("Response sent!");
         return;
       }
 
-      debugStream.write('File type is supported! Preceding...');
+      debugStream.write("File type is supported! Preceding...");
     }
 
-    debugStream.write('Initializing AI...');
+    debugStream.write("Initializing AI...");
 
     const gemini = Gemini();
 
     if (!gemini.enabled) {
-      debugStream.write('AI is disabled. Sending response...');
+      debugStream.write("AI is disabled. Sending response...");
       await interaction.editReply(
         "I'm sorry but AI is disabled on this server."
       );
-      debugStream.write('Response is sent!');
+      debugStream.write("Response is sent!");
     }
 
     if (!gemini.model || !gemini.fileManager)
       throw new Error(
-        'Failed to initialize AI: Model and FileManager are not available.'
+        "Failed to initialize AI: Model and FileManager are not available."
       );
 
-    debugStream.write('Done! Getting rating...');
+    debugStream.write("Done! Getting rating...");
 
     const ratingSchema: Schema = {
       description:
-        'An object containing various properties related to the quality of the content',
-      type: SchemaType.OBJECT,
+        "An object containing various properties related to the quality of the content",
+      type: Type.OBJECT,
       properties: {
         grammar: {
-          type: SchemaType.NUMBER,
-          description: 'Grammar score out of 100',
+          type: Type.NUMBER,
+          description: "Grammar score out of 100",
+          maximum: 100,
+          minimum: 0,
         },
         spelling: {
-          type: SchemaType.NUMBER,
-          description: 'Spelling accuracy score out of 100',
+          type: Type.NUMBER,
+          description: "Spelling accuracy score out of 100",
+          maximum: 100,
+          minimum: 0,
         },
         clarity: {
-          type: SchemaType.NUMBER,
+          type: Type.NUMBER,
           description:
-            'How clear and understandable the text is, scored out of 100',
+            "How clear and understandable the text is, scored out of 100",
+          maximum: 100,
+          minimum: 0,
         },
         tone: {
-          type: SchemaType.STRING,
+          type: Type.STRING,
           description:
-            'The overall tone of the text (e.g., formal, informal, professional)',
+            "The overall tone of the text (e.g., formal, informal, professional)",
         },
         suggestions: {
-          type: SchemaType.ARRAY,
+          type: Type.ARRAY,
           description:
-            'List of improvement suggestions. An empty array if none.',
+            "List of improvement suggestions. An empty array if none.",
           items: {
-            type: SchemaType.STRING,
+            type: Type.STRING,
+            description: "suggestion",
           },
         },
         overallScore: {
-          type: SchemaType.NUMBER,
-          description: 'Overall writing quality score out of 100',
+          type: Type.NUMBER,
+          description: "Overall writing quality score out of 100",
+          maximum: 100,
+          minimum: 0,
         },
       },
       required: [
-        'grammar',
-        'spelling',
-        'clarity',
-        'tone',
-        'suggestions',
-        'overallScore',
+        "grammar",
+        "spelling",
+        "clarity",
+        "tone",
+        "suggestions",
+        "overallScore",
       ],
     };
 
-    gemini.model.generationConfig.responseMimeType = 'application/json';
-    gemini.model.generationConfig.responseSchema = ratingSchema;
-
-    let generateContext = [];
+    let generateContext: any[] = [
+      "Please provide a detailed summary and analysis of the following content, including grammar, spelling, clarity, tone, and overall quality. If there are any suggestions for improvement, please include them as well.",
+    ];
 
     if (userFile) {
-      const fileResponse = await fetch(userFile.url).then((res) =>
-        res.arrayBuffer()
-      );
+      const fileBlob = await fetch(userFile.url).then((res) => res.blob());
 
-      generateContext.push({
-        inlineData: {
-          data: Buffer.from(fileResponse).toString('base64'),
-          mimeType: userFile.contentType || 'text/plain',
+      const fileResult = await gemini.fileManager.upload({
+        file: fileBlob,
+        config: {
+          mimeType: userFile.contentType || "text/plain",
+          displayName: userFile.title || undefined,
         },
       });
+
+      generateContext.push(
+        createPartFromUri(fileResult.uri!, fileResult.mimeType!)
+      );
     }
 
     if (userContent) generateContext.push(userContent);
 
-    generateContext.push(
-      'Please provide a detailed summary and analysis of the following content, including grammar, spelling, clarity, tone, and overall quality. If there are any suggestions for improvement, please include them as well.'
-    );
+    const result = await gemini.model.generateContent({
+      model: geminiModel || "gemini-2.5-flash",
+      contents: createUserContent(generateContext),
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: ratingSchema,
+      },
+    });
 
-    const result = await gemini.model.generateContent(generateContext);
-    const ratingData = JSON.parse(result.response.text());
+    if (!result.text) throw new Error("Failed to check your grammar.");
 
-    debugStream.write('Done! Creating embed...');
+    const ratingData = JSON.parse(result.text);
+
+    debugStream.write("Done! Creating embed...");
 
     const embedMessage = createEmbed({
       color: Colors.DarkGreen,
-      title: 'Grammar Check',
+      title: "Grammar Check",
       description: ratingData.suggestions.length
-        ? `Suggestions: \n${ratingData.suggestions.join('\n')}`
-        : '',
+        ? `Suggestions: \n${ratingData.suggestions.join("\n")}`
+        : "",
       fields: [
         {
-          name: '📝 Grammar',
+          name: "📝 Grammar",
           value: `${ratingData.grammar}/100`,
           inline: true,
         },
         {
-          name: '✍️ Spelling',
+          name: "✍️ Spelling",
           value: `${ratingData.spelling}/100`,
           inline: true,
         },
         {
-          name: '🔍 Clarity',
+          name: "🔍 Clarity",
           value: `${ratingData.clarity}/100`,
           inline: true,
         },
-        { name: '🎭 Tone', value: ratingData.tone, inline: true },
+        { name: "🎭 Tone", value: ratingData.tone, inline: true },
         {
-          name: '⭐ Overall Score',
+          name: "⭐ Overall Score",
           value: `${ratingData.overallScore}/100`,
           inline: true,
         },
       ],
     });
 
-    debugStream.write('Embed created! Sending follow up...');
+    debugStream.write("Embed created! Sending follow up...");
 
     await interaction.followUp({
       embeds: [embedMessage],
-      ephemeral: true,
     });
 
-    debugStream.write('Follow up sent!');
+    debugStream.write("Follow up sent!");
   },
 };
 

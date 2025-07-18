@@ -1,8 +1,8 @@
-import { NamelessMCFormFields } from '#utils/enums.js';
-import Redis from '#libs/Redis.js';
-import ButtonType from '#types/ButtonType.js';
-import createEmbed from '#utils/createEmbed.js';
-import { createPageButtons, getPageData } from '#utils/getPageData.js';
+import { NamelessMCFormFields } from "#utils/enums.js";
+import Redis from "#libs/Redis.js";
+import ButtonType from "#types/ButtonType.js";
+import createEmbed from "#utils/createEmbed.js";
+import { createPageButtons, getPageData } from "#utils/getPageData.js";
 import {
   ActionRowBuilder,
   Attachment,
@@ -10,11 +10,12 @@ import {
   ButtonStyle,
   Colors,
   ComponentType,
+  MessageFlags,
   ModalBuilder,
   StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
-} from 'discord.js';
+} from "discord.js";
 
 type FieldType = {
   id: number;
@@ -37,7 +38,7 @@ type QuestionType = {
 };
 
 const button: ButtonType = {
-  customID: 'nameless-forms-discord-submit', //nameless-forms-discord-submit-${formID}
+  customID: "nameless-forms-discord-submit", //nameless-forms-discord-submit-${formID}
 
   async script(_, interaction, debugStream) {
     debugStream.write("Checking if users DM's are enable...");
@@ -49,7 +50,7 @@ const button: ButtonType = {
       await interaction.editReply(
         "🔒 For privacy reasons, you can only fill in the form via DM's. Please enable your DM's and try again. 😊"
       );
-      debugStream.write('Message sent!');
+      debugStream.write("Message sent!");
       return;
     } else {
       await interaction.followUp(
@@ -61,11 +62,11 @@ const button: ButtonType = {
 
     debugStream.write("DM's open! Getting data from interaction...");
 
-    const formID = interaction.customId.split('-')[4];
+    const formID = interaction.customId.split("-")[4];
 
     debugStream.write(`formID: ${formID}`);
 
-    debugStream.write('Fetching data...');
+    debugStream.write("Fetching data...");
 
     const redisResult = await Redis.get(`namelessmc-form-${formID}`);
 
@@ -84,14 +85,14 @@ const button: ButtonType = {
 
       debugStream.write(`Response Status: ${response.status}`);
 
-      debugStream.write('Getting JSON data...');
+      debugStream.write("Getting JSON data...");
       const responseData = await response.json();
 
       if (responseData.error)
         throw new Error(
           `Failed to fetch from NamelessMC. Error: ${responseData.error}, ${
-            responseData.message ? 'Message :' + responseData.message : ''
-          }, ${responseData.meta ? 'Meta :' + responseData.meta : ''}`
+            responseData.message ? "Message :" + responseData.message : ""
+          }, ${responseData.meta ? "Meta :" + responseData.meta : ""}`
         );
 
       form = responseData;
@@ -101,7 +102,7 @@ const button: ButtonType = {
       });
     }
 
-    debugStream.write('Data collected! Creating questions...');
+    debugStream.write("Data collected! Creating questions...");
 
     let questions: QuestionType[] = [];
 
@@ -139,14 +140,14 @@ const button: ButtonType = {
         inputButton.setCustomId(
           `discord-form-submit-modal-${form.id}-collector`
         );
-        inputButton.setLabel('Enter answer');
+        inputButton.setLabel("Enter answer");
 
         inputActionRow.setComponents(inputButton as ButtonBuilder);
       } else if (isStringMenu) {
         inputActionRow.setComponents(builder as StringSelectMenuBuilder);
       } else {
         inputButton.setCustomId(`discord-form-submit-msg-${form.id}-collector`);
-        inputButton.setLabel('Enter answer via message');
+        inputButton.setLabel("Enter answer via message");
         inputButton.setDisabled(true);
 
         inputActionRow.setComponents(inputButton as ButtonBuilder);
@@ -160,22 +161,22 @@ const button: ButtonType = {
       });
     }
 
-    debugStream.write('Questions created! Creating embed...');
+    debugStream.write("Questions created! Creating embed...");
 
     const firstQuestion = questions[0];
 
     const getEmbedFields = (questionData: QuestionType) => {
       return [
         {
-          name: 'Required:',
-          value: questionData.field.required ? '✔' : '❌',
+          name: "Required:",
+          value: questionData.field.required ? "✔" : "❌",
         },
         {
-          name: 'Your Answer:',
+          name: "Your Answer:",
           value: questionData.answer
-            ? typeof questionData.answer === 'string'
+            ? typeof questionData.answer === "string"
               ? questionData.answer
-              : questionData.answer.join(', ')
+              : questionData.answer.join(", ")
             : "You haven't answered yet!",
         },
       ];
@@ -184,17 +185,17 @@ const button: ButtonType = {
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
       title: firstQuestion.field.name,
-      description: firstQuestion.field.info || 'No info available',
+      description: firstQuestion.field.info || "No info available",
       url: form.url_full,
       thumbnail: {
         url: `https://www.google.com/s2/favicons?domain=${
-          process.env.NAMELESSMC_API_URL!.split('/')[2]
+          process.env.NAMELESSMC_API_URL!.split("/")[2]
         }&sz=128`,
       },
       fields: getEmbedFields(firstQuestion),
     });
 
-    debugStream.write('Embed created! Creating components...');
+    debugStream.write("Embed created! Creating components...");
 
     const pagesButtonIds = [
       `nameless-form-${form.id}-discord-submit-previous-end-collector`,
@@ -209,13 +210,13 @@ const button: ButtonType = {
     const submitFormBtn = new ButtonBuilder({
       customId: `discord-form-submit-${form.id}-collector`,
       disabled: true,
-      label: 'Submit Form',
+      label: "Submit Form",
       style: ButtonStyle.Success,
     });
 
     const cancelFormBtn = new ButtonBuilder({
       customId: `discord-form-submit-cancel-${form.id}-collector`,
-      label: 'Cancel Submission',
+      label: "Cancel Submission",
       style: ButtonStyle.Danger,
     });
 
@@ -235,7 +236,7 @@ const button: ButtonType = {
       ],
     });
 
-    debugStream.write('Questions sent! Creating collectors...');
+    debugStream.write("Questions sent! Creating collectors...");
 
     const pagesCollector = questionsMsg.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -247,7 +248,7 @@ const button: ButtonType = {
     let currentPageIndex = 0;
     let questionData: QuestionType;
 
-    pagesCollector.on('collect', async (i) => {
+    pagesCollector.on("collect", async (i) => {
       const result = getPageData(
         questions,
         currentPageIndex,
@@ -260,7 +261,7 @@ const button: ButtonType = {
 
       embedMessage.setTitle(questionData.field.name);
       embedMessage.setDescription(
-        questionData.field.info || 'No info available'
+        questionData.field.info || "No info available"
       );
       embedMessage.setFields(getEmbedFields(questionData));
 
@@ -295,13 +296,13 @@ const button: ButtonType = {
       messageCollector.stop(reason);
     };
 
-    submitBtnCollector.on('collect', async (i) => {
+    submitBtnCollector.on("collect", async (i) => {
       await i.deferUpdate();
 
       if (!isFormSubmittable()) {
         await i.followUp({
-          content: 'Please answer to all of the required question.',
-          ephemeral: true,
+          content: "Please answer to all of the required question.",
+          flags: MessageFlags.Ephemeral,
         });
         submitFormBtn.setDisabled(true);
         return;
@@ -311,7 +312,7 @@ const button: ButtonType = {
         process.env.NAMELESSMC_API_URL +
           `/forms/form/${formID}/submissions/create`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
           },
@@ -337,18 +338,18 @@ const button: ButtonType = {
           content: `An error occurred: \`\`\`Failed to fetch from NamelessMC. Error: ${
             responseData.error
           }, ${
-            responseData.message ? 'Message :' + responseData.message : ''
-          }, ${responseData.meta ? 'Meta :' + responseData.meta : ''}\`\`\``,
-          ephemeral: true,
+            responseData.message ? "Message :" + responseData.message : ""
+          }, ${responseData.meta ? "Meta :" + responseData.meta : ""}\`\`\``,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
 
-      closeListeners('Form submitted');
+      closeListeners("Form submitted");
 
       await i.followUp({
         content: `🎉 Your form submission (\`${responseData.submission_id}\`) was successfully submitted! [View Submission](${responseData.link}) (Note: You might not have permission to view your own submission.)`,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
 
       await questionsMsg.delete();
@@ -361,12 +362,15 @@ const button: ButtonType = {
         i.customId === `discord-form-submit-cancel-${form.id}-collector`,
     });
 
-    cancelBtnCollector.on('collect', async (i) => {
+    cancelBtnCollector.on("collect", async (i) => {
       await i.deferUpdate();
 
-      closeListeners('Submission was canceled');
+      closeListeners("Submission was canceled");
 
-      await i.followUp({ content: 'The form was canceled!', ephemeral: true });
+      await i.followUp({
+        content: "The form was canceled!",
+        flags: MessageFlags.Ephemeral,
+      });
 
       await questionsMsg.delete();
     });
@@ -376,7 +380,7 @@ const button: ButtonType = {
       filter: (i) => i.user.id === interaction.user.id,
     });
 
-    stringMenuCollector.on('collect', async (i) => {
+    stringMenuCollector.on("collect", async (i) => {
       questions[currentPageIndex].answer = i.values;
 
       embedMessage.setFields(getEmbedFields(questions[currentPageIndex]));
@@ -399,7 +403,7 @@ const button: ButtonType = {
         i.customId === `discord-form-submit-modal-${form.id}-collector`,
     });
 
-    modalBtnCollector.on('collect', async (i) => {
+    modalBtnCollector.on("collect", async (i) => {
       await i.showModal(questions[currentPageIndex].builder as ModalBuilder);
 
       const modalResponse = await i.awaitModalSubmit({
@@ -417,8 +421,8 @@ const button: ButtonType = {
 
       if (!answer) {
         await modalResponse.followUp({
-          content: 'No answer was provided.',
-          ephemeral: true,
+          content: "No answer was provided.",
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -442,7 +446,7 @@ const button: ButtonType = {
       filter: (msg) => msg.author.id === interaction.user.id,
     });
 
-    messageCollector.on('collect', async (message) => {
+    messageCollector.on("collect", async (message) => {
       const questionData = questions[currentPageIndex];
 
       let isNumberInput = false;
@@ -473,7 +477,7 @@ const button: ButtonType = {
         data = Number(message.content);
 
         if (isNaN(data)) {
-          await sendErrorMsg('Please enter a valid number. Try again!');
+          await sendErrorMsg("Please enter a valid number. Try again!");
           return;
         }
 
@@ -481,11 +485,11 @@ const button: ButtonType = {
       } else if (isFileInput && message.attachments.size > 0) {
         const attachments = Array.from(message.attachments.values());
         const validAttachments = attachments.filter((attachment) =>
-          attachment.contentType?.includes('image')
+          attachment.contentType?.includes("image")
         );
 
         if (!validAttachments.length) {
-          await sendErrorMsg('Please send a valid image file. Try again!');
+          await sendErrorMsg("Please send a valid image file. Try again!");
           return;
         }
 
@@ -494,13 +498,13 @@ const button: ButtonType = {
         const imageResponse = await fetch(data.url || data.proxyURL);
         const blob = await imageResponse.arrayBuffer();
         const image = `data:${imageResponse.headers.get(
-          'content-type'
-        )};base64,${Buffer.from(blob).toString('base64')}`;
+          "content-type"
+        )};base64,${Buffer.from(blob).toString("base64")}`;
 
         questions[currentPageIndex].answer = `[${data.name}](${data.url})`;
         questions[currentPageIndex].fileURI = image;
       } else {
-        await sendErrorMsg('Please upload a valid image file. Try again!');
+        await sendErrorMsg("Please upload a valid image file. Try again!");
         return;
       }
 
@@ -530,7 +534,7 @@ function createModal(title: string, formID: string, field: any) {
     label: field.name,
     maxLength: field.max || 4000,
     minLength: field.min,
-    placeholder: field.placeholder || '',
+    placeholder: field.placeholder || "",
     required: field.required,
     style:
       field.type === NamelessMCFormFields.TEXT ||
@@ -573,7 +577,7 @@ function createStringMenu(formID: string, field: any) {
 
   const stringMenu = new StringSelectMenuBuilder({
     customId: `discord-form-submit-menu-${formID}-collector`,
-    placeholder: field.placeholder || 'Pick your answer',
+    placeholder: field.placeholder || "Pick your answer",
     options: fieldOptions.map((option) => ({
       label: option,
       value: option,

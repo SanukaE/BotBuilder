@@ -1,7 +1,12 @@
 import getConfig from "#utils/getConfig.js";
 import Gemini from "#libs/Gemini.js";
 import createTempDataFile from "#utils/createTempDataFile.js";
-import { Schema, SchemaType } from "@google/generative-ai";
+import {
+  createPartFromUri,
+  createUserContent,
+  Schema,
+  Type,
+} from "@google/genai";
 import { Client, Message, OmitPartialGroupDMChannel } from "discord.js";
 import { translate } from "bing-translate-api";
 
@@ -11,10 +16,15 @@ export default async function (
 ) {
   if (!message.inGuild()) return;
 
-  const { voiceMessageTranscript, defaultLanguage } = getConfig(
+  const { voiceMessageTranscript, defaultLanguage, geminiModel } = getConfig(
     "application",
-    "misc"
-  ) as { voiceMessageTranscript: boolean; defaultLanguage: string };
+    "misc",
+    "ai"
+  ) as {
+    voiceMessageTranscript: boolean;
+    defaultLanguage: string;
+    geminiModel: string;
+  };
   if (!voiceMessageTranscript) return;
 
   if (!message.deletable) return;
@@ -41,44 +51,42 @@ export default async function (
 
     const transcriptSchema: Schema = {
       description: "The transcript object.",
-      type: SchemaType.OBJECT,
+      type: Type.OBJECT,
       properties: {
         origin: {
           description: "The language code of the voice message",
-          type: SchemaType.STRING,
+          type: Type.STRING,
         },
         transcript: {
           description: "The transcript of the voice message",
-          type: SchemaType.STRING,
+          type: Type.STRING,
         },
       },
       required: ["origin", "transcript"],
       example: { origin: "en", transcript: "Hello world!" },
     };
 
-    const fileUploadResult = await gemini.fileManager.uploadFile(
-      `temp/voiceMsg-${message.author.id}.mp3`,
-      {
-        mimeType: "audio/mp3",
-        displayName: "Voice Message",
-      }
-    );
+    const fileUploadResult = await gemini.fileManager.upload({
+      file: `temp/voiceMsg-${message.author.id}.mp3`,
+      config: { displayName: "Voice Message", mimeType: "audio/mp3" },
+    });
 
-    gemini.model.generationConfig.responseMimeType = "application/json";
-    gemini.model.generationConfig.responseSchema = transcriptSchema;
-
-    const transcriptResult = await gemini.model.generateContent([
-      {
-        fileData: {
-          fileUri: fileUploadResult.file.uri,
-          mimeType: fileUploadResult.file.mimeType,
-        },
+    const transcriptResult = await gemini.model.generateContent({
+      model: geminiModel || "gemini-2.5-flash",
+      contents: createUserContent([
+        createPartFromUri(fileUploadResult.uri!, fileUploadResult.mimeType!),
+        "Get the transcript of audio file.",
+      ]),
+      config: {
+        responseJsonSchema: transcriptSchema,
+        responseMimeType: "application/json",
       },
-      "Get the transcript of audio file.",
-    ]);
+    });
+
+    if (!transcriptResult.text) throw new Error("Failed to get transcript.");
 
     const transcriptData: { origin: string; transcript: string } = JSON.parse(
-      transcriptResult.response.text()
+      transcriptResult.text
     );
 
     if (transcriptData.origin === defaultLanguage) return;

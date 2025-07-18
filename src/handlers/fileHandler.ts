@@ -1,11 +1,14 @@
-import Gemini from '#libs/Gemini.js';
-import getAllFiles from '#utils/getAllFiles.js';
-import { Client } from 'discord.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import Gemini from "#libs/Gemini.js";
+import getAllFiles from "#utils/getAllFiles.js";
+import getConfig from "#utils/getConfig.js";
+import { createPartFromUri, createUserContent } from "@google/genai";
+import { Client } from "discord.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const filesInProcess = new Set<string>();
+const { geminiModel } = getConfig("ai") as { geminiModel: string };
 
 export default function (client: Client) {
   let actionFilePaths: string[] = [];
@@ -14,7 +17,7 @@ export default function (client: Client) {
   const __dirname = path.dirname(__filename);
 
   const actionTypes = getAllFiles(
-    path.join(__dirname, '../../src/actions'),
+    path.join(__dirname, "../../src/actions"),
     true
   );
 
@@ -34,7 +37,7 @@ export default function (client: Client) {
 
   for (const filePath of actionFilePaths) {
     const watcher = fs.watch(filePath, async (eventType, filename) => {
-      if (eventType === 'change' && !filename?.includes('~'))
+      if (eventType === "change" && !filename?.includes("~"))
         await handleUpdate(filePath).catch((err) =>
           console.log(
             `[Error] Failed to check for update: ${err.message || err}`
@@ -56,10 +59,10 @@ async function handleUpdate(filePath: string) {
       `The specified path "${filePath}" either does not exist or is not a valid file.`
     );
 
-  if (path.extname(filePath).toLowerCase() !== '.ts') return;
+  if (path.extname(filePath).toLowerCase() !== ".ts") return;
 
-  let fileContent = fs.readFileSync(filePath, 'utf-8');
-  if (fileContent === '') return;
+  let fileContent = fs.readFileSync(filePath, "utf-8");
+  if (fileContent === "") return;
 
   const matches = fileContent.matchAll(/\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//g);
   const prompts = Array.from(matches);
@@ -75,7 +78,7 @@ async function handleUpdate(filePath: string) {
       filePath,
       fileContent.replaceAll(
         /\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//g,
-        '//AI is disabled'
+        "//AI is disabled"
       )
     );
     filesInProcess.delete(filePath);
@@ -84,37 +87,42 @@ async function handleUpdate(filePath: string) {
 
   const extractedPrompts = prompts.map((match) => match[1].trim());
 
-  const fileUploadResult = await gemini.fileManager!.uploadFile(filePath, {
-    mimeType: 'text/typescript',
-    displayName: 'Source File',
+  const fileUploadResult = await gemini.fileManager!.upload({
+    file: filePath,
+    config: {
+      mimeType: "text/typescript",
+      displayName: "Source File",
+    },
   });
 
   for (const helpPrompt of extractedPrompts) {
     fileContent = fileContent.replace(
       /\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//,
-      '//Processing...'
+      "//Processing..."
     );
 
     fs.writeFileSync(filePath, fileContent);
 
     try {
-      const result = await gemini.model!.generateContent([
-        {
-          fileData: {
-            fileUri: fileUploadResult.file.uri,
-            mimeType: fileUploadResult.file.mimeType,
-          },
+      const result = await gemini.model!.generateContent({
+        model: geminiModel || "gemini-2.5-flash",
+        contents: createUserContent([
+          createPartFromUri(fileUploadResult.uri!, fileUploadResult.mimeType!),
+          helpPrompt,
+          "Your response is used to replace the '//Processing...' comment with a multi line comment containing your response. So do not use markdown & try responding in text only. Ignore comments with prefix 'AI Help:', 'AI Solution:' or 'Processing...'.",
+        ]),
+        config: {
+          tools: [{ urlContext: {} }, { googleSearch: {} }],
+          maxOutputTokens: 500,
         },
-        helpPrompt,
-        "Your response is used to replace the '//Processing...' comment with a multi line comment containing your response. So do not use markdown & try responding in text only. Ignore comments with prefix 'AI Help:', 'AI Solution:' or 'Processing...'.",
-      ]);
+      });
 
-      const solution = result.response.text();
+      const solution = result.text;
 
-      if (solution === '') {
+      if (solution === "") {
         fileContent = fileContent.replace(
           /\/\/Processing\.\.\./,
-          '//A solution cannot be found'
+          "//A solution cannot be found"
         );
 
         fs.writeFileSync(filePath, fileContent);
@@ -132,7 +140,7 @@ async function handleUpdate(filePath: string) {
 
       fileContent = fileContent.replace(
         /\/\/Processing\.\.\./,
-        '//Processing Failed! Please check console.'
+        "//Processing Failed! Please check console."
       );
 
       fs.writeFileSync(filePath, fileContent);

@@ -1,12 +1,14 @@
 import Gemini from "#libs/Gemini.js";
 import CommandType from "#types/CommandType.js";
-import { Schema, SchemaType } from "@google/generative-ai";
+import getConfig from "#utils/getConfig.js";
+import { Schema, Type } from "@google/genai";
 import {
   ActionRowBuilder,
   bold,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  MessageFlags,
 } from "discord.js";
 
 const gemini = Gemini();
@@ -17,6 +19,8 @@ const command: CommandType = {
   isDisabled: !gemini.enabled,
 
   async script(client, interaction, debugStream) {
+    const { geminiModel } = getConfig("ai") as { geminiModel: string };
+
     //X: 1; O: 0
     let gameBoard: (undefined | number)[][] = [
       [undefined, undefined, undefined],
@@ -212,7 +216,7 @@ const command: CommandType = {
       if (boardData !== undefined) {
         await i.followUp({
           content: "Slot is already taken. Pick again.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -245,41 +249,47 @@ const command: CommandType = {
       }
 
       const responseSchema: Schema = {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
           row: {
-            type: SchemaType.NUMBER,
+            type: Type.NUMBER,
             description: "The row you want to place your O at (0-2)",
             example: 1,
           },
           element: {
-            type: SchemaType.NUMBER,
+            type: Type.NUMBER,
             description: "The element you want to place your O at (0-2)",
             example: 2,
           },
         },
         required: ["row", "element"],
       };
-      gemini.model!.generationConfig.responseMimeType = "application/JSON";
-      gemini.model!.generationConfig.responseSchema = responseSchema;
 
       // Get available moves for AI
       const availableMoves = getAvailableMoves(gameBoard);
 
-      const aiResult = gemini.model!.generateContent(
-        `This is a game of tic tac toe and you're playing as O. X is represented as 1, O as 0 & undefined are the available slots you can pick from. 
+      const aiResult = await gemini.model!.generateContent({
+        model: geminiModel || "gemini-2.5-flash",
+        contents: `This is a game of tic tac toe and you're playing as O. X is represented as 1, O as 0 & undefined are the available slots you can pick from. 
         
         Current game board state:
         ${JSON.stringify(gameBoard)}
         
         Available moves: ${JSON.stringify(availableMoves)}
         
-        From the game data above, where would you place O? Return only the row and element numbers (0-2 for each).`
-      );
+        From the game data above, where would you place O? Return only the row and element numbers (0-2 for each).`,
+        config: {
+          responseJsonSchema: responseSchema,
+          responseMimeType: "application/json",
+        },
+      });
 
       try {
+        if (!aiResult.text)
+          throw new Error("Failed to get play from computer.");
+
         const aiSpot: { row: number; element: number } = JSON.parse(
-          (await aiResult).response.text()
+          aiResult.text
         );
 
         // Validate AI move

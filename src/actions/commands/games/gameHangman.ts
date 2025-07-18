@@ -1,12 +1,14 @@
 import Gemini from "#libs/Gemini.js";
 import CommandType from "#types/CommandType.js";
-import { Schema, SchemaType } from "@google/generative-ai";
+import getConfig from "#utils/getConfig.js";
+import { Schema, Type } from "@google/genai";
 import {
   ActionRowBuilder,
   bold,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  MessageFlags,
 } from "discord.js";
 
 const gemini = Gemini();
@@ -17,6 +19,8 @@ const command: CommandType = {
   isDisabled: !gemini.enabled,
 
   async script(client, interaction, debugStream) {
+    const { geminiModel } = getConfig("ai") as { geminiModel: string };
+
     // Word bank for the game
     const wordBank = [
       "JAVASCRIPT",
@@ -314,7 +318,7 @@ const command: CommandType = {
       ) {
         await i.followUp({
           content: "You already guessed that letter! Pick a different one.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -367,10 +371,10 @@ const command: CommandType = {
       // Optional: AI hint system after multiple wrong guesses
       if (incorrectGuesses.length >= 3 && !gameEnded) {
         const responseSchema: Schema = {
-          type: SchemaType.OBJECT,
+          type: Type.OBJECT,
           properties: {
             hint: {
-              type: SchemaType.STRING,
+              type: Type.STRING,
               description:
                 "A helpful hint about the word without giving it away",
               example: "This is related to computer programming",
@@ -378,12 +382,11 @@ const command: CommandType = {
           },
           required: ["hint"],
         };
-        gemini.model!.generationConfig.responseMimeType = "application/json";
-        gemini.model!.generationConfig.responseSchema = responseSchema;
 
         try {
-          const hintResult = await gemini.model!.generateContent(
-            `You are helping with a Hangman game. The word is "${targetWord}". 
+          const hintResult = await gemini.model!.generateContent({
+            model: geminiModel || "gemini-2.5-flash",
+            contents: `You are helping with a Hangman game. The word is "${targetWord}". 
             The player has guessed these letters correctly: ${
               correctGuesses.join(", ") || "none"
             }
@@ -393,16 +396,20 @@ const command: CommandType = {
             Current word state: ${guessedWord.join(" ")}
             
             Provide a helpful hint about what this word might be, but don't give away the answer directly. 
-            Keep it brief and encouraging.`
-          );
+            Keep it brief and encouraging.`,
+            config: {
+              responseJsonSchema: responseSchema,
+              responseMimeType: "application/json",
+            },
+          });
 
-          const hintResponse: { hint: string } = JSON.parse(
-            hintResult.response.text()
-          );
+          if (!hintResult.text) throw new Error("Failed to get hint.");
+
+          const hintResponse: { hint: string } = JSON.parse(hintResult.text);
 
           await i.followUp({
             content: `💡 **Hint:** ${hintResponse.hint}`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
         } catch (error) {
           // Fallback hints based on word categories
@@ -440,7 +447,7 @@ const command: CommandType = {
             "This word is related to technology!";
           await i.followUp({
             content: `💡 **Hint:** ${hint}`,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
         }
       }

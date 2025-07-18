@@ -15,6 +15,7 @@ import {
   ChatInputCommandInteraction,
   MessageComponentInteraction,
   ModalSubmitInteraction,
+  MessageFlags,
 } from "discord.js";
 import { RowDataPacket } from "mysql2";
 
@@ -173,7 +174,7 @@ class EmbedEditor {
           fieldsActionMenu
         ),
       ],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
 
     try {
@@ -199,7 +200,7 @@ class EmbedEditor {
     } catch (error) {
       await interaction.followUp({
         content: "Field management was cancelled.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   }
@@ -304,14 +305,14 @@ class EmbedEditor {
 
       await modalSubmit.reply({
         content: "Field updated successfully!",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
 
       await this.updateEmbedDisplay();
     } catch (error) {
       await interaction.followUp({
         content: "Field edit was cancelled.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   }
@@ -376,14 +377,14 @@ class EmbedEditor {
 
       await modalSubmit.reply({
         content: "Field added successfully!",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
 
       await this.updateEmbedDisplay();
     } catch (error) {
       await interaction.followUp({
         content: "Field add was cancelled.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   }
@@ -447,7 +448,7 @@ class EmbedEditor {
     } catch (error) {
       await interaction.followUp({
         content: "Field removal was cancelled.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   }
@@ -738,7 +739,7 @@ class EmbedEditor {
           // Modal submission was cancelled
           await i.followUp({
             content: "Modal submission was cancelled.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
         }
       }
@@ -752,7 +753,7 @@ class EmbedEditor {
       if (success) {
         await i.followUp({
           content: "✅ Changes saved successfully!",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
 
         // Disable components after saving
@@ -765,7 +766,7 @@ class EmbedEditor {
       } else {
         await i.followUp({
           content: "❌ Failed to save changes. Please try again.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
     });

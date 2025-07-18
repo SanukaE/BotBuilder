@@ -2,7 +2,7 @@ import readline from "readline";
 import { Client } from "discord.js";
 import mysql from "mysql2";
 import { createClient } from "redis";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -428,18 +428,17 @@ async function verifyGeminiAPIKey() {
 
   if (environment.GEMINI_API_KEY === "-1") return true;
 
-  const ai = new GoogleGenerativeAI(environment.GEMINI_API_KEY);
-  const model = ai.getGenerativeModel({
-    model: "gemini-1.5-flash",
-  });
+  const ai = new GoogleGenAI({ apiKey: environment.GEMINI_API_KEY });
 
   try {
-    const result = await model.generateContent(
-      "Explain how AI works in a few words"
-    );
+    const result = await ai.models.generateContent({
+      contents: "Explain how AI works in a few words",
+      model: "gemini-2.5-flash",
+      config: { maxOutputTokens: 500 },
+    });
 
-    if (!result.response.text()) {
-      console.error("Failed to verify Gemini API key:", result.response);
+    if (!result.text) {
+      console.error("Failed to verify Gemini API key");
       return false;
     } else {
       console.log("Gemini API key verified successfully!\n");

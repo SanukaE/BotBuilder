@@ -58,10 +58,7 @@ const command: CommandType = {
 
     debugStream.write("Embed deleted! Sending follow up...");
 
-    await interaction.followUp({
-      content: `Successfully deleted embed "${embedTitle}"`,
-      ephemeral: true,
-    });
+    await interaction.followUp(`Successfully deleted embed "${embedTitle}"`);
 
     debugStream.write("Follow up sent!");
   },

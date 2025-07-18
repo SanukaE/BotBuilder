@@ -1,7 +1,8 @@
 import Gemini from "#libs/Gemini.js";
 import CommandType from "#types/CommandType.js";
 import createEmbed from "#utils/createEmbed.js";
-import { Outcome, Schema, SchemaType } from "@google/generative-ai";
+import getConfig from "#utils/getConfig.js";
+import { Schema, Type } from "@google/genai";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -9,6 +10,7 @@ import {
   ButtonStyle,
   Colors,
   ComponentType,
+  MessageFlags,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
@@ -23,28 +25,32 @@ const command: CommandType = {
   isDisabled: !gemini.enabled,
 
   async script(client, interaction, debugStream) {
+    const { geminiModel } = getConfig("ai") as { geminiModel: string };
+
     const responseSchema: Schema = {
-      type: SchemaType.OBJECT,
+      type: Type.OBJECT,
       properties: {
         object: {
-          type: SchemaType.STRING,
+          type: Type.STRING,
           description: "I'm thinking of a ....",
         },
       },
       required: ["object"],
     };
 
-    gemini.model!.generationConfig.responseMimeType = "application/json";
-    gemini.model!.generationConfig.responseSchema = responseSchema;
+    const aiResult = await gemini.model!.generateContent({
+      model: geminiModel || "gemini-2.5-flash",
+      contents: "Think of an object for a game of 20 questions.",
+      config: {
+        responseJsonSchema: responseSchema,
+        responseMimeType: "application/json",
+      },
+    });
 
-    const aiResult = await gemini.model!.generateContent(
-      "Think of an object for a game of 20 questions."
-    );
-    const object = JSON.parse(aiResult.response.text())
-      .object.toLowerCase()
-      .trim();
+    if (!aiResult.text) throw new Error("Fail to think of an object");
 
-    if (!object) throw new Error("Missing object");
+    const object = JSON.parse(aiResult.text).object.toLowerCase().trim();
+
     const answerBtn = new ButtonBuilder({
       customId: `button-game-20-question-answer-collector`,
       emoji: "🤔",
@@ -152,7 +158,7 @@ const command: CommandType = {
           await i.reply({
             content:
               "You have already asked 20 questions which is the maximum.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
           return;
         }
@@ -170,27 +176,34 @@ const command: CommandType = {
         if (questionExist) {
           await modalSubmit.reply({
             content: "This question has already been asked.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
           return;
         }
 
         const responseSchema: Schema = {
-          type: SchemaType.OBJECT,
+          type: Type.OBJECT,
           properties: {
             answer: {
-              type: SchemaType.BOOLEAN,
+              type: Type.BOOLEAN,
               description: "Is the answer true or false",
             },
           },
           required: ["answer"],
         };
-        gemini.model!.generationConfig.responseSchema = responseSchema;
 
-        const aiResult = await gemini.model!.generateContent(
-          `For a game of 20 question, the object is a \`${object}\`. Is the answer to this question "${newQuestion}" true or false related to the object?`
-        );
-        const isTrue: boolean = JSON.parse(aiResult.response.text()).answer;
+        const aiResult = await gemini.model!.generateContent({
+          model: geminiModel || "gemini-2.5-flash",
+          contents: `For a game of 20 question, the object is a \`${object}\`. Is the answer to this question "${newQuestion}" true or false related to the object?`,
+          config: {
+            responseJsonSchema: responseSchema,
+            responseMimeType: "application/json",
+          },
+        });
+
+        if (!aiResult.text) throw new Error("Failed to answer question");
+
+        const isTrue: boolean = JSON.parse(aiResult.text).answer;
 
         embedMessage.addFields({
           name: newQuestion,
@@ -200,7 +213,7 @@ const command: CommandType = {
 
         if (questionNo === maxQuestions) askQuestionBtn.setDisabled(true);
 
-        await modalSubmit.deferReply({ ephemeral: true });
+        await modalSubmit.deferReply({ flags: MessageFlags.Ephemeral });
         await interaction.editReply({
           embeds: [embedMessage],
           components: [actionRow],
@@ -209,7 +222,7 @@ const command: CommandType = {
           content: `Question added: "${newQuestion}" - ${
             isTrue ? "✅ Yes" : "❌ No"
           }`,
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -226,7 +239,7 @@ const command: CommandType = {
 
         if (normalizedGuess === object) {
           actionRow.components.forEach((button) => button.setDisabled(true));
-          await modalSubmit.deferReply({ ephemeral: true });
+          await modalSubmit.deferReply({ flags: MessageFlags.Ephemeral });
           await interaction.editReply({
             content: `🎉 **You Won!** the object I was thinking of was a \`${object}\`.`,
             embeds: [embedMessage],
@@ -234,7 +247,7 @@ const command: CommandType = {
           });
           await modalSubmit.followUp({
             content: "Congratulations! You guessed correctly! 🎉",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
           collector.stop("Game Over!");
           return;
@@ -242,7 +255,7 @@ const command: CommandType = {
 
         await modalSubmit.reply({
           content: "That's not what I'm thinking of, try again 💪.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }

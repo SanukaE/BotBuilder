@@ -3,13 +3,16 @@ import path from "path";
 import { fileURLToPath } from "url";
 import getActionFile from "./getActionFile.js";
 import Gemini from "#libs/Gemini.js";
-import fs from "fs";
 import { ActionTypes } from "./getActions.js";
 import CommandType from "#types/CommandType.js";
 import ReactionType from "#types/ReactionType.js";
 import ButtonType from "#types/ButtonType.js";
 import ModalType from "#types/ModalType.js";
 import StringMenuType from "#types/StringMenuType.js";
+import getConfig from "./getConfig.js";
+import { createPartFromUri, createUserContent } from "@google/genai";
+
+const { enabled, model, fileManager } = Gemini();
 
 /**
  * Analyzes error logs and debug information to generate a solution for action-related issues.
@@ -33,7 +36,7 @@ export default async function (
   action: CommandType | ReactionType | ButtonType | ModalType | StringMenuType,
   actionType: ActionTypes
 ) {
-  const { enabled, model, fileManager } = Gemini();
+  const { geminiModel } = getConfig("ai") as { geminiModel: string };
 
   if (!enabled && (!model || !fileManager)) return;
   if (!action.isDevOnly || !action.enableDebug) return;
@@ -76,23 +79,28 @@ export default async function (
 
   if (!errorFile || !debugFile || !actionFile) return "No possible fix found.";
 
-  const result = await model?.generateContent([
-    "Summaries a fix for the error in less than 2000 charters:",
-    fileToGenerativePart(errorFile, "text/plain"),
-    fileToGenerativePart(debugFile, "text/plain"),
-    fileToGenerativePart(actionFile, "text/typescript"),
-  ]);
+  const result = await model!.generateContent({
+    model: geminiModel || "gemini-2.5-flash",
+    contents: createUserContent([
+      "Summaries a fix for the error:",
+      await fileToGenerativePart(errorFile, "text/plain"),
+      await fileToGenerativePart(debugFile, "text/plain"),
+      await fileToGenerativePart(actionFile, "text/typescript"),
+    ]),
+    config: { maxOutputTokens: 500 },
+  });
 
-  const solution = result?.response.text();
+  if (!result.text) throw new Error("Failed to fetch solution.");
 
+  const solution = result.text;
   return solution;
 }
 
-function fileToGenerativePart(path: string, mimeType: string) {
-  return {
-    inlineData: {
-      data: Buffer.from(fs.readFileSync(path)).toString("base64"),
-      mimeType,
-    },
-  };
+async function fileToGenerativePart(path: string, mimeType: string) {
+  const fileUpload = await fileManager!.upload({
+    file: path,
+    config: { mimeType },
+  });
+
+  return createPartFromUri(fileUpload.uri!, fileUpload.mimeType!);
 }

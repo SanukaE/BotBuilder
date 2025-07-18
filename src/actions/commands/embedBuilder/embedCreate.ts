@@ -42,10 +42,9 @@ const command: CommandType = {
     await MySQL.query("INSERT INTO embeds (title) VALUES (?)", [title]);
 
     debugStream.write("Embed created successfully.");
-    await interaction.followUp({
-      content: `Embed "${title}" has been created. Use /admin-embed-edit to customize it.`,
-      ephemeral: true,
-    });
+    await interaction.followUp(
+      `Embed "${title}" has been created. Use /admin-embed-edit to customize it.`
+    );
   },
 };
 

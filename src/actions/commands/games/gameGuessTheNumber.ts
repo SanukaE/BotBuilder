@@ -6,6 +6,7 @@ import {
   ButtonStyle,
   Colors,
   ComponentType,
+  MessageFlags,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
@@ -112,7 +113,7 @@ const command: CommandType = {
       if (isNaN(guess) || guess < 0 || guess > 1000) {
         await modalResponse.followUp({
           content: "Please enter a valid number between 0 and 1000.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -120,7 +121,7 @@ const command: CommandType = {
       if (guesses.includes(guess)) {
         await modalResponse.followUp({
           content: "You have already guessed that number.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -130,7 +131,7 @@ const command: CommandType = {
       if (guess === randomNumber) {
         await modalResponse.followUp({
           content: "🎉 Congratulations! You guessed the number correctly!",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
 
         await interaction.editReply({
@@ -153,7 +154,7 @@ const command: CommandType = {
           content: `Sorry, that's not the number.${hint} Keep trying! (${
             10 - guesses.length
           } guesses remaining)`,
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
 

@@ -1,20 +1,27 @@
-import { Client, Interaction, ModalSubmitInteraction } from 'discord.js';
-import getConfig from '#utils/getConfig.js';
-import { getActions, ActionTypes } from '#utils/getActions.js';
-import ModalType from '#types/ModalType.js';
-import { createLogger, LoggerOptions } from '#utils/createLogger.js';
-import getErrorSolution from '#utils/getErrorSolution.js';
+import {
+  Client,
+  Interaction,
+  MessageFlags,
+  ModalSubmitInteraction,
+} from "discord.js";
+import getConfig from "#utils/getConfig.js";
+import { getActions, ActionTypes } from "#utils/getActions.js";
+import ModalType from "#types/ModalType.js";
+import { createLogger, LoggerOptions } from "#utils/createLogger.js";
+import getErrorSolution from "#utils/getErrorSolution.js";
 
 export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isModalSubmit()) return;
-  if (interaction.customId.endsWith('collector')) return;
+  if (interaction.customId.endsWith("collector")) return;
 
-  const { developmentGuildID, isMaintenanceEnabled } = getConfig("application") as { developmentGuildID: string; isMaintenanceEnabled: boolean };
+  const { developmentGuildID, isMaintenanceEnabled } = getConfig(
+    "application"
+  ) as { developmentGuildID: string; isMaintenanceEnabled: boolean };
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   if (isMaintenanceEnabled && interaction.guildId !== developmentGuildID) {
-    await interaction.editReply('The bot is under maintenance.');
+    await interaction.editReply("The bot is under maintenance.");
     return;
   }
 
@@ -25,23 +32,23 @@ export default async function (client: Client, interaction: Interaction) {
   );
 
   if (!modal) {
-    await interaction.editReply('Unknown modal.');
+    await interaction.editReply("Unknown modal.");
     return;
   }
 
   if (modal.isDisabled) {
-    await interaction.editReply('This modal is currently disabled.');
+    await interaction.editReply("This modal is currently disabled.");
     return;
   }
 
   if (modal.isGuildOnly && !interaction.inGuild()) {
-    await interaction.editReply('This modal can only be used in a server.');
+    await interaction.editReply("This modal can only be used in a server.");
     return;
   }
 
   if (modal.isDevOnly && interaction.guildId !== developmentGuildID) {
     await interaction.editReply(
-      'This modal is currently under development. Please try again later.'
+      "This modal is currently under development. Please try again later."
     );
     return;
   }
@@ -50,11 +57,11 @@ export default async function (client: Client, interaction: Interaction) {
     for (const permission of modal.permissions) {
       if (
         !interaction.member ||
-        typeof interaction.member.permissions === 'string' ||
+        typeof interaction.member.permissions === "string" ||
         !interaction.member.permissions.has(permission)
       ) {
         await interaction.editReply(
-          'You do not have the right permissions to perform this modal.'
+          "You do not have the right permissions to perform this modal."
         );
         return;
       }
@@ -94,12 +101,12 @@ export default async function (client: Client, interaction: Interaction) {
     if (solution) {
       await interaction.followUp({
         content:
-          solution.length > 2000 ? solution.slice(0, 1998) + '...' : solution,
+          solution.length > 2000 ? solution.slice(0, 1998) + "..." : solution,
         ephemeral: true,
       });
     } else if (modal.isDevOnly && modal.enableDebug) {
       await interaction.followUp({
-        content: 'No possible fix found.',
+        content: "No possible fix found.",
         ephemeral: true,
       });
     }

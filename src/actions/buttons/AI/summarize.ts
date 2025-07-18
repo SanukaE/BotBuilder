@@ -1,50 +1,51 @@
-import ButtonType from '#types/ButtonType.js';
-import Gemini from '#libs/Gemini.js';
+import ButtonType from "#types/ButtonType.js";
+import Gemini from "#libs/Gemini.js";
+import getConfig from "#utils/getConfig.js";
 
 const button: ButtonType = {
-  customID: 'ai-summarize',
+  customID: "ai-summarize",
 
   async script(_, interaction, debugStream) {
-    debugStream.write('Getting data from interaction...');
+    const { geminiModel } = getConfig("ai") as { geminiModel: string };
+
+    debugStream.write("Getting data from interaction...");
 
     const messageContent = interaction.message.content;
 
     debugStream.write(
       `messageContent: ${
         messageContent.length > 100
-          ? messageContent.slice(0, 100) + '...'
+          ? messageContent.slice(0, 100) + "..."
           : messageContent
       }`
     );
 
-    debugStream.write('Initializing AI...');
+    debugStream.write("Initializing AI...");
 
     const { enabled, model } = Gemini();
 
-    if (!enabled) throw new Error('AI is not enabled.');
+    if (!enabled) throw new Error("AI is not enabled.");
     if (!model) throw new Error("AI model wasn't initialized.");
 
-    debugStream.write('AI initialized! Summarizing...');
+    debugStream.write("AI initialized! Summarizing...");
 
-    const result = await model.generateContent(
-      `Summarizing this in less than 2000 characters: ${messageContent}`
-    );
-    const responseText = result.response.text();
-
-    const summary =
-      responseText.length > 2000
-        ? responseText.slice(0, 1972) + '...'
-        : responseText;
-
-    debugStream.write('AI summarized! Sending follow up...');
-
-    await interaction.followUp({
-      content: summary
-        ? summary + '\n-# AI can make mistakes.'
-        : 'No summary was generated.',
+    const result = await model.generateContent({
+      model: geminiModel || "gemini-2.5-flash",
+      contents: `Summarizing: ${messageContent}`,
+      config: {
+        tools: [{ urlContext: {} }, { googleSearch: {} }],
+        maxOutputTokens: 500,
+      },
     });
+    const summary = result.text;
 
-    debugStream.write('Follow up sent!');
+    if (!summary) throw new Error("Couldn't fetch summary.");
+
+    debugStream.write("AI summarized! Sending follow up...");
+
+    await interaction.followUp(summary);
+
+    debugStream.write("Follow up sent!");
   },
 };
 

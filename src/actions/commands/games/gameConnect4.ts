@@ -1,12 +1,14 @@
 import Gemini from "#libs/Gemini.js";
 import CommandType from "#types/CommandType.js";
-import { Schema, SchemaType } from "@google/generative-ai";
+import getConfig from "#utils/getConfig.js";
+import { Schema, Type } from "@google/genai";
 import {
   ActionRowBuilder,
   bold,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  MessageFlags,
 } from "discord.js";
 
 const gemini = Gemini();
@@ -17,6 +19,8 @@ const command: CommandType = {
   isDisabled: !gemini.enabled,
 
   async script(client, interaction, debugStream) {
+    const { geminiModel } = getConfig("ai") as { geminiModel: string };
+
     // Red: 1; Yellow: 0
     let gameBoard: (undefined | number)[][] = Array(6)
       .fill(null)
@@ -231,7 +235,7 @@ const command: CommandType = {
       if (getDropRow(gameBoard, column) === -1) {
         await i.followUp({
           content: "Column is full! Pick another column.",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -269,24 +273,23 @@ const command: CommandType = {
 
       // AI Turn
       const responseSchema: Schema = {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
           column: {
-            type: SchemaType.NUMBER,
+            type: Type.NUMBER,
             description: "The column you want to drop your piece into (0-6)",
             example: 3,
           },
         },
         required: ["column"],
       };
-      gemini.model!.generationConfig.responseMimeType = "application/JSON";
-      gemini.model!.generationConfig.responseSchema = responseSchema;
 
       // Get available columns for AI
       const availableColumns = getAvailableColumns(gameBoard);
 
-      const aiResult = gemini.model!.generateContent(
-        `This is a game of Connect 4 and you're playing as Yellow (🟡). Red is represented as 1, Yellow as 0 & undefined are the empty slots. 
+      const aiResult = await gemini.model!.generateContent({
+        model: geminiModel || "",
+        contents: `This is a game of Connect 4 and you're playing as Yellow (🟡). Red is represented as 1, Yellow as 0 & undefined are the empty slots. 
         The goal is to get 4 pieces in a row (horizontally, vertically, or diagonally).
         
         Current game board state (6 rows x 7 columns):
@@ -298,13 +301,18 @@ const command: CommandType = {
         
         From the game data above, which column (0-6) would you drop your Yellow piece into? 
         Consider both offensive moves (trying to get 4 in a row) and defensive moves (blocking the opponent).
-        Return only the column number.`
-      );
+        Return only the column number.`,
+        config: {
+          responseJsonSchema: responseSchema,
+          responseMimeType: "application/json",
+        },
+      });
 
       try {
-        const aiMove: { column: number } = JSON.parse(
-          (await aiResult).response.text()
-        );
+        if (!aiResult.text)
+          throw new Error("Failed to get response from Gemini.");
+
+        const aiMove: { column: number } = JSON.parse(aiResult.text);
 
         // Validate AI move
         if (

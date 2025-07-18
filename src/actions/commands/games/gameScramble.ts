@@ -5,6 +5,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  MessageFlags,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
@@ -127,13 +128,13 @@ const command: CommandType = {
         hasWon = true;
         await modalSubmit.reply({
           content: "🎉 That's correct! Well done!",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         collector.stop("Game Over!");
       } else {
         await modalSubmit.reply({
           content: "❌ Sorry, that's not correct. Keep trying!",
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
     });
@@ -148,7 +149,7 @@ const command: CommandType = {
         }\n\n**Scrambled Word:** ${wordData.scrambled}\n**Answer:** \`${
           wordData.word
         }\``,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     });
   },

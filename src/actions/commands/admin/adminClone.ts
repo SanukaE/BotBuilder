@@ -1,19 +1,19 @@
-import CommandType from '#types/CommandType.js';
+import CommandType from "#types/CommandType.js";
 import {
   ApplicationCommandOptionType,
   PermissionFlagsBits,
   PermissionsBitField,
   TextChannel,
-} from 'discord.js';
+} from "discord.js";
 
 const command: CommandType = {
-  name: 'admin-clone',
-  description: 'Clone the current channel or a role.',
+  name: "admin-clone",
+  description: "Clone the current channel or a role.",
   isGuildOnly: true,
   options: [
     {
-      name: 'role',
-      description: 'The role to clone.',
+      name: "role",
+      description: "The role to clone.",
       type: ApplicationCommandOptionType.Role,
     },
   ],
@@ -23,12 +23,12 @@ const command: CommandType = {
   ],
 
   async script(client, interaction, debugStream) {
-    debugStream.write('Getting data from interaction...');
+    debugStream.write("Getting data from interaction...");
 
-    const role = interaction.options.getRole('role');
+    const role = interaction.options.getRole("role");
     debugStream.write(`role: ${role?.id}`);
 
-    debugStream.write(`Cloning ${role ? 'role' : 'channel'}...`);
+    debugStream.write(`Cloning ${role ? "role" : "channel"}...`);
 
     if (role) {
       const newRole = await interaction.guild!.roles.create({
@@ -38,7 +38,7 @@ const command: CommandType = {
         icon: role.icon,
         mentionable: role.mentionable,
         position: role.position + 1,
-        reason: 'Cloning role.',
+        reason: "Cloning role.",
         permissions: role.permissions as PermissionsBitField,
       });
 
@@ -48,14 +48,11 @@ const command: CommandType = {
       debugStream.write(`newChannel: ${newChannel.id}`);
     }
 
-    debugStream.write('Done! Sending response...');
+    debugStream.write("Done! Sending response...");
 
-    await interaction.followUp({
-      content: `${role ? 'Role' : 'Channel'} cloned!`,
-      ephemeral: true,
-    });
+    await interaction.followUp(`${role ? "Role" : "Channel"} cloned!`);
 
-    debugStream.write('Response sent!');
+    debugStream.write("Response sent!");
   },
 };
 
