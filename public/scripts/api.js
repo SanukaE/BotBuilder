@@ -1,55 +1,20 @@
 "use strict";
 
-// Menu toggle logic
-const menuToggle = document.getElementById("menuToggle");
-const mobileMenu = document.getElementById("mobileMenu");
-const menuOverlay = document.getElementById("menuOverlay");
-const menuClose = document.getElementById("menuClose");
 const apiRoutesElem = document.getElementById("apiRoutes");
 const endpointSearch = document.getElementById("endpointSearch");
 const searchBtn = document.getElementById("searchBtn");
 
-menuToggle.addEventListener("click", () => {
-  const isOpen = mobileMenu.classList.toggle("active");
-  menuOverlay.classList.toggle("active");
-  document.body.classList.toggle("menu-open", isOpen);
-});
-
-menuOverlay.addEventListener("click", closeMenu);
-menuClose.addEventListener("click", closeMenu);
-
-function closeMenu() {
-  mobileMenu.classList.remove("active");
-  menuOverlay.classList.remove("active");
-  document.body.classList.remove("menu-open");
-  menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : null;
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  const apiKey = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("apiKey="));
-  if (!apiKey) {
-    const userKey = prompt("Please enter your API Key:");
-    if (userKey) {
-      document.cookie = `apiKey=${encodeURIComponent(
-        userKey
-      )}; path=/; max-age=31536000`;
-    }
-  }
-});
 
 // API routes logic
 let sortedRoutes = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const apiKeyCookie = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("apiKey="));
-    const apiKey = apiKeyCookie
-      ? decodeURIComponent(apiKeyCookie.split("=")[1])
-      : "";
+    const apiKey = getCookie("apiKey");
     const response = await fetch("/api/endpoints", {
       headers: { Authorization: apiKey },
     });
