@@ -27,53 +27,49 @@ export default function areCommandsDifferent(
   localCommand: CommandType,
   registeredCommand: CommandType
 ) {
+  // Compare basic properties
   if (localCommand.description !== registeredCommand.description) return true;
-  if (localCommand.options?.length !== registeredCommand.options?.length)
-    return true;
 
-  for (const localOption of localCommand.options || []) {
-    const registeredOption = registeredCommand.options?.find(
-      (option) => option.name === localOption.name
+  // Compare options length (undefined treated as empty array)
+  const localOptions = localCommand.options ?? [];
+  const registeredOptions = registeredCommand.options ?? [];
+  if (localOptions.length !== registeredOptions.length) return true;
+
+  // Compare each option by name
+  for (const localOption of localOptions) {
+    const registeredOption = registeredOptions.find(
+      (opt) => opt.name === localOption.name
     );
-
     if (!registeredOption) return true;
+
+    // Compare option properties
     if (localOption.description !== registeredOption.description) return true;
-    if (localOption.required !== registeredOption.required) return true;
+    if ((localOption.required ?? false) !== registeredOption.required)
+      return true;
     if (localOption.type !== registeredOption.type) return true;
-
     if (
-      "min_value" in localOption &&
-      localOption.min_value !== (registeredOption as any).min_value
-    )
-      return true;
-    if (
-      "max_value" in localOption &&
-      localOption.max_value !== (registeredOption as any).max_value
+      "autocomplete" in localOption &&
+      "autocomplete" in registeredOption &&
+      localOption.autocomplete !== registeredOption.autocomplete
     )
       return true;
 
-    const localChoices = (
-      localOption as APIApplicationCommandOption & {
-        choices?: APIApplicationCommandOptionChoice<string>[];
-      }
-    ).choices;
-    const registeredChoices = (
-      registeredOption as APIApplicationCommandOption & {
-        choices?: APIApplicationCommandOptionChoice<string>[];
-      }
-    ).choices;
+    // Compare min/max values (support both camelCase and snake_case)
+    const getMin = (opt: any) => opt.min_value ?? opt.minValue;
+    const getMax = (opt: any) => opt.max_value ?? opt.maxValue;
+    if (getMin(localOption) !== getMin(registeredOption)) return true;
+    if (getMax(localOption) !== getMax(registeredOption)) return true;
 
-    if (localChoices?.length !== registeredChoices?.length) return true;
+    // Compare choices (order-insensitive)
+    const localChoices = (localOption as any).choices ?? [];
+    const registeredChoices = (registeredOption as any).choices ?? [];
+    if (localChoices.length !== registeredChoices.length) return true;
 
-    if (localChoices) {
-      for (const localChoice of localChoices) {
-        const registeredChoice = registeredChoices?.find(
-          (choice) => choice.name === localChoice.name
-        );
-
-        if (!registeredChoice || localChoice.value !== registeredChoice.value)
-          return true;
-      }
+    for (const localChoice of localChoices) {
+      const regChoice = registeredChoices.find(
+        (c: any) => c.name === localChoice.name && c.value === localChoice.value
+      );
+      if (!regChoice) return true;
     }
   }
 

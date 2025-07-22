@@ -5,6 +5,8 @@ import areCommandsDifferent from "#utils/areCommandsDifferent.js";
 import CommandType from "#types/CommandType.js";
 
 export default async function (client: Client) {
+  console.log("[System] Registering slash commands...");
+
   try {
     const localCommands = (await getActions(
       ActionTypes.Commands
@@ -23,8 +25,9 @@ export default async function (client: Client) {
         }
 
         if (areCommandsDifferent(localCommand, registeredCommand)) {
-          // Delete and recreate the command instead of editing
-          // This ensures removed options are properly handled
+          console.log(
+            `[System] Updating command: ${localCommand.name} (${localCommand.description})`
+          );
           await client.application!.commands.delete(registeredCommand.id!);
           await client.application!.commands.create(localCommand);
         }
