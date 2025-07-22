@@ -9,6 +9,8 @@ import MySQL from "#libs/MySQL.js";
 import Redis from "#libs/Redis.js";
 import { fileURLToPath } from "url";
 import setup from "#utils/setup.js";
+import getAllFiles from "#utils/getAllFiles.js";
+import { registerFont } from "canvas";
 
 function logWelcomeMsg() {
   console.clear();
@@ -62,6 +64,21 @@ export const client = new Client({
 
 eventHandler(client);
 const closeWatchers = fileHandler(client);
+
+console.log("[System] Registering fonts...");
+const fontDir = path.join(__dirname, "../public/fonts");
+const fontFiles = getAllFiles(fontDir).filter(
+  (file) => file.endsWith(".ttf") || file.endsWith(".otf")
+);
+
+for (const fontFile of fontFiles) {
+  const [fontFamily, fontWeight] = path
+    .basename(fontFile, path.extname(fontFile))
+    .split("-");
+
+  registerFont(fontFile, { family: fontFamily, weight: fontWeight });
+}
+console.log("[System] Fonts registered successfully!");
 
 client.login(process.env.APP_TOKEN);
 

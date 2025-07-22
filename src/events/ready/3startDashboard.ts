@@ -7,6 +7,7 @@ import fs from "fs";
 import { createLogger, LoggerOptions } from "#utils/createLogger.js";
 import { HTTPMethod, RouteType } from "#types/RouteType.js";
 import MySQL from "#libs/MySQL.js";
+import { RowDataPacket } from "mysql2";
 
 export default async function startDashboard(client: Client) {
   console.log("[System] Starting dashboard...");
@@ -384,6 +385,39 @@ export default async function startDashboard(client: Client) {
       serverInvite: string;
     };
     return res.render("config", { serverInvite });
+  });
+
+  //Leveling leaderboard
+  app.get("/leveling/leaderboard", async (req, res) => {
+    const experienceConfig = getConfig("experience") as any;
+    if (!experienceConfig.enableExperience)
+      return res.status(404).send("Leveling system is disabled.");
+
+    const [rows] = await MySQL.query<RowDataPacket[]>(
+      "SELECT * FROM user_levels ORDER BY level DESC"
+    );
+
+    const leaderboard = await Promise.all(
+      rows.map(async (row) => {
+        const user = await client.users.fetch(row.userID);
+
+        return {
+          displayName: user ? user.displayName : "Unknown User",
+          level: row.level,
+          experience: row.experience,
+          requiredExperience:
+            experienceConfig.startingXPRequirement *
+            Math.pow(experienceConfig.nextLevelXPRequirement, row.level - 1),
+          avatarURL: user
+            ? user.displayAvatarURL()
+            : "https://i.postimg.cc/y6L6cLt4/Discord.png",
+        };
+      })
+    );
+
+    return res.render("levelingLeaderboard", {
+      leaderboard,
+    });
   });
 
   console.log("[System] Registering API routes...");
