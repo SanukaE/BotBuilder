@@ -13,21 +13,33 @@ import {
   StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
+  ButtonInteraction,
+  StringSelectMenuInteraction,
+  ModalSubmitInteraction,
 } from "discord.js";
 import { RowDataPacket } from "mysql2";
 
-type FormData = {
+interface FormField {
+  name: string;
+  value?: string;
+  placeholder?: string;
+  required: boolean;
+  type: TextInputStyle;
+}
+
+interface FormData {
+  id?: number;
   title: string;
-  fields: {
-    name: string;
-    value?: string;
-    placeholder?: string;
-    required: boolean;
-    type: TextInputStyle;
-    maxValue?: number;
-    minValue?: number;
-  }[];
-};
+  fields: FormField[];
+}
+
+interface FormRow extends RowDataPacket {
+  id: number;
+  title: string;
+  fields: string | FormField[];
+}
+
+const MAX_FIELDS = 25;
 
 const command: CommandType = {
   name: "form-edit",
@@ -50,402 +62,484 @@ const command: CommandType = {
   permissions: [PermissionFlagsBits.Administrator],
 
   async handleAutoComplete(client, interaction, focusedOption) {
-    const [rows] = await MySQL.query<RowDataPacket[]>(
-      "SELECT title FROM forms"
-    );
+    try {
+      const [rows] = await MySQL.query<FormRow[]>(
+        "SELECT title FROM forms WHERE title LIKE ? LIMIT 25",
+        [`${focusedOption}%`]
+      );
 
-    const focusedValues = rows.filter((row) =>
-      row.title.startsWith(focusedOption)
-    );
-    if (!focusedValues.length) return;
+      if (!rows.length) {
+        await interaction.respond([]);
+        return;
+      }
 
-    await interaction.respond(
-      focusedValues.map((v) => ({ name: v.title, value: v.title }))
-    );
+      await interaction.respond(
+        rows.map((row) => ({ name: row.title, value: row.title }))
+      );
+    } catch (error) {
+      console.error("Error in autocomplete:", error);
+      await interaction.respond([]);
+    }
   },
 
-  async script(client, interaction, debugStream) {
-    debugStream.write("Getting data from interaction...");
-
+  async script(client, interaction, _) {
     const formTitle = interaction.options.getString("form-title", true);
     const newTitle = interaction.options.getString("new-title");
-    debugStream.write(`formTitle: ${formTitle}`);
-    debugStream.write(`newTitle: ${newTitle}`);
 
-    debugStream.write("Checking if form exists...");
+    // Validate new title if provided
+    if (newTitle && (newTitle.length < 1 || newTitle.length > 100)) {
+      await interaction.editReply(
+        "Form title must be between 1 and 100 characters."
+      );
+      return;
+    }
 
-    const [existingForm] = await MySQL.query<RowDataPacket[]>(
+    const [existingForm] = await MySQL.query<FormRow[]>(
       "SELECT * FROM forms WHERE title = ?",
       [formTitle]
     );
 
     if (!existingForm.length) {
-      debugStream.write("Form doesn't exist! Sending reply...");
       await interaction.editReply("No form found with that title.");
-      debugStream.write("Reply sent!");
       return;
     }
 
-    debugStream.write("Form exists! Proceeding to edit...");
+    const formData: FormData = {
+      id: existingForm[0].id,
+      title: newTitle || existingForm[0].title,
+      fields: parseFormFields(existingForm[0].fields),
+    };
 
-    let formData = existingForm[0] as FormData;
-
-    if (newTitle) formData.title = newTitle;
-
-    const formEmbed = createEmbed({
-      title: formData.title,
-      fields: formData.fields.map((field: any) => ({
-        name: field.name,
-        value: field.value,
-      })) ?? [{ name: "No fields", value: "This form has no fields." }],
-    });
-
-    const createInput = new ButtonBuilder({
-      customId: "form-create-field-collector",
-      label: "Create Field",
-      style: ButtonStyle.Primary,
-    });
-
-    const editInput = new ButtonBuilder({
-      customId: "form-edit-field-collector",
-      label: "Edit Field",
-      style: ButtonStyle.Secondary,
-    });
-
-    const saveChanges = new ButtonBuilder({
-      customId: "form-save-changes-collector",
-      label: "Save Changes",
-      style: ButtonStyle.Success,
-    });
-
-    const actionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [createInput, editInput, saveChanges],
-    });
-
-    const followUpMsg = await interaction.followUp({
-      embeds: [formEmbed],
-      components: [actionRow],
-    });
-
-    const collector = followUpMsg.createMessageComponentCollector({
-      componentType: ComponentType.Button,
-      filter: (i) => i.user.id === interaction.user.id,
-    });
-
-    collector.on("collect", async (i) => {
-      if (i.customId === "form-create-field-collector") {
-        if (formData.fields.length >= 25) {
-          await i.reply({
-            content: "You can only have a maximum of 25 fields in a form.",
-            flags: MessageFlags.Ephemeral,
-          });
-          return;
-        }
-
-        const fieldModal = new ModalBuilder({
-          customId: "form-create-field-modal-collector",
-          title: "Create Form Field",
-        });
-
-        const fieldNameInput = new TextInputBuilder({
-          customId: "field-name",
-          label: "Field Name",
-          style: TextInputStyle.Short,
-          required: true,
-        });
-
-        const fieldValueInput = new TextInputBuilder({
-          customId: "field-value",
-          label: "Field Value",
-          style: TextInputStyle.Paragraph,
-          required: false,
-        });
-
-        const fieldPlaceholderInput = new TextInputBuilder({
-          customId: "field-placeholder",
-          label: "Field Placeholder",
-          style: TextInputStyle.Short,
-          required: false,
-        });
-
-        const fieldRequiredInput = new TextInputBuilder({
-          customId: "field-required",
-          label: "Is this field required? (Yes or No)",
-          style: TextInputStyle.Short,
-          required: true,
-        });
-
-        const fieldTypeInput = new TextInputBuilder({
-          customId: "field-type",
-          label: "Field Type (Short or Paragraph)",
-          style: TextInputStyle.Short,
-          required: true,
-        });
-
-        const fieldMaxValueInput = new TextInputBuilder({
-          customId: "field-max-value",
-          label: "Field Max Value (Number)",
-          style: TextInputStyle.Short,
-          required: false,
-        });
-
-        const fieldMinValueInput = new TextInputBuilder({
-          customId: "field-min-value",
-          label: "Field Min Value (Number)",
-          style: TextInputStyle.Short,
-          required: false,
-        });
-
-        fieldModal.addComponents(
-          new ActionRowBuilder<TextInputBuilder>({
-            components: [fieldNameInput],
-          }),
-          new ActionRowBuilder<TextInputBuilder>({
-            components: [fieldValueInput],
-          }),
-          new ActionRowBuilder<TextInputBuilder>({
-            components: [fieldPlaceholderInput],
-          }),
-          new ActionRowBuilder<TextInputBuilder>({
-            components: [fieldRequiredInput],
-          }),
-          new ActionRowBuilder<TextInputBuilder>({
-            components: [fieldTypeInput],
-          }),
-          new ActionRowBuilder<TextInputBuilder>({
-            components: [fieldMaxValueInput],
-          }),
-          new ActionRowBuilder<TextInputBuilder>({
-            components: [fieldMinValueInput],
-          })
-        );
-
-        await i.showModal(fieldModal);
-
-        const modalInteraction = await i.awaitModalSubmit({
-          filter: (m) => m.user.id === i.user.id,
-          time: 0,
-        });
-        await modalInteraction.deferReply();
-
-        const fieldName =
-          modalInteraction.fields.getTextInputValue("field-name");
-        const fieldValue =
-          modalInteraction.fields.getTextInputValue("field-value");
-        const fieldPlaceholder =
-          modalInteraction.fields.getTextInputValue("field-placeholder");
-        const fieldRequired =
-          modalInteraction.fields
-            .getTextInputValue("field-required")
-            .toLowerCase() === "yes"
-            ? true
-            : false;
-        const fieldType =
-          modalInteraction.fields
-            .getTextInputValue("field-type")
-            .toLowerCase() === "short"
-            ? TextInputStyle.Short
-            : TextInputStyle.Paragraph;
-        const fieldMaxValue =
-          modalInteraction.fields.getTextInputValue("field-max-value");
-        const fieldMinValue =
-          modalInteraction.fields.getTextInputValue("field-min-value");
-
-        formData.fields.push({
-          name: fieldName,
-          value: fieldValue,
-          placeholder: fieldPlaceholder,
-          required: fieldRequired,
-          type: fieldType,
-          maxValue: fieldMaxValue ? parseInt(fieldMaxValue) : undefined,
-          minValue: fieldMinValue ? parseInt(fieldMinValue) : undefined,
-        });
-
-        await modalInteraction.followUp("Field created successfully!");
-      } else if (i.customId === "form-edit-field-collector") {
-        if (formData.fields.length === 0) {
-          await i.reply({
-            content: "This form has no fields to edit.",
-            flags: MessageFlags.Ephemeral,
-          });
-          return;
-        }
-        const selectMenu = new StringSelectMenuBuilder({
-          customId: "form-edit-field-select-collector",
-          placeholder: "Select a field to edit",
-          options: formData.fields.map((field, index) => ({
-            label: field.name || `Field ${index + 1}`,
-            value: index.toString(),
-          })),
-        });
-        const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>({
-          components: [selectMenu],
-        });
-
-        const editFieldMsg = await i.reply({
-          content: "Select a field to edit:",
-          components: [selectRow],
-          flags: MessageFlags.Ephemeral,
-        });
-
-        const selectCollector = editFieldMsg.createMessageComponentCollector({
-          componentType: ComponentType.StringSelect,
-          filter: (m) => m.user.id === i.user.id,
-        });
-
-        selectCollector.on("collect", async (selectInteraction) => {
-          const selectedFieldIndex = parseInt(selectInteraction.values[0]);
-          const selectedField = formData.fields[selectedFieldIndex];
-
-          const fieldModal = new ModalBuilder({
-            customId: "form-edit-field-modal-collector",
-            title: `Edit Field: ${selectedField.name}`,
-          });
-
-          const fieldNameInput = new TextInputBuilder({
-            customId: "field-name",
-            label: "Field Name",
-            value: selectedField.name,
-            style: TextInputStyle.Short,
-            required: true,
-          });
-
-          const fieldValueInput = new TextInputBuilder({
-            customId: "field-value",
-            label: "Field Value",
-            value: selectedField.value || "",
-            style: TextInputStyle.Paragraph,
-            required: false,
-          });
-
-          const fieldPlaceholderInput = new TextInputBuilder({
-            customId: "field-placeholder",
-            label: "Field Placeholder",
-            value: selectedField.placeholder || "",
-            style: TextInputStyle.Short,
-            required: false,
-          });
-
-          const fieldRequiredInput = new TextInputBuilder({
-            customId: "field-required",
-            label: "Is this field required? (Yes or No)",
-            value: selectedField.required ? "Yes" : "No",
-            style: TextInputStyle.Short,
-            required: true,
-          });
-
-          const fieldTypeInput = new TextInputBuilder({
-            customId: "field-type",
-            label: "Field Type (Short or Paragraph)",
-            value:
-              selectedField.type === TextInputStyle.Short
-                ? "Short"
-                : "Paragraph",
-            style: TextInputStyle.Short,
-            required: true,
-          });
-
-          const fieldMaxValueInput = new TextInputBuilder({
-            customId: "field-max-value",
-            label: "Field Max Value (Number)",
-            value: selectedField.maxValue
-              ? selectedField.maxValue.toString()
-              : "",
-            style: TextInputStyle.Short,
-            required: false,
-          });
-
-          const fieldMinValueInput = new TextInputBuilder({
-            customId: "field-min-value",
-            label: "Field Min Value (Number)",
-            value: selectedField.minValue
-              ? selectedField.minValue.toString()
-              : "",
-            style: TextInputStyle.Short,
-            required: false,
-          });
-
-          fieldModal.addComponents(
-            new ActionRowBuilder<TextInputBuilder>({
-              components: [fieldNameInput],
-            }),
-            new ActionRowBuilder<TextInputBuilder>({
-              components: [fieldValueInput],
-            }),
-            new ActionRowBuilder<TextInputBuilder>({
-              components: [fieldPlaceholderInput],
-            }),
-            new ActionRowBuilder<TextInputBuilder>({
-              components: [fieldRequiredInput],
-            }),
-            new ActionRowBuilder<TextInputBuilder>({
-              components: [fieldTypeInput],
-            }),
-            new ActionRowBuilder<TextInputBuilder>({
-              components: [fieldMaxValueInput],
-            }),
-            new ActionRowBuilder<TextInputBuilder>({
-              components: [fieldMinValueInput],
-            })
-          );
-
-          await selectInteraction.showModal(fieldModal);
-          const modalInteraction = await selectInteraction.awaitModalSubmit({
-            filter: (m) => m.user.id === selectInteraction.user.id,
-            time: 0,
-          });
-
-          await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
-
-          const fieldName =
-            modalInteraction.fields.getTextInputValue("field-name");
-          const fieldValue =
-            modalInteraction.fields.getTextInputValue("field-value");
-          const fieldPlaceholder =
-            modalInteraction.fields.getTextInputValue("field-placeholder");
-          const fieldRequired =
-            modalInteraction.fields
-              .getTextInputValue("field-required")
-              .toLowerCase() === "yes"
-              ? true
-              : false;
-          const fieldType =
-            modalInteraction.fields
-              .getTextInputValue("field-type")
-              .toLowerCase() === "short"
-              ? TextInputStyle.Short
-              : TextInputStyle.Paragraph;
-          const fieldMaxValue =
-            modalInteraction.fields.getTextInputValue("field-max-value");
-          const fieldMinValue =
-            modalInteraction.fields.getTextInputValue("field-min-value");
-
-          formData.fields[selectedFieldIndex] = {
-            name: fieldName,
-            value: fieldValue,
-            placeholder: fieldPlaceholder,
-            required: fieldRequired,
-            type: fieldType,
-            maxValue: fieldMaxValue ? parseInt(fieldMaxValue) : undefined,
-            minValue: fieldMinValue ? parseInt(fieldMinValue) : undefined,
-          };
-
-          await modalInteraction.followUp("Field edited successfully!");
-          selectCollector.stop();
-        });
-      } else if (i.customId === "form-save-changes-collector") {
-        await MySQL.query(
-          "UPDATE forms SET title = ?, fields = ? WHERE title = ?",
-          [formData.title, JSON.stringify(formData.fields), formTitle]
-        );
-        await i.update({
-          content: `Form "${formData.title}" has been updated successfully.`,
-          embeds: [],
-          components: [],
-        });
-      }
-    });
+    await handleFormEditor(interaction, formData, formTitle);
   },
 };
+
+function parseFormFields(fieldsData: string | FormField[]): FormField[] {
+  if (!fieldsData) return [];
+
+  if (Array.isArray(fieldsData)) return fieldsData;
+
+  if (typeof fieldsData === "string") {
+    try {
+      const parsed = JSON.parse(fieldsData);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+function createFormEmbed(formData: FormData) {
+  return createEmbed({
+    title: formData.title,
+    fields:
+      formData.fields.length > 0
+        ? formData.fields.map((field, index) => ({
+            name: `${index + 1}. ${field.name}`,
+            value: [
+              field.value ? `**Value:** ${field.value}` : null,
+              field.placeholder
+                ? `**Placeholder:** ${field.placeholder}`
+                : null,
+              `**Required:** ${field.required ? "Yes" : "No"}`,
+              `**Type:** ${
+                field.type === TextInputStyle.Short ? "Short" : "Paragraph"
+              }`,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+            inline: false,
+          }))
+        : [
+            {
+              name: "No fields",
+              value: "This form has no fields.",
+              inline: false,
+            },
+          ],
+  });
+}
+
+function createActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>({
+    components: [
+      new ButtonBuilder({
+        customId: "form-create-field-collector",
+        label: "Create Field",
+        style: ButtonStyle.Primary,
+      }),
+      new ButtonBuilder({
+        customId: "form-edit-field-collector",
+        label: "Edit Field",
+        style: ButtonStyle.Secondary,
+      }),
+      new ButtonBuilder({
+        customId: "form-delete-field-collector",
+        label: "Delete Field",
+        style: ButtonStyle.Danger,
+      }),
+      new ButtonBuilder({
+        customId: "form-save-changes-collector",
+        label: "Save Changes",
+        style: ButtonStyle.Success,
+      }),
+    ],
+  });
+}
+
+async function handleFormEditor(
+  interaction: any,
+  formData: FormData,
+  originalTitle: string
+) {
+  const followUpMsg = await interaction.followUp({
+    embeds: [createFormEmbed(formData)],
+    components: [createActionRow()],
+  });
+
+  const collector = followUpMsg.createMessageComponentCollector({
+    componentType: ComponentType.Button,
+    filter: (i: ButtonInteraction) => i.user.id === interaction.user.id,
+    time: 0,
+  });
+
+  collector.on("collect", async (i: ButtonInteraction) => {
+    switch (i.customId) {
+      case "form-create-field-collector":
+        await handleCreateField(i, formData, interaction);
+        break;
+      case "form-edit-field-collector":
+        await handleEditField(i, formData, interaction);
+        break;
+      case "form-delete-field-collector":
+        await handleDeleteField(i, formData, interaction);
+        break;
+      case "form-save-changes-collector":
+        await handleSaveChanges(i, formData, originalTitle, collector);
+        break;
+    }
+  });
+}
+
+async function handleCreateField(
+  interaction: ButtonInteraction,
+  formData: FormData,
+  followUpMsg: any
+) {
+  if (formData.fields.length >= MAX_FIELDS) {
+    await interaction.reply({
+      content: `You can only have a maximum of ${MAX_FIELDS} fields in a form.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const modal = createFieldModal(
+    "Create Form Field",
+    "form-create-field-modal-collector"
+  );
+  await interaction.showModal(modal);
+
+  const modalInteraction = await interaction.awaitModalSubmit({
+    filter: (m: ModalSubmitInteraction) => m.user.id === interaction.user.id,
+    time: 0,
+  });
+  await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const fieldData = extractFieldDataFromModal(modalInteraction);
+  if (!fieldData) {
+    await modalInteraction.followUp("Invalid field data provided.");
+    return;
+  }
+
+  formData.fields.push(fieldData);
+
+  await followUpMsg.editReply({
+    embeds: [createFormEmbed(formData)],
+    components: [createActionRow()],
+  });
+
+  await modalInteraction.followUp("Field created successfully!");
+}
+
+async function handleEditField(
+  interaction: ButtonInteraction,
+  formData: FormData,
+  followUpMsg: any
+) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  if (formData.fields.length === 0) {
+    await interaction.followUp({
+      content: "This form has no fields to edit.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const selectMenu = new StringSelectMenuBuilder({
+    customId: "form-edit-field-select-collector",
+    placeholder: "Select a field to edit",
+    options: formData.fields.map((field, index) => ({
+      label: field.name.substring(0, 100) || `Field ${index + 1}`,
+      value: index.toString(),
+      description: `${field.required ? "Required" : "Optional"} | ${
+        field.type === TextInputStyle.Short ? "Short" : "Paragraph"
+      }`,
+    })),
+  });
+
+  const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>({
+    components: [selectMenu],
+  });
+
+  const editFieldMsg = await interaction.followUp({
+    content: "Select a field to edit:",
+    components: [selectRow],
+    flags: MessageFlags.Ephemeral,
+  });
+
+  const selectCollector = editFieldMsg.createMessageComponentCollector({
+    componentType: ComponentType.StringSelect,
+    filter: (m: StringSelectMenuInteraction) =>
+      m.user.id === interaction.user.id,
+    time: 0,
+  });
+
+  selectCollector.on(
+    "collect",
+    async (selectInteraction: StringSelectMenuInteraction) => {
+      const selectedFieldIndex = parseInt(selectInteraction.values[0]);
+      const selectedField = formData.fields[selectedFieldIndex];
+
+      const modal = createFieldModal(
+        `Edit Field: ${selectedField.name}`,
+        "form-edit-field-modal-collector",
+        selectedField
+      );
+
+      await selectInteraction.showModal(modal);
+
+      const modalInteraction = await selectInteraction.awaitModalSubmit({
+        filter: (m: ModalSubmitInteraction) =>
+          m.user.id === selectInteraction.user.id,
+        time: 0,
+      });
+
+      await modalInteraction.deferReply({ flags: MessageFlags.Ephemeral });
+
+      const fieldData = extractFieldDataFromModal(modalInteraction);
+      if (!fieldData) {
+        await modalInteraction.followUp("Invalid field data provided.");
+        return;
+      }
+
+      formData.fields[selectedFieldIndex] = fieldData;
+
+      await followUpMsg.editReply({
+        embeds: [createFormEmbed(formData)],
+        components: [createActionRow()],
+      });
+
+      await modalInteraction.followUp({
+        content: "Field updated successfully!",
+        flags: MessageFlags.Ephemeral,
+      });
+      selectCollector.stop();
+    }
+  );
+}
+
+async function handleDeleteField(
+  interaction: ButtonInteraction,
+  formData: FormData,
+  followUpMsg: any
+) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  if (formData.fields.length === 0) {
+    await interaction.followUp({
+      content: "This form has no fields to delete.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const selectMenu = new StringSelectMenuBuilder({
+    customId: "form-delete-field-select-collector",
+    placeholder: "Select a field to delete",
+    options: formData.fields.map((field, index) => ({
+      label: field.name.substring(0, 100) || `Field ${index + 1}`,
+      value: index.toString(),
+      description: `${field.required ? "Required" : "Optional"} | ${
+        field.type === TextInputStyle.Short ? "Short" : "Paragraph"
+      }`,
+    })),
+  });
+
+  const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>({
+    components: [selectMenu],
+  });
+
+  const deleteFieldMsg = await interaction.followUp({
+    content: "⚠️ Select a field to delete (this action cannot be undone):",
+    components: [selectRow],
+    flags: MessageFlags.Ephemeral,
+  });
+
+  const selectCollector = deleteFieldMsg.createMessageComponentCollector({
+    componentType: ComponentType.StringSelect,
+    filter: (m: StringSelectMenuInteraction) =>
+      m.user.id === interaction.user.id,
+    time: 0,
+  });
+
+  selectCollector.on(
+    "collect",
+    async (selectInteraction: StringSelectMenuInteraction) => {
+      const selectedFieldIndex = parseInt(selectInteraction.values[0]);
+      const deletedField = formData.fields.splice(selectedFieldIndex, 1)[0];
+
+      await followUpMsg.editReply({
+        embeds: [createFormEmbed(formData)],
+        components: [createActionRow()],
+      });
+
+      await selectInteraction.update({
+        content: `Field "${deletedField.name}" has been deleted.`,
+        components: [],
+      });
+
+      selectCollector.stop();
+    }
+  );
+}
+
+async function handleSaveChanges(
+  interaction: ButtonInteraction,
+  formData: FormData,
+  originalTitle: string,
+  collector: any
+) {
+  await MySQL.query("UPDATE forms SET title = ?, fields = ? WHERE title = ?", [
+    formData.title,
+    JSON.stringify(formData.fields),
+    originalTitle,
+  ]);
+
+  await interaction.update({
+    content: `✅ Form "${formData.title}" has been updated successfully.`,
+    embeds: [],
+    components: [],
+  });
+
+  collector.stop();
+}
+
+function createFieldModal(
+  title: string,
+  customId: string,
+  existingField?: FormField
+) {
+  const modal = new ModalBuilder({
+    customId,
+    title,
+  });
+
+  const components = [
+    new TextInputBuilder({
+      customId: "field-name",
+      label: "Field Name (max 45 characters)",
+      style: TextInputStyle.Short,
+      maxLength: 45,
+      value: existingField?.name || "",
+      required: true,
+    }),
+    new TextInputBuilder({
+      customId: "field-value",
+      label: "Default Value (optional)",
+      style: TextInputStyle.Paragraph,
+      maxLength: 4000,
+      value: existingField?.value || "",
+      required: false,
+    }),
+    new TextInputBuilder({
+      customId: "field-placeholder",
+      label: "Placeholder Text (optional)",
+      style: TextInputStyle.Short,
+      maxLength: 100,
+      value: existingField?.placeholder || "",
+      required: false,
+    }),
+    new TextInputBuilder({
+      customId: "field-required",
+      label: "Required? (yes/no)",
+      style: TextInputStyle.Short,
+      maxLength: 3,
+      value: existingField ? (existingField.required ? "yes" : "no") : "no",
+      required: true,
+    }),
+    new TextInputBuilder({
+      customId: "field-type",
+      label: "Input Type (short/paragraph)",
+      style: TextInputStyle.Short,
+      maxLength: 9,
+      value: existingField
+        ? existingField.type === TextInputStyle.Short
+          ? "short"
+          : "paragraph"
+        : "short",
+      required: true,
+    }),
+  ];
+
+  components.forEach((component) => {
+    modal.addComponents(
+      new ActionRowBuilder<TextInputBuilder>({ components: [component] })
+    );
+  });
+
+  return modal;
+}
+
+function extractFieldDataFromModal(
+  modalInteraction: ModalSubmitInteraction
+): FormField | null {
+  const fieldName = modalInteraction.fields
+    .getTextInputValue("field-name")
+    .trim();
+  const fieldValue =
+    modalInteraction.fields.getTextInputValue("field-value").trim() ||
+    undefined;
+  const fieldPlaceholder =
+    modalInteraction.fields.getTextInputValue("field-placeholder").trim() ||
+    undefined;
+  const fieldRequiredText = modalInteraction.fields
+    .getTextInputValue("field-required")
+    .toLowerCase()
+    .trim();
+  const fieldTypeText = modalInteraction.fields
+    .getTextInputValue("field-type")
+    .toLowerCase()
+    .trim();
+
+  if (!fieldName) return null;
+
+  const fieldRequired = ["yes", "y", "true", "1"].includes(fieldRequiredText);
+  const fieldType =
+    fieldTypeText === "paragraph"
+      ? TextInputStyle.Paragraph
+      : TextInputStyle.Short;
+
+  return {
+    name: fieldName,
+    value: fieldValue,
+    placeholder: fieldPlaceholder,
+    required: fieldRequired,
+    type: fieldType,
+  };
+}
 
 export default command;
