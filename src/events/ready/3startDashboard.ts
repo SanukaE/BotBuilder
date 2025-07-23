@@ -410,7 +410,7 @@ export default async function startDashboard(client: Client) {
             Math.pow(experienceConfig.nextLevelXPRequirement, row.level - 1),
           avatarURL: user
             ? user.displayAvatarURL()
-            : "https://i.postimg.cc/y6L6cLt4/Discord.png",
+            : "https://cdn.discordapp.com/embed/avatars/0.png?size=256",
         };
       })
     );
