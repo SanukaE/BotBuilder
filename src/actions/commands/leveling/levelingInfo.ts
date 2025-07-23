@@ -87,18 +87,14 @@ const command: CommandType = {
       )
       .setUsername(user.username)
       .setDisplayName(displayName)
-      .setBackground(
-        bannerURL || "https://cdn.discordapp.com/embed/avatars/0.png?size=256"
-      )
+      .setBackground(bannerURL || "")
       .setOverlay(90);
 
     const card = await rank.build();
 
     await interaction.followUp({
       files: [{ attachment: card, name: "level-card.png" }],
-      content: `**${displayName}**\nLevel: ${level}\nXP: ${experience}/${requiredXP}\nLeaderboard Position: #${
-        userIndex + 1
-      }\nBoost Multiplier: x${multiplier}`,
+      content: `Boost Multiplier: x${multiplier}`,
     });
   },
 };

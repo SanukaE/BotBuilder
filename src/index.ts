@@ -11,6 +11,7 @@ import { fileURLToPath } from "url";
 import setup from "#utils/setup.js";
 import getAllFiles from "#utils/getAllFiles.js";
 import { registerFont } from "canvas";
+import canvacord from "canvacord";
 
 function logWelcomeMsg() {
   console.clear();
@@ -78,6 +79,7 @@ for (const fontFile of fontFiles) {
 
   registerFont(fontFile, { family: fontFamily, weight: fontWeight });
 }
+canvacord.Font.loadDefault();
 console.log("[System] Fonts registered successfully!");
 
 client.login(process.env.APP_TOKEN);
