@@ -7,7 +7,8 @@
     "appMotto": "Your Free, Open-Source, All-In-One Discord Companion",
     "appActivity": "🤖 Powered by BotBuilder!",
     "defaultLanguage": "en",
-    "serverInvite": "https://discord.gg/HUCE56pP"
+    "serverInvite": "https://discord.gg/HUCE56pP",
+    "autoUpdateEnabled": true
   },
   {
     "name": "Application",
@@ -61,6 +62,12 @@
       "type": "string",
       "default": "https://discord.gg/HUCE56pP",
       "description": "The invite link for your Discord server."
+    },
+    "autoUpdateEnabled": {
+      "name": "Auto Update Enabled",
+      "type": "boolean",
+      "default": true,
+      "description": "Enable or disable automatic updates for the bot."
     }
   }
 ]
