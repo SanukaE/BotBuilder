@@ -44,7 +44,7 @@ const command: CommandType = {
       [interaction.user.id, tagTitle, tagDescription]
     );
     await interaction.followUp(
-      "Tag created! Run /misc-message-tag-preview to view your new tag."
+      "Tag created! Run /message-tag-preview to view your new tag."
     );
   },
 };

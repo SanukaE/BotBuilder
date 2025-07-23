@@ -4,14 +4,13 @@ import { ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { RowDataPacket } from "mysql2";
 
 const command: CommandType = {
-  name: "embed-create",
-  description: "Create an embed.",
+  name: "form-create",
+  description: "Create a new form",
   options: [
     {
       name: "title",
-      description: "Title of the embed.",
+      description: "The title of the form",
       type: ApplicationCommandOptionType.String,
-      max_length: 256,
       required: true,
     },
   ],
@@ -23,27 +22,27 @@ const command: CommandType = {
     const title = interaction.options.getString("title", true);
     debugStream.write(`title: ${title}`);
 
-    debugStream.write("Check if embed with same title exist...");
+    debugStream.write("Check if form with same title exist...");
 
-    const [existingEmbed] = await MySQL.query<RowDataPacket[]>(
-      "SELECT title FROM embeds WHERE title = ?",
+    const [existingForm] = await MySQL.query<RowDataPacket[]>(
+      "SELECT title FROM forms WHERE title = ?",
       [title]
     );
 
-    if (existingEmbed.length > 0) {
-      debugStream.write("Embed with this title already exists.");
+    if (existingForm.length > 0) {
+      debugStream.write("Form with this title already exists.");
       await interaction.editReply(
-        "An embed with this title already exists. Embed titles must be unique."
+        "An form with this title already exists. Form titles must be unique."
       );
       return;
     }
 
-    debugStream.write("Creating new embed...");
-    await MySQL.query("INSERT INTO embeds (title) VALUES (?)", [title]);
+    debugStream.write("Creating new form...");
+    await MySQL.query("INSERT INTO forms (title) VALUES (?)", [title]);
 
-    debugStream.write("Embed created successfully.");
+    debugStream.write("Form created successfully.");
     await interaction.followUp(
-      `Embed "${title}" has been created. Use /embed-edit to customize it.`
+      `Form "${title}" has been created. Use /form-edit to customize it.`
     );
   },
 };
