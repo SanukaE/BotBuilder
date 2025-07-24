@@ -28,13 +28,13 @@
     "memberRoleID": {
       "name": "Member Role ID",
       "type": "string",
-      "default": "1333720644730355804",
+      "default": "",
       "description": "Role ID assigned to regular members."
     },
     "botRoleID": {
       "name": "Bot Role ID",
       "type": "string",
-      "default": "1333720772530802718",
+      "default": "",
       "description": "Role ID assigned to bots."
     },
     "stickyRoles": {
@@ -46,7 +46,7 @@
     "staffRoleIDs": {
       "name": "Staff Role IDs",
       "type": "string[]",
-      "default": ["1326823561758904353"],
+      "default": [],
       "description": "List of role IDs assigned to staff members."
     },
     "inviteLinkProtection": {

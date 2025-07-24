@@ -18,13 +18,13 @@
     "productionGuildID": {
       "name": "Production Guild ID",
       "type": "string",
-      "default": "1220680255078010901",
+      "default": "",
       "description": "The ID of the production guild where the bot operates."
     },
     "developmentGuildID": {
       "name": "Development Guild ID",
       "type": "string",
-      "default": "1220680255078010901",
+      "default": "",
       "description": "The ID of the development guild for testing and development purposes."
     },
     "isMaintenanceEnabled": {
