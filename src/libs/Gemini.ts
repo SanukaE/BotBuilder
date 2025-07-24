@@ -24,10 +24,12 @@ export default function () {
   const fileManager = genAI.files;
 
   const model = genAI.models;
+  const chat = genAI.chats;
 
   return {
     enabled: true,
     model,
+    chat,
     fileManager,
   };
 }

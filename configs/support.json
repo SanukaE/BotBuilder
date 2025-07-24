@@ -4,11 +4,14 @@
     "enableTicketSystem": true,
     "ticketCategoryID": "",
     "ticketCategories": [],
-    "ticketWelcomeMessage": "",
+    "ticketWelcomeMessage": "Thanks for opening a ticket. Please be patient while a support member looks at your ticket.",
     "autoCloseTicketsAfter": 0,
     "mentionSupportTeam": true,
     "autoSaveTranscripts": false,
-    "helpUserWithTicket": true
+    "helpUserWithTicket": true,
+    "allowMultipleTickets": false,
+    "autoClaimTicket": false,
+    "closeOnLeave": true
   },
   {
     "name": "Support",
@@ -42,8 +45,8 @@
     "ticketWelcomeMessage": {
       "name": "Ticket Welcome Message",
       "type": "string",
-      "default": "",
-      "description": "The message sent to users when they open a ticket. Placeholders like {userDisplayName}, {ticketID}, {categoryName} can be used to personalize the message."
+      "default": "Thanks for opening a ticket. Please be patient while a support member looks at your ticket.",
+      "description": "The message sent to users when they open a ticket."
     },
     "autoCloseTicketsAfter": {
       "name": "Auto Close Tickets After (days)",
@@ -68,6 +71,24 @@
       "type": "boolean",
       "default": true,
       "description": "Whether to help users with their tickets by providing assistance or guidance with the help of AI."
+    },
+    "allowMultipleTickets": {
+      "name": "Allow Multiple Tickets",
+      "type": "boolean",
+      "default": false,
+      "description": "Should users be able to open multiple tickets from the same category?"
+    },
+    "autoClaimTicket": {
+      "name": "Auto Claim Tickets",
+      "type": "boolean",
+      "default": false,
+      "description": "If enabled, the ticket will be claimed to the first support team member who sends a message."
+    },
+    "closeOnLeave": {
+      "name": "Close On Leave",
+      "type": "boolean",
+      "default": true,
+      "description": "If enabled, the ticket will be automatically closed when the ticket owner leaves the server."
     }
   }
 ]

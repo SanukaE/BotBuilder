@@ -39,7 +39,7 @@ interface FormRow extends RowDataPacket {
   fields: string | FormField[];
 }
 
-const MAX_FIELDS = 25;
+const MAX_FIELDS = 5;
 
 const command: CommandType = {
   name: "form-edit",

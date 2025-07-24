@@ -37,6 +37,13 @@ const command: CommandType = {
       return;
     }
 
+    if (/[^a-zA-Z0-9 ]/.test(title)) {
+      await interaction.editReply(
+        "Form title cannot have any special charters."
+      );
+      return;
+    }
+
     debugStream.write("Creating new form...");
     await MySQL.query("INSERT INTO forms (title) VALUES (?)", [title]);
 
