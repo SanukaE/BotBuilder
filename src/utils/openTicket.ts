@@ -6,6 +6,7 @@ import {
   ModalSubmitInteraction,
 } from "discord.js";
 import saveTicketTranscript from "./saveTicketTranscript.js";
+import getConfig from "./getConfig.js";
 
 export default async function (
   client: Client,
@@ -18,6 +19,7 @@ export default async function (
   ticketCategoryID?: string,
   formData?: string
 ) {
+  const supportConfig = getConfig("support") as any;
   const ticketChannel = await interaction.guild!.channels.create({
     name: `${categoryName.toLowerCase().replaceAll(/[- ]/g, "_")}-${
       interaction.user.username
@@ -59,7 +61,10 @@ export default async function (
   );
 
   const mentionMsg = await ticketChannel.send(
-    `<@${interaction.user.id}> This is your ticket channel.`
+    `<@${interaction.user.id}> This is your ticket channel.` +
+      supportConfig.mentionSupportTeam
+      ? `||<@&${supportTeamRoleID}>||`
+      : ""
   );
   await mentionMsg.delete();
 
