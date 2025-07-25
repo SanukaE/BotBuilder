@@ -3,11 +3,12 @@ import MySQL from "#libs/MySQL.js";
 import createEmbed from "#utils/createEmbed.js";
 import getAllFiles from "#utils/getAllFiles.js";
 import getConfig from "#utils/getConfig.js";
-import { Schema, Type } from "@google/genai";
+import { Schema, SendMessageParameters, Type } from "@google/genai";
 import { Client, NonThreadGuildBasedChannel, TextChannel } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import path from "path";
 import fs from "fs";
+import { BuiltInGraphemeProvider } from "canvacord";
 
 type SupportConfig = {
   supportChannelID: string;
@@ -28,6 +29,11 @@ export default async function (
   client: Client,
   channel: NonThreadGuildBasedChannel
 ) {
+  const supportConfig = getConfig("support") as SupportConfig;
+  if (!supportConfig.helpUserWithTicket) return;
+
+  await new Promise((resolve) => setTimeout(resolve, 3000)); //3sec delay
+
   const [rows] = await MySQL.query<RowDataPacket[]>(
     "SELECT * FROM tickets WHERE channelID = ?",
     [channel.id]
@@ -41,9 +47,6 @@ export default async function (
   )) as TextChannel;
   if (!ticketChannel) return;
 
-  const supportConfig = getConfig("support") as SupportConfig;
-  if (!supportConfig.helpUserWithTicket) return;
-
   const [categoryName, supportTeamRoleID, formTitle] =
     supportConfig.ticketCategories
       .find((cat) => cat.startsWith(ticketData.category))!
@@ -56,62 +59,6 @@ export default async function (
   if (!gemini.enabled) return;
 
   const { geminiModel } = getConfig("ai") as { geminiModel: string };
-
-  const responseSchema: Schema = {
-    type: Type.OBJECT,
-    properties: {
-      canHelp: {
-        type: Type.BOOLEAN,
-        description: "Weather or not you can help the user.",
-        example: true,
-      },
-      messageType: {
-        type: Type.STRING,
-        description:
-          "What the message type you want to reply with. (normal message or an embed)",
-        enum: ["NORMAL", "EMBED", "BOTH"],
-        example: "NORMAL",
-      },
-      messageContent: {
-        type: Type.STRING,
-        description:
-          "If the reply is a message, then this is for the content of the message.",
-      },
-      embedData: {
-        type: Type.OBJECT,
-        properties: {
-          title: {
-            type: Type.STRING,
-            description: "This is the embed title.",
-          },
-          description: {
-            type: Type.STRING,
-            description: "This is the embed description.",
-          },
-          fields: {
-            type: Type.ARRAY,
-            items: {
-              properties: {
-                name: {
-                  type: Type.STRING,
-                  description: "This is the embed field name.",
-                },
-                value: {
-                  type: Type.STRING,
-                  description: "This is the embed field value.",
-                },
-              },
-              required: ["name", "value"],
-            },
-            maxItems: "25",
-            minItems: "1",
-          },
-        },
-        required: ["title", "description"],
-      },
-    },
-    required: ["canHelp"],
-  };
 
   const previousTranscriptsPaths = getAllFiles(
     path.join(
@@ -127,7 +74,6 @@ export default async function (
     const fileUpload = await gemini.fileManager!.upload({
       file: transcriptPath,
       config: {
-        displayName: path.basename(transcriptPath, ".txt"),
         mimeType: "text/plain",
       },
     });
@@ -135,7 +81,6 @@ export default async function (
     transcriptFiles.push({
       fileData: {
         fileUri: fileUpload.uri,
-        displayName: fileUpload.displayName,
         mimeType: fileUpload.mimeType,
       },
     });
@@ -145,7 +90,13 @@ export default async function (
     { text: `Help me with the information I have provided.` },
   ];
 
-  if (ticketData.formData) startingContent.push({ text: ticketData.formData });
+  if (ticketData.formData)
+    startingContent.push({
+      text:
+        typeof ticketData.formData === "string"
+          ? ticketData.formData
+          : JSON.stringify(ticketData.formData),
+    });
   if (transcriptFiles.length > 0) startingContent.push(...transcriptFiles);
 
   const faqPath = path.join(process.cwd(), "public/faqAnswers.txt");
@@ -153,7 +104,6 @@ export default async function (
     const fileUpload = await gemini.fileManager!.upload({
       file: faqPath,
       config: {
-        displayName: path.basename(faqPath, ".txt"),
         mimeType: "text/plain",
       },
     });
@@ -161,7 +111,6 @@ export default async function (
     startingContent.push({
       fileData: {
         fileUri: fileUpload.uri,
-        displayName: fileUpload.displayName,
         mimeType: fileUpload.mimeType,
       },
     });
@@ -178,7 +127,7 @@ export default async function (
         role: "model",
         parts: [
           {
-            text: `Hey ${ticketOwner.displayName}, while you wait for a support member let me try help you. Can you tell me why you opened this ticket?`,
+            text: `Hey ${ticketOwner.displayName}, while you wait for a support member let me try help you. Can you tell me why you opened this ticket? If you don't need my help please say "\`I don't need your help\`"`,
           },
         ],
       },
@@ -187,15 +136,13 @@ export default async function (
       systemInstruction:
         "Your helping a user who has opened a ticket until a support member looks at the ticket.",
       tools: [{ urlContext: {} }, { googleSearch: {} }],
-      responseJsonSchema: responseSchema,
-      responseMimeType: "application/json",
       maxOutputTokens: 500,
     },
   });
 
   await ticketChannel.sendTyping();
   await ticketChannel.send(
-    `Hey ${ticketOwner.displayName}, while you wait for a support member let me try help you. Can you tell me why you opened this ticket?`
+    `Hey ${ticketOwner.displayName}, while you wait for a support member let me try help you. Can you tell me why you opened this ticket? If you don't need my help please say "\`I don't need your help\`"`
   );
 
   const collector = ticketChannel.createMessageCollector({
@@ -204,14 +151,14 @@ export default async function (
 
   collector.on("collect", async (message) => {
     try {
+      await ticketChannel.sendTyping();
+
       if (supportTeamRole.members.has(message.author.id)) {
-        await ticketChannel.sendTyping();
         await ticketChannel.send(
           `Since ${message.author.displayName} is here, I'll let him/her take care of this this ticket. Bye ${ticketOwner.displayName}!`
         );
 
         if (supportConfig.autoClaimTicket) {
-          await ticketChannel.sendTyping();
           await ticketChannel.send(
             `This ticket is now claimed by <@${message.author.id}>!`
           );
@@ -225,58 +172,50 @@ export default async function (
         return;
       }
 
-      const response = await chat.sendMessage({ message: message.content });
-
-      if (!response.text) {
-        await ticketChannel.sendTyping();
-        await ticketChannel.send("Sorry but I don't what to say to that.");
-        return;
-      }
-
-      const responseData = JSON.parse(response.text);
-
-      if (!responseData.canHelp) {
-        await ticketChannel.sendTyping();
+      if (
+        message.content &&
+        message.content.toLowerCase() === "i don't need your help"
+      ) {
         await ticketChannel.send(
-          "Sorry I cannot help you further from here. Please wait for a support member to show up."
+          `Got it ${message.author.displayName}. Hope I keep you entertained.`
         );
         collector.stop();
         return;
       }
 
-      switch (responseData.messageType) {
-        case "NORMAL":
-          await ticketChannel.sendTyping();
-          await ticketChannel.send(responseData.messageContent);
-          break;
+      let messageContent: SendMessageParameters["message"][] = [];
 
-        case "EMBED":
-          await ticketChannel.sendTyping();
-          await ticketChannel.send({
-            embeds: [
-              createEmbed({
-                title: responseData.embedData.title,
-                description: responseData.embedData.description,
-                fields: responseData.embedData.fields,
-              }),
-            ],
-          });
-          break;
+      if (message.content) messageContent.push({ text: message.content });
 
-        case "BOTH":
-          await ticketChannel.sendTyping();
-          await ticketChannel.send({
-            content: responseData.messageContent,
-            embeds: [
-              createEmbed({
-                title: responseData.embedData.title,
-                description: responseData.embedData.description,
-                fields: responseData.embedData.fields,
-              }),
-            ],
-          });
-          break;
+      for (const attachment of Array.from(message.attachments.values())) {
+        const fileResponse = await fetch(attachment.url);
+        const fileBuffer = await fileResponse.arrayBuffer();
+        const fileBlob = new Blob([fileBuffer], {
+          type: attachment.contentType ?? "text/plain",
+        });
+
+        const fileUpload = await gemini.fileManager!.upload({
+          file: fileBlob,
+        });
+
+        messageContent.push({
+          fileData: {
+            fileUri: fileUpload.uri,
+            mimeType: fileUpload.mimeType,
+          },
+        });
       }
+
+      const response = await chat.sendMessage({
+        message: messageContent,
+      } as any);
+
+      if (!response.text) {
+        await ticketChannel.send("Sorry but I don't what to say to that.");
+        return;
+      }
+
+      await ticketChannel.send(response.text);
     } catch (error: any) {
       console.log(
         `[Error] Failed to support user with ticket: ${error.message}`

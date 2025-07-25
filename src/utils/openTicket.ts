@@ -55,18 +55,25 @@ export default async function (
     reason: `Ticket opened by ${interaction.user.username} (${interaction.user.id})`,
   });
 
-  await MySQL.query(
-    "INSERT INTO tickets (category, channelID, ownerID, formData) VALUES (?, ?, ?, ?)",
-    [categoryName, ticketChannel.id, interaction.user.id, formData]
-  );
+  if (formData) {
+    await MySQL.query(
+      "INSERT INTO tickets (category, channelID, ownerID, formData) VALUES (?, ?, ?, ?)",
+      [categoryName, ticketChannel.id, interaction.user.id, formData]
+    );
+  } else {
+    await MySQL.query(
+      "INSERT INTO tickets (category, channelID, ownerID) VALUES (?, ?, ?)",
+      [categoryName, ticketChannel.id, interaction.user.id]
+    );
+  }
 
   const mentionMsg = await ticketChannel.send(
     `<@${interaction.user.id}> This is your ticket channel.` +
-      supportConfig.mentionSupportTeam
-      ? `||<@&${supportTeamRoleID}>||`
-      : ""
+      (supportConfig.mentionSupportTeam ? `||<@&${supportTeamRoleID}>||` : "")
   );
-  await mentionMsg.delete();
+  setTimeout(async () => {
+    await mentionMsg.delete();
+  }, 2000); //2sec delay
 
   if (ticketWelcomeMessage) {
     await ticketChannel.sendTyping();
@@ -78,51 +85,75 @@ export default async function (
   );
 
   if (autoCloseTicketsAfter > 0) {
-    const closeDuration = autoCloseTicketsAfter * 24 * 60 * 60 * 1000;
+    const closeDurationMs = autoCloseTicketsAfter * 24 * 60 * 60 * 1000;
+
+    // JavaScript's maximum safe timeout is 2,147,483,647ms ≈ 24.8 days
+    const MAX_TIMEOUT = 2147483647;
+
+    const checkInterval = Math.min(closeDurationMs, MAX_TIMEOUT);
+
+    const closeTicket = async () => {
+      await ticketChannel.sendTyping();
+      await ticketChannel.send(
+        `This ticket is now closing due to inactivity...`
+      );
+
+      if (autoSaveTranscripts) {
+        await ticketChannel.sendTyping();
+        await saveTicketTranscript(client, ticketChannel.id, "Inactive Ticket");
+        await ticketChannel.send("A transcript of this ticket has been saved!");
+      }
+
+      const ownerDMChannel = await interaction.user.createDM();
+
+      if (ownerDMChannel.isSendable()) {
+        await ownerDMChannel.sendTyping();
+        await ownerDMChannel.send(
+          `Hey ${interaction.user.displayName}, just want to update on your ${categoryName} ticket. It has been deleted due to inactivity. If your problem hasn't been resolved please open a new ticket.`
+        );
+      }
+
+      await MySQL.query("DELETE FROM tickets WHERE channelID = ?", [
+        ticketChannel.id,
+      ]);
+      await ticketChannel.delete("Inactive Ticket");
+    };
 
     const intervalID = setInterval(async () => {
-      const lastMessage = ticketChannel.lastMessage;
-
-      const closeTicket = async () => {
-        await ticketChannel.sendTyping();
-        await ticketChannel.send(
-          `This ticket is now closing due to inactivity...`
-        );
-
-        if (autoSaveTranscripts) {
-          await ticketChannel.sendTyping();
-          await saveTicketTranscript(
-            client,
-            ticketChannel.id,
-            "Inactive Ticket"
-          );
-          await ticketChannel.send(
-            "A transcript of this ticket has been saved!"
-          );
+      try {
+        // Check if channel still exists
+        const channel = await client.channels
+          .fetch(ticketChannel.id)
+          .catch(() => null);
+        if (!channel) {
+          clearInterval(intervalID);
+          return;
         }
 
-        const ownerDMChannel = await interaction.user.createDM();
+        const lastMessage = ticketChannel.lastMessage;
+        const now = Date.now();
 
-        if (ownerDMChannel.isSendable()) {
-          await ownerDMChannel.sendTyping();
-          await ownerDMChannel.send(
-            `Hey ${interaction.user.displayName}, just want to update on your ${categoryName} ticket. It has been deleted due to inactivity. If your problem hasn't been resolved please open a new ticket.`
-          );
+        if (lastMessage) {
+          const timeSinceLastMessage = now - lastMessage.createdTimestamp;
+
+          if (timeSinceLastMessage >= closeDurationMs) {
+            await closeTicket();
+            clearInterval(intervalID);
+          }
+        } else {
+          // No messages in channel, check channel creation time
+          const timeSinceCreation = now - ticketChannel.createdTimestamp!;
+
+          if (timeSinceCreation >= closeDurationMs) {
+            await closeTicket();
+            clearInterval(intervalID);
+          }
         }
-
-        await MySQL.query("DELETE FROM tickets WHERE channelID = ?", [
-          ticketChannel.id,
-        ]);
-        await ticketChannel.delete("Inactive Ticket");
-        clearInterval(intervalID);
-      };
-
-      if (lastMessage) {
-        const howOld = Date.now() - lastMessage.createdTimestamp;
-
-        if (howOld >= closeDuration) await closeTicket();
-      } else await closeTicket();
-    }, closeDuration);
+      } catch (error) {
+        console.error("Error in ticket auto-close interval:", error);
+        // Continue running the interval in case it's a temporary error
+      }
+    }, checkInterval);
   }
 
   return ticketChannel;

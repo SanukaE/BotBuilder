@@ -52,7 +52,10 @@ const modal: ModalType = {
       return;
     }
 
-    const formFields: FormField[] = JSON.parse(rows[0].fields || "[]");
+    const formFields: FormField[] =
+      typeof rows[0].fields === "string"
+        ? JSON.parse(rows[0].fields || "[]")
+        : rows[0].fields;
 
     let fieldValues: { name: string; value: string }[] = [];
     for (const field of formFields) {

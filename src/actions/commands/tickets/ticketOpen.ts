@@ -64,7 +64,7 @@ const command: CommandType = {
 
     if (!supportConfig.allowMultipleTickets) {
       const [existingTickets] = await MySQL.query<RowDataPacket[]>(
-        "SELECT * FROM tickets WHERE category = ?, ownerID = ?",
+        "SELECT * FROM tickets WHERE category = ? AND ownerID = ?",
         [categoryName, interaction.user.id]
       );
 
@@ -83,7 +83,11 @@ const command: CommandType = {
         [formTitle]
       );
 
-      if (row.length > 0) formFields = JSON.parse(row[0].fields || "[]");
+      if (row.length > 0)
+        formFields =
+          typeof row[0].fields === "string"
+            ? JSON.parse(row[0].fields || "[]")
+            : row[0].fields;
     }
 
     if (formTitle) {

@@ -5,7 +5,9 @@
     "memberRoleID": "1333720644730355804",
     "botRoleID": "1333720772530802718",
     "stickyRoles": true,
-    "staffRoleIDs": ["1326823561758904353"],
+    "staffRoleIDs": [
+      "1343066081962758195"
+    ],
     "inviteLinkProtection": true
   },
   {

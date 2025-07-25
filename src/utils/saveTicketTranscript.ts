@@ -28,13 +28,13 @@ export default async function (
 
   let dataContent = `General Information\n\nTicket Category: ${
     ticketData.category
-  }\nTicket Open at: ${ticketChannel.createdAt.toLocaleString()}\nTranscript Save at: ${Date.now().toLocaleString()}\nOpened By: ${
+  }\nTicket Open at: ${ticketChannel.createdAt.toLocaleString()}\nTranscript Save at: ${new Date().toLocaleString()}\nOpened By: ${
     owner.displayName
   } (${owner.username})\nClosed By: ${
     typeof staff === "string"
       ? staff
-      : `${staff.displayName} (${staff.username})\nClose Reason: ${closeReason}`
-  }\nClaimed By: ${
+      : `${staff.displayName} (${staff.username})`
+  }\nClose Reason: ${closeReason}\nClaimed By: ${
     typeof claimedUser === "string"
       ? claimedUser
       : `${claimedUser.displayName} (${claimedUser.username})`
@@ -43,10 +43,17 @@ export default async function (
   let formData = `Form Filled\n\n`;
 
   if (ticketData.formData) {
-    for (const field of JSON.parse(ticketData.formData)) {
-      formData += `${field.name}: ${field.answer}`;
-    }
-  } else formData += "The user did not fill in a form when opening the ticket.";
+    const ticketFormData =
+      typeof ticketData.formData === "string"
+        ? JSON.parse(ticketData.formData)
+        : ticketData.formData;
+
+    Object.entries(ticketFormData).forEach(([key, value]) => {
+      formData += `${key}: ${value}\n`;
+    });
+  } else {
+    formData += "The user did not fill in a form when opening the ticket.";
+  }
 
   let messages = `Ticket Conversation:\n\n`;
 
@@ -84,6 +91,14 @@ export default async function (
 
   // Format messages according to a format
   for (const message of messagesToProcess) {
+    if (
+      !message.content ||
+      !(message.embeds && message.embeds.length > 0) ||
+      !(message.attachments && message.attachments.size > 0) ||
+      !(message.stickers && message.stickers.size > 0)
+    )
+      continue;
+
     const author =
       message.member?.displayName ||
       message.author.displayName ||

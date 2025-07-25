@@ -1,16 +1,16 @@
 [
   {
-    "supportChannelID": "",
+    "supportChannelID": "1334438746031915058",
     "enableTicketSystem": true,
-    "ticketCategoryID": "",
-    "ticketCategories": [],
+    "ticketCategoryID": "1397943776487538819",
+    "ticketCategories": ["General Support:1343066081962758195:General Support"],
     "ticketWelcomeMessage": "Thanks for opening a ticket. Please be patient while a support member looks at your ticket.",
-    "autoCloseTicketsAfter": 30,
+    "autoCloseTicketsAfter": 14,
     "mentionSupportTeam": true,
-    "autoSaveTranscripts": false,
+    "autoSaveTranscripts": true,
     "helpUserWithTicket": true,
     "allowMultipleTickets": false,
-    "autoClaimTicket": false,
+    "autoClaimTicket": true,
     "closeOnLeave": true
   },
   {
@@ -51,8 +51,8 @@
     "autoCloseTicketsAfter": {
       "name": "Auto Close Tickets After (days)",
       "type": "number",
-      "default": 30,
-      "description": "The number of days after which inactive tickets will be automatically closed. Set to 0 to disable auto-closing."
+      "default": 14,
+      "description": "The number of days after which inactive tickets will be automatically closed (Max: 24 days). Set to 0 to disable auto-closing."
     },
     "mentionSupportTeam": {
       "name": "Mention Support Team",

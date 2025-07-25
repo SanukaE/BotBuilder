@@ -83,12 +83,13 @@ const command: CommandType = {
       await ticketChannel.send("A transcript of this ticket has been saved!");
     }
 
-    const ownerDMChannel = await interaction.user.createDM();
+    const ticketOwner = await client.users.fetch(ticketData.ownerID);
+    const ownerDMChannel = await ticketOwner.createDM();
 
     if (ownerDMChannel.isSendable()) {
       await ownerDMChannel.sendTyping();
       await ownerDMChannel.send(
-        `Hey ${interaction.user.displayName}, just want to update on your ${ticketData.category} ticket. It has been closed for "${closeReason}". If your problem hasn't been resolved yet please open a new ticket.`
+        `Hey ${ticketOwner.displayName}, just want to update on your ${ticketData.category} ticket. It has been closed for "${closeReason}". If your problem hasn't been resolved yet please open a new ticket.`
       );
     }
 
