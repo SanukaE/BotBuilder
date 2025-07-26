@@ -18,6 +18,7 @@ import {
   TextInputStyle,
   ChannelType,
   ModalSubmitInteraction,
+  TextChannel,
 } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import { Schema, Type } from "@google/genai";
@@ -25,6 +26,7 @@ import { Schema, Type } from "@google/genai";
 type EventConfig = {
   enableChatEvents: boolean;
   eventChance: number;
+  eventDuration: number;
   allowedEventsChannels: string[];
   rewardExperience: number;
 };
@@ -38,7 +40,7 @@ export default async function (
 ) {
   if (!message.deletable) return;
   if (!message.inGuild()) return;
-  if (message.author.bot) return; // Fixed: should be !message.author.bot
+  if (message.author.bot) return;
 
   if (!eventConfig.enableChatEvents) return;
   if (message.channel.type !== ChannelType.GuildText) return;
@@ -132,14 +134,14 @@ async function twentyQuestions(
     const object = JSON.parse(aiResult.text).object.toLowerCase().trim();
 
     const askQuestionBtn = new ButtonBuilder({
-      customId: `event-20q-ask`,
+      customId: `event-20q-ask-collector`,
       emoji: "❓",
       label: "Ask Question",
       style: ButtonStyle.Primary,
     });
 
     const guessBtn = new ButtonBuilder({
-      customId: `event-20q-guess`,
+      customId: `event-20q-guess-collector`,
       emoji: "🤔",
       label: "Make Guess",
       style: ButtonStyle.Success,
@@ -156,7 +158,11 @@ async function twentyQuestions(
         "I'm thinking of something! Ask yes/no questions or make a guess. First to guess correctly wins!",
       fields: [
         { name: "Questions Asked", value: "0/20", inline: true },
-        { name: "Time Limit", value: "5 minutes", inline: true },
+        {
+          name: "Time Limit",
+          value: `${eventConfig.eventDuration} minutes`,
+          inline: true,
+        },
       ],
       thumbnail: { url: "https://i.postimg.cc/8z4RsdFL/20-Questions.jpg" },
     });
@@ -168,7 +174,7 @@ async function twentyQuestions(
 
     gameCollector = gameMessage.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 5 * 60 * 1000, // 5 minutes
+      time: eventConfig.eventDuration * 60 * 1000,
     });
 
     let questionsAsked = 0;
@@ -177,7 +183,7 @@ async function twentyQuestions(
 
     gameCollector.on("collect", async (i: any) => {
       try {
-        if (i.customId === "event-20q-ask") {
+        if (i.customId === "event-20q-ask-collector") {
           if (questionsAsked >= maxQuestions) {
             await i.reply({
               content: "❌ Maximum questions reached!",
@@ -187,7 +193,7 @@ async function twentyQuestions(
           }
 
           const modal = new ModalBuilder({
-            customId: "event-20q-question-modal",
+            customId: "event-20q-question-modal-collector",
             title: "Ask a Yes/No Question",
           });
 
@@ -277,9 +283,9 @@ async function twentyQuestions(
               }),
             ],
           });
-        } else if (i.customId === "event-20q-guess") {
+        } else if (i.customId === "event-20q-guess-collector") {
           const modal = new ModalBuilder({
-            customId: "event-20q-guess-modal",
+            customId: "event-20q-guess-modal-collector",
             title: "Make Your Guess",
           });
 
@@ -317,7 +323,6 @@ async function twentyQuestions(
           if (guess === object) {
             winners = i.user.id;
             await modalSubmit.deferUpdate();
-            await gameFinished(client, message, object);
             gameCollector.stop("won");
           } else {
             await modalSubmit.reply({
@@ -338,9 +343,7 @@ async function twentyQuestions(
     });
 
     gameCollector.on("end", async (collected: any, reason: string) => {
-      if (reason !== "won") {
-        await gameFinished(client, message, object);
-      }
+      await gameFinished(client, gameMessage, object);
     });
   } catch (error) {
     console.error("Error in 20 questions setup:", error);
@@ -373,10 +376,10 @@ async function guessTheNumber(
       hints.push("The number is not divisible by 5");
     }
 
-    if (randomNumber > 250 && randomNumber < 750) {
+    if (randomNumber >= 250 && randomNumber <= 750) {
       hints.push("The number is in the middle range (250-750)");
     } else {
-      hints.push("The number is in the outer ranges (0-250 or 750-1000)");
+      hints.push("The number is in the outer ranges (1-249 or 751-1000)");
     }
 
     if (randomNumber % 10 === 0) {
@@ -392,7 +395,7 @@ async function guessTheNumber(
     const hints = getHints(randomNumber);
 
     const guessBtn = new ButtonBuilder({
-      customId: "event-number-guess",
+      customId: "event-number-guess-collector",
       emoji: "🎲",
       label: "Make Guess",
       style: ButtonStyle.Success,
@@ -413,7 +416,11 @@ async function guessTheNumber(
           value: hint,
           inline: false,
         })),
-        { name: "Time Limit", value: "5 minutes", inline: true },
+        {
+          name: "Time Limit",
+          value: `${eventConfig.eventDuration} minutes`,
+          inline: true,
+        },
       ],
       thumbnail: { url: "https://i.postimg.cc/1tC0Vymb/Guess-The-Number.png" },
     });
@@ -425,7 +432,7 @@ async function guessTheNumber(
 
     gameCollector = gameMessage.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 5 * 60 * 1000,
+      time: eventConfig.eventDuration * 60 * 1000,
     });
 
     const userGuesses = new Map<string, number[]>();
@@ -433,7 +440,7 @@ async function guessTheNumber(
     gameCollector.on("collect", async (i: any) => {
       try {
         const modal = new ModalBuilder({
-          customId: "event-number-modal",
+          customId: "event-number-modal-collector",
           title: "Guess the Number",
         });
 
@@ -489,7 +496,6 @@ async function guessTheNumber(
         if (guess === randomNumber) {
           winners = i.user.id;
           await modalSubmit.deferUpdate();
-          await gameFinished(client, message, randomNumber.toString());
           gameCollector.stop("won");
         } else {
           const hint =
@@ -513,9 +519,7 @@ async function guessTheNumber(
     });
 
     gameCollector.on("end", async (collected: any, reason: string) => {
-      if (reason !== "won") {
-        await gameFinished(client, message, randomNumber.toString());
-      }
+      await gameFinished(client, gameMessage, randomNumber.toString());
     });
   } catch (error) {
     console.error("Error in guess the number setup:", error);
@@ -562,17 +566,6 @@ async function hangman(
       "```\n  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========\n```",
     ];
 
-    const guessBtn = new ButtonBuilder({
-      customId: "event-hangman-guess",
-      emoji: "🔤",
-      label: "Guess Letter",
-      style: ButtonStyle.Primary,
-    });
-
-    const actionRow = new ActionRowBuilder<ButtonBuilder>({
-      components: [guessBtn],
-    });
-
     const updateDisplay = () => {
       const wordDisplay = guessedWord.join(" ");
       const hangmanStage = hangmanStages[incorrectGuesses.length];
@@ -584,19 +577,40 @@ async function hangman(
         title: "🎮 Event: Hangman!",
         description: `${hangmanStage}\n**Word:** ${wordDisplay}\n**Incorrect:** ${incorrectDisplay}\n**Remaining:** ${remainingGuesses}`,
         color: Colors.Orange,
-        fields: [{ name: "Time Limit", value: "5 minutes", inline: true }],
+        fields: [
+          {
+            name: "Time Limit",
+            value: `${eventConfig.eventDuration} minutes`,
+            inline: true,
+          },
+        ],
       });
     };
+
+    // Create button outside of the collector
+    const createGuessButton = () => {
+      return new ButtonBuilder({
+        customId: "event-hangman-guess-collector",
+        emoji: "🔤",
+        label: "Guess Letter",
+        style: ButtonStyle.Primary,
+      });
+    };
+
+    const initialButton = createGuessButton();
+    const initialActionRow = new ActionRowBuilder<ButtonBuilder>({
+      components: [initialButton],
+    });
 
     const gameMessage = await message.channel.send({
       content: "Guess the word letter by letter! First to complete it wins!",
       embeds: [updateDisplay()],
-      components: [actionRow],
+      components: [initialActionRow],
     });
 
     gameCollector = gameMessage.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 5 * 60 * 1000,
+      time: eventConfig.eventDuration * 60 * 1000,
     });
 
     const userGuesses = new Map<string, string[]>();
@@ -604,7 +618,7 @@ async function hangman(
     gameCollector.on("collect", async (i: any) => {
       try {
         const modal = new ModalBuilder({
-          customId: "event-hangman-modal",
+          customId: "event-hangman-modal-collector",
           title: "Guess a Letter",
         });
 
@@ -674,30 +688,42 @@ async function hangman(
           if (!guessedWord.includes("_")) {
             winners = i.user.id;
             await modalSubmit.deferUpdate();
-            await gameFinished(client, message, targetWord);
             gameCollector.stop("won");
             return;
           }
 
           await modalSubmit.deferUpdate();
+
+          // Create fresh components for the update
+          const updatedButton = createGuessButton();
+          const updatedActionRow = new ActionRowBuilder<ButtonBuilder>({
+            components: [updatedButton],
+          });
+
           await gameMessage.edit({
             embeds: [updateDisplay()],
-            components: [actionRow as any], //!
+            components: [updatedActionRow],
           });
         } else {
           incorrectGuesses.push(letterGuess);
 
           if (incorrectGuesses.length >= maxIncorrectGuesses) {
             await modalSubmit.deferUpdate();
-            await gameFinished(client, message, targetWord);
             gameCollector.stop("lost");
             return;
           }
 
           await modalSubmit.deferUpdate();
+
+          // Create fresh components for the update
+          const updatedButton = createGuessButton();
+          const updatedActionRow = new ActionRowBuilder<ButtonBuilder>({
+            components: [updatedButton],
+          });
+
           await gameMessage.edit({
             embeds: [updateDisplay()],
-            components: [actionRow as any], //!
+            components: [updatedActionRow],
           });
         }
       } catch (error) {
@@ -712,9 +738,7 @@ async function hangman(
     });
 
     gameCollector.on("end", async (collected: any, reason: string) => {
-      if (reason !== "won" && reason !== "lost") {
-        await gameFinished(client, message, targetWord);
-      }
+      await gameFinished(client, gameMessage, targetWord);
     });
   } catch (error) {
     console.error("Error in hangman setup:", error);
@@ -742,7 +766,7 @@ async function riddle(
     };
 
     const answerBtn = new ButtonBuilder({
-      customId: "event-riddle-answer",
+      customId: "event-riddle-answer-collector",
       emoji: "🧩",
       label: "Submit Answer",
       style: ButtonStyle.Success,
@@ -758,7 +782,11 @@ async function riddle(
       color: Colors.Purple,
       fields: [
         { name: "Category", value: riddleData.category, inline: true },
-        { name: "Time Limit", value: "5 minutes", inline: true },
+        {
+          name: "Time Limit",
+          value: `${eventConfig.eventDuration} minutes`,
+          inline: true,
+        },
       ],
     });
 
@@ -770,13 +798,13 @@ async function riddle(
 
     gameCollector = gameMessage.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 5 * 60 * 1000,
+      time: eventConfig.eventDuration * 60 * 1000,
     });
 
     gameCollector.on("collect", async (i: any) => {
       try {
         const modal = new ModalBuilder({
-          customId: "event-riddle-modal",
+          customId: "event-riddle-modal-collector",
           title: "Submit Your Answer",
         });
 
@@ -818,7 +846,6 @@ async function riddle(
         ) {
           winners = i.user.id;
           await modalSubmit.deferUpdate();
-          await gameFinished(client, message, riddleData.answer);
           gameCollector.stop("won");
         } else {
           await modalSubmit.reply({
@@ -838,9 +865,7 @@ async function riddle(
     });
 
     gameCollector.on("end", async (collected: any, reason: string) => {
-      if (reason !== "won") {
-        await gameFinished(client, message, riddleData.answer);
-      }
+      await gameFinished(client, gameMessage, riddleData.answer);
     });
   } catch (error) {
     console.error("Error in riddle setup:", error);
@@ -869,7 +894,7 @@ async function scramble(
     const scrambledWord = scrambleWord(word);
 
     const answerBtn = new ButtonBuilder({
-      customId: "event-scramble-answer",
+      customId: "event-scramble-answer-collector",
       emoji: "🔀",
       label: "Submit Answer",
       style: ButtonStyle.Success,
@@ -885,7 +910,11 @@ async function scramble(
       color: Colors.Green,
       fields: [
         { name: "Length", value: `${word.length} letters`, inline: true },
-        { name: "Time Limit", value: "5 minutes", inline: true },
+        {
+          name: "Time Limit",
+          value: `${eventConfig.eventDuration} minutes`,
+          inline: true,
+        },
       ],
     });
 
@@ -897,13 +926,13 @@ async function scramble(
 
     gameCollector = gameMessage.createMessageComponentCollector({
       componentType: ComponentType.Button,
-      time: 5 * 60 * 1000,
+      time: eventConfig.eventDuration * 60 * 1000,
     });
 
     gameCollector.on("collect", async (i: any) => {
       try {
         const modal = new ModalBuilder({
-          customId: "event-scramble-modal",
+          customId: "event-scramble-modal-collector",
           title: "Unscramble the Word",
         });
 
@@ -942,7 +971,6 @@ async function scramble(
         if (userAnswer === correctAnswer) {
           winners = i.user.id;
           await modalSubmit.deferUpdate();
-          await gameFinished(client, message, word);
           gameCollector.stop("won");
         } else {
           await modalSubmit.reply({
@@ -962,9 +990,7 @@ async function scramble(
     });
 
     gameCollector.on("end", async (collected: any, reason: string) => {
-      if (reason !== "won") {
-        await gameFinished(client, message, word);
-      }
+      await gameFinished(client, gameMessage, word);
     });
   } catch (error) {
     console.error("Error in scramble setup:", error);
@@ -995,7 +1021,7 @@ async function trivia(
     const buttons = choices.map(
       (choice: string, index: number) =>
         new ButtonBuilder({
-          customId: `event-trivia-${index}`,
+          customId: `event-trivia-${index}-collector`,
           label: choice.substring(0, 80), // Discord button label limit
           style: ButtonStyle.Secondary,
         })
@@ -1041,7 +1067,6 @@ async function trivia(
         if (selectedAnswer === question.correct_answer) {
           winners = i.user.id;
           await i.deferUpdate();
-          await gameFinished(client, message, question.correct_answer);
           gameCollector.stop("won");
         } else {
           await i.reply({
@@ -1061,9 +1086,7 @@ async function trivia(
     });
 
     gameCollector.on("end", async (collected: any, reason: string) => {
-      if (reason !== "won") {
-        await gameFinished(client, message, question.correct_answer);
-      }
+      await gameFinished(client, gameMessage, question.correct_answer);
     });
   } catch (error) {
     console.error("Error in trivia setup:", error);
@@ -1073,10 +1096,12 @@ async function trivia(
 
 async function gameFinished(
   client: Client,
-  message: OmitPartialGroupDMChannel<Message<boolean>>,
+  gameMessage: Message<false> | Message<true>,
   gameAnswer: string
 ) {
-  await message.channel.sendTyping();
+  if (gameMessage.channel.type !== ChannelType.GuildText) return;
+
+  await gameMessage.channel.sendTyping();
 
   let winnerNames: string[] = [];
   if (winners) {
@@ -1091,13 +1116,22 @@ async function gameFinished(
     }
   }
 
-  await message.channel.send(
-    `The even is now over with ${
+  await gameMessage.reply(
+    `This even is now over with ${
       winners
         ? winnerNames.join(", ") + " taking the win"
         : "no winners sadly : ("
     }. The answer for the event was: ${gameAnswer}`
   );
+
+  await gameMessage.edit({
+    content: `This even is now over with ${
+      winners
+        ? winnerNames.join(", ") + " taking the win"
+        : "no winners sadly : ("
+    }. The answer for the event was: ${gameAnswer}`,
+    components: [],
+  });
 
   if (!eventConfig.rewardExperience) return;
   if (!winners) return;
@@ -1124,7 +1158,7 @@ async function gameFinished(
 
     let multiplier = 1;
 
-    const member = await message.guild!.members.fetch(winners)!;
+    const member = await gameMessage.guild!.members.fetch(winners)!;
     const boosterCategories: string[] = [
       ...experienceConfig.boosterRoles,
       ...experienceConfig.boosterChannels,
@@ -1137,7 +1171,7 @@ async function gameFinished(
       if (
         member.roles.cache.has(boosterID) ||
         member.user.id === boosterID ||
-        message.channelId === boosterID
+        gameMessage.channelId === boosterID
       )
         multiplier += experienceConfig.addExperienceMultiplier
           ? parseFloat(boosterMultiplier)
@@ -1166,7 +1200,7 @@ async function gameFinished(
       if (levelUp.leveled)
         await sendLevelUpMessage(
           client,
-          message.channelId,
+          gameMessage.channelId,
           winnerNames[0],
           levelUp.leveled ? 2 : 1
         );
@@ -1187,7 +1221,7 @@ async function gameFinished(
       if (levelUp.leveled)
         await sendLevelUpMessage(
           client,
-          message.channelId,
+          gameMessage.channelId,
           winnerNames[0],
           levelUp.leveled ? userData.level + 1 : userData.level
         );
@@ -1201,7 +1235,7 @@ async function gameFinished(
 
       let multiplier = 1;
 
-      const member = await message.guild!.members.fetch(winner)!;
+      const member = await gameMessage.guild!.members.fetch(winner)!;
       const boosterCategories: string[] = [
         ...experienceConfig.boosterRoles,
         ...experienceConfig.boosterChannels,
@@ -1214,7 +1248,7 @@ async function gameFinished(
         if (
           member.roles.cache.has(boosterID) ||
           member.user.id === boosterID ||
-          message.channelId === boosterID
+          gameMessage.channelId === boosterID
         )
           multiplier += experienceConfig.addExperienceMultiplier
             ? parseFloat(boosterMultiplier)
@@ -1243,7 +1277,7 @@ async function gameFinished(
         if (levelUp.leveled)
           await sendLevelUpMessage(
             client,
-            message.channelId,
+            gameMessage.channelId,
             member.displayName,
             levelUp.leveled ? 2 : 1
           );
@@ -1264,7 +1298,7 @@ async function gameFinished(
         if (levelUp.leveled)
           await sendLevelUpMessage(
             client,
-            message.channelId,
+            gameMessage.channelId,
             member.displayName,
             levelUp.leveled ? userData.level + 1 : userData.level
           );
@@ -1272,8 +1306,8 @@ async function gameFinished(
     }
   }
 
-  await message.channel.sendTyping();
-  await message.channel.send(
-    `Winners have been award with \`${eventConfig.rewardExperience}xp\`.`
+  await gameMessage.channel.sendTyping();
+  await gameMessage.reply(
+    `Winners of this event have been award with \`${eventConfig.rewardExperience}xp\` each.`
   );
 }

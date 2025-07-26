@@ -1,7 +1,8 @@
 [
   {
     "enableChatEvents": true,
-    "eventChance": 10,
+    "eventChance": 90,
+    "eventDuration": 2,
     "allowedEventsChannels": [],
     "rewardExperience": 250
   },
@@ -21,6 +22,12 @@
       "type": "number",
       "default": 10,
       "description": "The chance for an event to happen. (max: 100, min: 1)"
+    },
+    "eventDuration": {
+      "name": "Event Duration",
+      "type": "number",
+      "default": 5,
+      "description": "The time duration (in minutes) of an event. This does not apply for trivia."
     },
     "allowedEventsChannels": {
       "name": "Allowed Event Channels",

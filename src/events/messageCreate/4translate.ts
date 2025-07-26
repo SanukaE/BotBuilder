@@ -18,7 +18,7 @@ export default async function (
 
   if (message.author.bot) return;
 
-  if (!message.content || message.content.length <= 50) return;
+  if (!message.content || message.content.length >= 50) return;
 
   const translationData = await translate(
     message.content,
