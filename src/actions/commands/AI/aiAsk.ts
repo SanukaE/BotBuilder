@@ -4,6 +4,8 @@ import Gemini from "#libs/Gemini.js";
 import getConfig from "#utils/getConfig.js";
 import { createPartFromUri, createUserContent } from "@google/genai";
 
+const { enabled, model, fileManager } = Gemini();
+
 const command: CommandType = {
   name: "ai-ask",
   description: "Ask the AI a question",
@@ -20,12 +22,12 @@ const command: CommandType = {
       type: ApplicationCommandOptionType.Attachment,
     },
   ],
+  isDisabled: !enabled,
 
   async script(_, interaction, debugStream) {
     const { geminiModel } = getConfig("ai") as { geminiModel: string };
 
     debugStream.write("Initializing AI...");
-    const { enabled, model, fileManager } = Gemini();
 
     if (!enabled) {
       debugStream.write("AI is not enabled! Sending reply...");
@@ -85,7 +87,6 @@ const command: CommandType = {
         file: fileBlob,
         config: {
           mimeType: file.contentType || "text/plain",
-          displayName: file.title || undefined,
         },
       });
 

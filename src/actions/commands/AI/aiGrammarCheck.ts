@@ -10,6 +10,8 @@ import {
 } from "@google/genai";
 import { ApplicationCommandOptionType, Colors } from "discord.js";
 
+const gemini = Gemini();
+
 const command: CommandType = {
   name: "ai-grammar-check",
   description: "Check your grammar, spelling & get an overall rating",
@@ -26,6 +28,7 @@ const command: CommandType = {
       type: ApplicationCommandOptionType.Attachment,
     },
   ],
+  isDisabled: !gemini.enabled,
 
   async script(_, interaction, debugStream) {
     const { geminiModel } = getConfig("ai") as { geminiModel: string };
@@ -82,8 +85,6 @@ const command: CommandType = {
     }
 
     debugStream.write("Initializing AI...");
-
-    const gemini = Gemini();
 
     if (!gemini.enabled) {
       debugStream.write("AI is disabled. Sending response...");
@@ -166,7 +167,6 @@ const command: CommandType = {
         file: fileBlob,
         config: {
           mimeType: userFile.contentType || "text/plain",
-          displayName: userFile.title || undefined,
         },
       });
 

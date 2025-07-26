@@ -27,6 +27,8 @@ type Data = {
   embeds?: { title: string; description: string }[];
 };
 
+const gemini = Gemini();
+
 const command: CommandType = {
   name: "ai-catchup",
   description: "Catch up on what you missed in the past.",
@@ -42,12 +44,12 @@ const command: CommandType = {
       required: true,
     },
   ],
+  isDisabled: !gemini.enabled,
 
   async script(_, interaction, debugStream) {
     const { geminiModel } = getConfig("ai") as { geminiModel: string };
 
     debugStream.write("Initializing AI...");
-    const gemini = Gemini();
 
     if (!gemini.enabled) {
       debugStream.write("AI is not enabled! Sending reply...");
@@ -197,7 +199,7 @@ const command: CommandType = {
 
       const uploadResult = await gemini.fileManager!.upload({
         file: `./public/${file.fileName}`,
-        config: { mimeType: file.contentType, displayName: file.fileName },
+        config: { mimeType: file.contentType },
       });
 
       return createPartFromUri(uploadResult.uri!, uploadResult.mimeType!);
@@ -214,7 +216,6 @@ const command: CommandType = {
       file: `./temp/aiCatchup-${interaction.channelId}-${messageNo}-${dataArray[0].createdTimestamp}.json`,
       config: {
         mimeType: "text/json",
-        displayName: "Messages",
       },
     });
 
@@ -249,7 +250,7 @@ const command: CommandType = {
           configFileResponse.uri!,
           configFileResponse.mimeType!
         ),
-        'Generate a summary of the conversation from the provided "Messages" file. This file contains messages from a Discord channel, including potential threads and attachments. The summary should be clear, concise, and no longer than 2000 characters. Use markdown formatting where appropriate to enhance readability.',
+        "Generate a summary of the conversation from the provided messages file. This file contains messages from a Discord channel, including potential threads and attachments. The summary should be clear, concise, and no longer than 2000 characters. Use markdown formatting where appropriate to enhance readability.",
       ]),
       config: {
         responseMimeType: "application/json",

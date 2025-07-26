@@ -28,6 +28,7 @@ export default function () {
 
   return {
     enabled: true,
+    genAI,
     model,
     chat,
     fileManager,
