@@ -61,6 +61,7 @@ export const client = new Client({
     GatewayIntentBits.GuildModeration,
     GatewayIntentBits.AutoModerationConfiguration,
     GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildScheduledEvents,
   ],
 });
 

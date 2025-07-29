@@ -4,7 +4,8 @@ import { ChannelType, Client, PermissionFlagsBits } from "discord.js";
 
 export const declaration: FunctionDeclaration = {
   name: "editRole",
-  description: "Edit a discord role's properties such as name, color, permissions, etc.",
+  description:
+    "Edit a discord role's properties such as name, color, permissions, etc.",
   parameters: {
     type: Type.OBJECT,
     properties: {
@@ -34,12 +35,14 @@ export const declaration: FunctionDeclaration = {
       },
       hoist: {
         type: Type.BOOLEAN,
-        description: "Whether the role should be displayed separately in the member list (optional).",
+        description:
+          "Whether the role should be displayed separately in the member list (optional).",
         example: true,
       },
       mentionable: {
         type: Type.BOOLEAN,
-        description: "Whether the role can be mentioned by everyone (optional).",
+        description:
+          "Whether the role can be mentioned by everyone (optional).",
         example: false,
       },
       position: {
@@ -177,7 +180,10 @@ export const script = async (
     }
 
     // Check if user can manage this role (role hierarchy)
-    if (roleToEdit.position >= guildMember.roles.highest.position && guildMember.id !== currentGuild.ownerId) {
+    if (
+      roleToEdit.position >= guildMember.roles.highest.position &&
+      guildMember.id !== currentGuild.ownerId
+    ) {
       return {
         functionName,
         success: false,
@@ -210,7 +216,7 @@ export const script = async (
           return PermissionFlagsBits[perm as keyof typeof PermissionFlagsBits];
         })
         .filter(Boolean);
-      
+
       editOptions.permissions = rolePermissions;
     }
 
@@ -222,11 +228,14 @@ export const script = async (
     const editedRole = await roleToEdit.edit(editOptions);
 
     // Handle position change separately if needed
-    if (updatableData.position !== undefined && updatableData.position !== editedRole.position) {
-      await editedRole.setPosition(updatableData.position, updatableData.reason);
-      // Fetch updated role to get new position
-      await editedRole.fetch();
-    }
+    if (
+      updatableData.position !== undefined &&
+      updatableData.position !== editedRole.position
+    )
+      await editedRole.setPosition(
+        updatableData.position,
+        updatableData.reason
+      );
 
     return {
       functionName,
