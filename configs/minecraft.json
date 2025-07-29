@@ -11,7 +11,7 @@
     "serverIP": {
       "name": "Minecraft Server IP",
       "type": "string",
-      "default": "hypixel.net",
+      "default": "",
       "description": "The IP address of the Minecraft server to connect to."
     },
     "bedrock": {

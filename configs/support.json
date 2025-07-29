@@ -27,7 +27,7 @@
     "enableTicketSystem": {
       "name": "Enable Ticket System",
       "type": "boolean",
-      "default": true,
+      "default": false,
       "description": "Enable the ticket system for handling support requests."
     },
     "ticketCategoryID": {
@@ -81,7 +81,7 @@
     "autoClaimTicket": {
       "name": "Auto Claim Tickets",
       "type": "boolean",
-      "default": false,
+      "default": true,
       "description": "If enabled, the ticket will be claimed to the first support team member who sends a message."
     },
     "closeOnLeave": {
