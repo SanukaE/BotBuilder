@@ -5,8 +5,9 @@ ApplicationLogs
 temp
 localData
 
-#Environment Variables
+#Variables
 .env
+configs
 
 #IDE
 .vscode

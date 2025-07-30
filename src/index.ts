@@ -94,7 +94,7 @@ const handleShutdown = async () => {
   await MySQL.end();
   await Redis.disconnect();
 
-  closeWatchers();
+  //closeWatchers(); //!WIP
 
   try {
     const tempFolder = path.join(process.cwd(), "temp");

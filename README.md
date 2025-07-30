@@ -4,25 +4,38 @@ Your Free, Open-Source, All-In-One Discord Companion
 
 ## ✨ Features
 
-- 🎮 Easy file management
-- 🤖 A.I integration
-- 👨‍💻 BuiltIn A.P.I System
-- ⚡ Fast and reliable performance
-- 📘 Helpful Wiki
-- 🔜 Many more to features to come...
+- 👨‍💻 Basic Bot Features
+- 💬 Random Chat Events
+- 🤖 Helpful A.I Assistant
+- 🎨 Modern Dashboard
+- ⚙️ Easy Configuration
+- ⛓️ Easy to use A.P.I
+- 🔜 And many more features to come...
 
-## ⚙ Getting Started
-
-For detailed setup instructions and deployment guides, please refer to our [Installation Wiki](https://github.com/SanukaE/BotBuilder/wiki/Installation). The instructions below are primarily for development purposes.
+> You can give BotBuilder a try on my [support server](https://discord.gg/fpkASGjwYT).
 
 ## 🚀 Prerequisites
 
 Before you begin, ensure you have installed:
 
-- [Node.js](https://nodejs.org) (version 18 or higher) 📦
+- [Node.js](https://nodejs.org) (version 22 or higher) 📦
 - [pnpm](https://pnpm.io/) (optional) 🏃‍♂️
 
+> **💡 Note:** If your installing BotBuilder on a server you can ignore this. Just make sure the server can run NodeJS.
+
 ## 🛠️ Installation
+
+### ⚙️ On Server
+
+1. Download the latest version of BotBuilder from [BuiltByBit](https://builtbybit.com/resources/botbuilder.59151/?ref=discover) or from [here](https://github.com/SanukaE/BotBuilder/releases).
+
+2. Upload the `.zip` file to your server's file manager. Once uploaded, unarchive/unzip that file. You can delete that file afterwards.
+
+3. Set these values for your variables under the Startup category.
+
+- MAIN FILE: `build/index.js`
+
+### 🖥️ On Computer
 
 1. Clone the repository:
 
@@ -43,11 +56,13 @@ or
 pnpm install
 ```
 
-3. Create a `.env` file in the root directory. (see [Environment Variables](https://github.com/SanukaE/BotBuilder/wiki/Variables) section on the wiki)
-
-4. Create a `config.json` file in the root directory. (see [Configuration Variables](https://github.com/SanukaE/BotBuilder/wiki/Variables) section on the wiki)
-
 ## 🏗️ Building for Production
+
+### ⚙️ On Server
+
+_This is not required. You can now start your server._
+
+### 🖥️ On Computer
 
 Create a production build:
 
@@ -63,9 +78,7 @@ pnpm build
 pnpm start
 ```
 
-Your bot will be online and the API endpoints will be available at http://localhost:3000.
-
-> **Note**: The endpoints URL depends on what values you have set in the config.
+Once the setup is complete, your bot will be online.
 
 ## 🤝 Contributing
 
@@ -77,33 +90,11 @@ Contributions are always welcome! Here's how you can help:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 🛠️ Built With
-
-- [Discord.js](https://discord.js.org) - Discord API framework
-- [Express](https://expressjs.com) - Web framework
-- [MySQL](https://www.mysql.com) - Relational Database
-- [Redis](https://redis.io) - For Caching
-
 ## 📱 Community Support
 
 Need help or want to join our community? Connect with us on Discord:
 
-[![Discord](https://img.shields.io/discord/1055384504841285682?color=7289da&logo=discord&logoColor=white)](https://discord.gg/fpkASGjwYT)
-
-Our Discord server is the best place to:
-
-- Get real-time support
-- Share your projects
-- Meet other developers
-- Stay updated with latest features
-
-## 👥 Servers That Use BotBuilder
-
-Check out all these amazing servers that uses BotBuilder's help to manage them.
-
-_Be the first server to use BotBuilder._
-
-> **Note:** To add your server to the list please open a ticket on our [support](https://discord.gg/fpkASGjwYT) server.
+<iframe src="https://discord.com/widget?id=1055384504841285682&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
 
 ## 📄 License
 

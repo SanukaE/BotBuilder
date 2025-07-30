@@ -281,7 +281,15 @@ export default async function setup() {
   saveEnvironmentToFile();
 
   console.log("You can always change these settings later in the .env file.");
-  console.log("Now you are all set to run BotBuilder!\n");
+
+  fs.renameSync(
+    path.join(process.cwd(), "configs.example"),
+    path.join(process.cwd(), "configs")
+  );
+
+  console.log(
+    "Your almost set to run BotBuilder! Please head over to your config files (located in configs folder) & configure how you would like BotBuilder to work.\n"
+  );
 
   console.log(
     "If you have any questions or need help, feel free to ask in the Discord server: https://discord.gg/7Z2a3b4X5C"
@@ -293,11 +301,12 @@ export default async function setup() {
     "Thank you for using BotBuilder! I hope you have a great time using it.\n\n"
   );
 
-  console.log("Proceeding to startup...");
+  console.log("Stopping the server since configuration is required...");
   console.log(`Have a great day ${userName}! :)`);
 
   rl.close();
-  await new Promise((resolve) => setTimeout(resolve, 20_000)); //20sec delay
+  await new Promise((resolve) => setTimeout(resolve, 20_000)); //20sec delay for reading time
+  process.exit(0);
 }
 
 function askForInput(question: string): Promise<string | undefined> {

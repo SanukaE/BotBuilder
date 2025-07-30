@@ -232,9 +232,11 @@ export default async function (_: Client) {
         const relPath = path.join(basePath, entry.name).replace(/\\/g, '/');
         const absPath = path.join(localDir, entry.name);
 
-        // Never delete node_modules, .git, .env, or protected configs
+        // Never delete node_modules, build, localData, .git, .env, or protected configs
         if (
           relPath.startsWith('node_modules') ||
+          relPath.startsWith('build') ||
+          relPath.startsWith('localData') ||
           relPath.startsWith('.git') ||
           relPath === '.env' ||
           isProtectedConfig(relPath) ||
