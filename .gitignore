@@ -3,10 +3,13 @@ build
 node_modules
 ApplicationLogs
 temp
+localData
 
-#Environment Variables
+#Variables
 .env
+configs
 
 #IDE
 .vscode
 .REST
+.DS_Store

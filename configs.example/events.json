@@ -1,0 +1,45 @@
+[
+  {
+    "enableChatEvents": true,
+    "eventChance": 5,
+    "eventDuration": 5,
+    "allowedEventsChannels": [],
+    "rewardExperience": 250
+  },
+  {
+    "name": "Chat Events",
+    "description": "Configuration for chat events."
+  },
+  {
+    "enableChatEvents": {
+      "name": "Enable Chat Events",
+      "type": "boolean",
+      "default": true,
+      "description": "Should chat events be enabled."
+    },
+    "eventChance": {
+      "name": "Event Chance",
+      "type": "number",
+      "default": 5,
+      "description": "The chance for an event to happen. (max: 100, min: 1)"
+    },
+    "eventDuration": {
+      "name": "Event Duration",
+      "type": "number",
+      "default": 5,
+      "description": "The time duration (in minutes) of an event. This does not apply for trivia."
+    },
+    "allowedEventsChannels": {
+      "name": "Allowed Event Channels",
+      "type": "string[]",
+      "default": [],
+      "description": "List of channel ID's for events can happen. Leave empty to enable for all channels."
+    },
+    "rewardExperience": {
+      "name": "Reward Experience",
+      "type": "number",
+      "default": 250,
+      "description": "How much experience to reward the user who won the event. Set 0 to disable."
+    }
+  }
+]

@@ -1,4 +1,4 @@
-import { Client, Message, OmitPartialGroupDMChannel } from 'discord.js';
+import { Client, Message, OmitPartialGroupDMChannel } from "discord.js";
 
 export default async function (
   _: Client,
@@ -10,7 +10,7 @@ export default async function (
 
   try {
     const response = await fetch(
-      'https://raw.githubusercontent.com/Discord-AntiScam/scam-links/main/list.json'
+      "https://raw.githubusercontent.com/Discord-AntiScam/scam-links/main/list.json"
     );
     const scamLinks: string[] = await response.json();
 
@@ -20,7 +20,7 @@ export default async function (
       if (message.member?.moderatable)
         await message.member.timeout(
           24 * 60 * 60 * 1000,
-          'Attempted to share scam link'
+          "Attempted to share scam link"
         );
 
       await message.channel.sendTyping();

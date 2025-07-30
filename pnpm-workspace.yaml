@@ -1,0 +1,4 @@
+onlyBuiltDependencies:
+  - '@discordjs/opus'
+  - canvas
+  - ffmpeg-static

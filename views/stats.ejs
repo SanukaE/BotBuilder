@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A dashboard to control your Discord bot powered by BotBuilder.">
+    <meta name="keywords" content="BotBuilder, Sanuka's Projects, Discord Bot, Free, Setup">
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <title>BotBuilder Dashboard | Stats</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/styles/global.css">
+    <link rel="stylesheet" href="/styles/stats.css">
+</head>
+<body>
+    <!-- Header with Hamburger Menu -->
+    <header>
+        <a class="header-left" href="https://github.com/SanukaE/BotBuilder" style="text-decoration: none; color: inherit;">
+            <img src="https://i.postimg.cc/wB6FR8PP/Bot-Builder-Logo.webp" alt="Logo of BotBuilder" class="header-logo">
+            <div>
+                <p class="header-title">Powered By BotBuilder!</p>
+                <p class="header-subtitle">A project by Sanuka.</p>
+            </div>
+        </a>
+
+        <button class="mobile-menu-btn" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="header-nav">
+            <a href="/stats" class="header-link">Server Statistics</a>
+            <a href="/api" class="header-link">API Endpoints</a>
+            <a href="/config" class="header-link">Configurations</a>
+            <a href="https://buy.stripe.com/aEU1567wDeEE5XyaEI" class="header-support">
+                <i class="fas fa-heart"></i>
+                <span>Support</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-nav">
+            <button class="mobile-menu-close" id="menuClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <a href="/stats" class="mobile-link">
+                <i class="fas fa-chart-line"></i> Server Statistics
+            </a>
+            <a href="/api" class="mobile-link">
+                <i class="fas fa-code"></i> API Endpoints
+            </a>
+            <a href="/config" class="mobile-link">
+                <i class="fas fa-cog"></i> Configurations
+            </a>
+            <a href="<%= locals.serverInvite || "https://discord.gg/HUCE56pP" %>" class="mobile-link">
+                <i class="fab fa-discord"></i> Join Discord
+            </a>
+            <a href="https://buy.stripe.com/aEU1567wDeEE5XyaEI" class="mobile-link" style="background: var(--accent-gradient);">
+                <i class="fas fa-heart"></i> Support Project
+            </a>
+        </div>
+    </div>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- Stats Section -->
+    <section class="stats-container">
+        <h2 class="stats-title">Server Statistics</h2>
+        <div class="stats-section">
+            <h3 class="stats-section-title">Channels</h3>
+            <ul class="stats-list">
+                <li class="stats-item">Text Channels: <span class="stats-value"><%= locals.channelStatistics.text || "--" %></span></li>
+                <li class="stats-item">Voice Channels: <span class="stats-value"><%= locals.channelStatistics.voice || "--" %></span></li>
+                <li class="stats-item">Announcement Channels: <span class="stats-value"><%= locals.channelStatistics.announcement || "--" %></span></li>
+                <li class="stats-item">Forum Channels: <span class="stats-value"><%= locals.channelStatistics.forum || "--" %></span></li>
+                <li class="stats-item">Stage Channels: <span class="stats-value"><%= locals.channelStatistics.stage || "--" %></span></li>
+                <li class="stats-item">Categories: <span class="stats-value"><%= locals.channelStatistics.category || "--" %></span></li>
+                <li class="stats-item">Total Channels: <span class="stats-value"><%= locals.channelStatistics.total || "--" %></span></li>
+            </ul>
+        </div>
+
+        <div class="stats-section">
+            <h3 class="stats-section-title">Roles</h3>
+            <ul class="stats-list">
+                <li class="stats-item">Member Roles: <span class="stats-value"><%= locals.roleStatistics.member || "--" %></span></li>
+                <li class="stats-item">Premium Roles: <span class="stats-value"><%= locals.roleStatistics.premium || "--" %></span></li>
+                <li class="stats-item">Staff Roles: <span class="stats-value"><%= locals.roleStatistics.staff || "--" %></span></li>
+                <li class="stats-item">Moderator Roles: <span class="stats-value"><%= locals.roleStatistics.moderator || "--" %></span></li>
+                <li class="stats-item">Admin Roles: <span class="stats-value"><%= locals.roleStatistics.admin || "--" %></span></li>
+                <li class="stats-item">Total Roles: <span class="stats-value"><%= locals.roleStatistics.total || "--" %></span></li>
+            </ul>
+        </div>
+
+        <div class="stats-section">
+            <h3 class="stats-section-title">Members</h3>
+            <ul class="stats-list">
+                <li class="stats-item">Bots: <span class="stats-value"><%= locals.memberStatistics.bots || "--" %></span></li>
+                <li class="stats-item">Members: <span class="stats-value"><%= locals.memberStatistics.members || "--" %></span></li>
+                <li class="stats-item">Nitro Users: <span class="stats-value"><%= locals.memberStatistics.nitro || "--" %></span></li>
+                <li class="stats-item">Premium Members: <span class="stats-value"><%= locals.memberStatistics.premium || "--" %></span></li>
+                <li class="stats-item">Staff: <span class="stats-value"><%= locals.memberStatistics.staff || "--" %></span></li>
+                <li class="stats-item">Moderators: <span class="stats-value"><%= locals.memberStatistics.moderators || "--" %></span></li>
+                <li class="stats-item">Admins: <span class="stats-value"><%= locals.memberStatistics.admins || "--" %></span></li>
+                <li class="stats-item">Total Members: <span class="stats-value"><%= locals.memberStatistics.total || "--" %></span></li>
+                <li class="stats-item">Online Members: <span class="stats-value"><%= locals.onlineMembers || "--" %></span></li>
+            </ul>
+        </div>
+
+        <div class="stats-section">
+            <h3 class="stats-section-title">Emojis</h3>
+            <ul class="stats-list">
+                <li class="stats-item">Total Emojis: <span class="stats-value"><%= locals.emojiStatistics.total || "--" %></span></li>
+                <li class="stats-item">Static Emojis: <span class="stats-value"><%= locals.emojiStatistics.static || "--" %></span></li>
+                <li class="stats-item">Animated Emojis: <span class="stats-value"><%= locals.emojiStatistics.animated || "--" %></span></li>
+            </ul>
+        </div>
+
+        <div class="stats-section">
+            <h3 class="stats-section-title">Stickers</h3>
+            <ul class="stats-list">
+                <li class="stats-item">Total Stickers: <span class="stats-value"><%= locals.stickerStatistics.total || "--" %></span></li>
+                <li class="stats-item">Guild Stickers: <span class="stats-value"><%= locals.stickerStatistics.guild || "--" %></span></li>
+                <li class="stats-item">Nitro Stickers: <span class="stats-value"><%= locals.stickerStatistics.nitro || "--" %></span></li>
+            </ul>
+        </div>
+
+        <div class="stats-section">
+            <h3 class="stats-section-title">Boosts</h3>
+            <ul class="stats-list">
+                <li class="stats-item">Boost Level: <span class="stats-value"><%= locals.boostStatistics.level || "--" %></span></li>
+                <li class="stats-item">Boost Count: <span class="stats-value"><%= locals.boostStatistics.count || "--" %></span></li>
+            </ul>
+        </div>
+
+        <div class="stats-section">
+            <h3 class="stats-section-title">Creation Dates</h3>
+            <ul class="stats-list">
+                <li class="stats-item">Guild Created: <span class="stats-value"><%= locals.creationDates.guild.toLocaleString() || "--" %></span></li>
+                <li class="stats-item">Oldest Member Joined: <span class="stats-value"><%= locals.creationDates.oldestMember.toLocaleString() || "--" %></span></li>
+                <li class="stats-item">Newest Member Joined: <span class="stats-value"><%= locals.creationDates.newestMember.toLocaleString() || "--" %></span></li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2025 BotBuilder - All Rights Reserved</p>
+    </footer>
+
+    <script src="/scripts/global.js"></script>
+</body>
+</html>

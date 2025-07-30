@@ -1,5 +1,5 @@
-import CommandType from '#types/CommandType.js';
-import createEmbed from '#utils/createEmbed.js';
+import CommandType from "#types/CommandType.js";
+import createEmbed from "#utils/createEmbed.js";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -7,56 +7,65 @@ import {
   ButtonStyle,
   Colors,
   ComponentType,
+  MessageFlags,
   ModalBuilder,
   StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
-} from 'discord.js';
-import getNamelessSuggestionData from '#utils/getNamelessSuggestionData.js';
-import Gemini from '#libs/Gemini.js';
-import { Schema, SchemaType } from '@google/generative-ai';
-import getNamelessSuggestions from '#utils/getNamelessSuggestions.js';
-import createTempDataFile from '#utils/createTempDataFile.js';
-import config from '#config' with { type: 'json' };
+} from "discord.js";
+import getNamelessSuggestionData from "#utils/getNamelessSuggestionData.js";
+import Gemini from "#libs/Gemini.js";
+import {
+  createPartFromUri,
+  createUserContent,
+  Schema,
+  Type,
+} from "@google/genai";
+import getNamelessSuggestions from "#utils/getNamelessSuggestions.js";
+import createTempDataFile from "#utils/createTempDataFile.js";
+import getConfig from "#utils/getConfig.js";
 
 const command: CommandType = {
-  name: 'nameless-suggestion-create',
+  name: "nameless-suggestion-create",
   description:
-    'Create a suggestion & post it to the website. (must have discord linked)',
+    "Create a suggestion & post it to the website. (must have discord linked)",
   isDevOnly: true,
 
   async script(_, interaction, debugStream) {
-    debugStream.write('Getting data from interaction...');
+    debugStream.write("Getting data from interaction...");
 
     const username = interaction.user.username;
 
     debugStream.write(`username: ${username}`);
 
-    const { checkDuplicateSuggestionWithAI } = config;
+    const { verifySuggestion, geminiModel } = getConfig("namelessMC") as {
+      verifySuggestion: boolean;
+      geminiModel: string;
+    };
 
-    debugStream.write('Creating embed...');
+    debugStream.write("Creating embed...");
 
     const embedMessage = createEmbed({
       color: Colors.DarkGold,
-      title: 'Not set',
-      description: 'Not set',
-      fields: [{ name: 'Category:', value: 'Not set' }],
+      title: "Not set",
+      description: "Not set",
+      fields: [{ name: "Category:", value: "Not set" }],
       thumbnail: {
         url: `https://www.google.com/s2/favicons?domain=${
-          process.env.NAMELESSMC_API_URL!.split('/')[2]
+          process.env.NAMELESSMC_API_URL!.split("/")[2]
         }&sz=128`,
       },
     });
 
-    debugStream.write('Embed created! Creating components...');
+    debugStream.write("Embed created! Creating components...");
 
     const suggestionCategories: { name: string; id: number }[] = (
       await getNamelessSuggestionData()
     ).categories;
 
     const categoryMenu = new StringSelectMenuBuilder({
-      customId: 'nameless-suggestion-category-input-collector',
-      placeholder: 'Pick a category',
+      customId: "nameless-suggestion-category-input-collector",
+      placeholder: "Pick a category",
       options: suggestionCategories.map((category) => ({
         label: category.name,
         value: category.id.toString(),
@@ -68,17 +77,17 @@ const command: CommandType = {
     });
 
     const editSuggestionBtn = new ButtonBuilder({
-      customId: 'nameless-suggestion-edit-collector',
-      emoji: '📝',
-      label: 'Edit Suggestion',
+      customId: "nameless-suggestion-edit-collector",
+      emoji: "📝",
+      label: "Edit Suggestion",
       style: ButtonStyle.Primary,
     });
 
     const submitSuggestionBtn = new ButtonBuilder({
-      customId: 'nameless-suggestion-submit-collector',
+      customId: "nameless-suggestion-submit-collector",
       disabled: true,
-      emoji: '💡',
-      label: 'Submit Suggestion',
+      emoji: "💡",
+      label: "Submit Suggestion",
       style: ButtonStyle.Success,
     });
 
@@ -86,59 +95,59 @@ const command: CommandType = {
       components: [editSuggestionBtn, submitSuggestionBtn],
     });
 
-    debugStream.write('Components created! Sending reply...');
+    debugStream.write("Components created! Sending reply...");
 
     const replyMsg = await interaction.editReply({
       embeds: [embedMessage],
       components: [categoryMenuRow, submitBtnRow],
     });
 
-    debugStream.write('Reply sent! Creating collectors...');
+    debugStream.write("Reply sent! Creating collectors...");
 
     const editSuggestionBtnCollector = replyMsg.createMessageComponentCollector(
       {
         componentType: ComponentType.Button,
         filter: (i) =>
           i.user.id === interaction.user.id &&
-          i.customId === 'nameless-suggestion-edit-collector',
+          i.customId === "nameless-suggestion-edit-collector",
       }
     );
 
     const enabledSubmitBtn = () => {
       if (
-        embedMessage.data.title !== 'Not set' &&
-        embedMessage.data.description !== 'Not set' &&
-        embedMessage.data.fields![0].value !== 'Not set'
+        embedMessage.data.title !== "Not set" &&
+        embedMessage.data.description !== "Not set" &&
+        embedMessage.data.fields![0].value !== "Not set"
       ) {
         submitSuggestionBtn.setDisabled(false);
       }
     };
 
-    editSuggestionBtnCollector.on('collect', async (i) => {
+    editSuggestionBtnCollector.on("collect", async (i) => {
       const suggestionModal = new ModalBuilder({
-        customId: 'nameless-suggestion-modal-input-collector',
-        title: 'New Suggestion',
+        customId: "nameless-suggestion-modal-input-collector",
+        title: "New Suggestion",
       });
 
       const suggestionTitle = new TextInputBuilder({
-        customId: 'nameless-suggestion-title-input',
-        label: 'Title:',
-        placeholder: 'Enter suggestion title',
+        customId: "nameless-suggestion-title-input",
+        label: "Title:",
+        placeholder: "Enter suggestion title",
         required: true,
         style: TextInputStyle.Short,
         value:
-          embedMessage.data.title === 'Not set' ? '' : embedMessage.data.title,
+          embedMessage.data.title === "Not set" ? "" : embedMessage.data.title,
       });
 
       const suggestionContent = new TextInputBuilder({
-        customId: 'nameless-suggestion-content-input',
-        label: 'Content:',
-        placeholder: 'Enter suggestion Content',
+        customId: "nameless-suggestion-content-input",
+        label: "Content:",
+        placeholder: "Enter suggestion Content",
         required: true,
         style: TextInputStyle.Paragraph,
         value:
-          embedMessage.data.description === 'Not set'
-            ? ''
+          embedMessage.data.description === "Not set"
+            ? ""
             : embedMessage.data.description,
       });
 
@@ -157,16 +166,16 @@ const command: CommandType = {
         time: 0,
         filter: (i) =>
           i.user.id === interaction.user.id &&
-          i.customId === 'nameless-suggestion-modal-input-collector',
+          i.customId === "nameless-suggestion-modal-input-collector",
       });
 
       await modalResponse.deferUpdate();
 
       const newSuggestionTitle = modalResponse.fields.getTextInputValue(
-        'nameless-suggestion-title-input'
+        "nameless-suggestion-title-input"
       );
       const newSuggestionContent = modalResponse.fields.getTextInputValue(
-        'nameless-suggestion-content-input'
+        "nameless-suggestion-content-input"
       );
 
       embedMessage.setTitle(newSuggestionTitle);
@@ -186,16 +195,16 @@ const command: CommandType = {
       componentType: ComponentType.StringSelect,
       filter: (i) =>
         i.user.id === interaction.user.id &&
-        i.customId === 'nameless-suggestion-category-input-collector',
+        i.customId === "nameless-suggestion-category-input-collector",
     });
 
-    categoryMenuCollector.on('collect', async (i) => {
+    categoryMenuCollector.on("collect", async (i) => {
       const value = Number(i.values[0]);
       categoryID = value;
 
       embedMessage.setFields([
         {
-          name: 'Category:',
+          name: "Category:",
           value: suggestionCategories.find((category) => category.id === value)!
             .name,
         },
@@ -213,14 +222,14 @@ const command: CommandType = {
       componentType: ComponentType.Button,
       filter: (i) =>
         i.user.id === interaction.user.id &&
-        i.customId === 'nameless-suggestion-submit-collector',
+        i.customId === "nameless-suggestion-submit-collector",
     });
 
     const submitSuggestion = async (i: ButtonInteraction) => {
       const response = await fetch(
-        process.env.NAMELESSMC_API_URL + '/suggestions/create',
+        process.env.NAMELESSMC_API_URL + "/suggestions/create",
         {
-          method: 'POST',
+          method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
           },
@@ -238,8 +247,8 @@ const command: CommandType = {
       if (responseData.error)
         throw new Error(
           `Failed to fetch from NamelessMC. Error: ${responseData.error}, ${
-            responseData.message ? 'Message :' + responseData.message : ''
-          }, ${responseData.meta ? 'Meta :' + responseData.meta : ''}`
+            responseData.message ? "Message :" + responseData.message : ""
+          }, ${responseData.meta ? "Meta :" + responseData.meta : ""}`
         );
 
       await interaction.editReply({
@@ -251,33 +260,33 @@ const command: CommandType = {
 
     let hasSeenSimilarSuggestion = false; //Used to find out if the user has clicked on submit button again after seeing similar suggestion
 
-    submitBtnCollector.on('collect', async (i) => {
+    submitBtnCollector.on("collect", async (i) => {
       await i.deferUpdate();
 
       const gemini = Gemini();
 
       if (
-        checkDuplicateSuggestionWithAI &&
+        verifySuggestion &&
         gemini.enabled &&
         gemini.model &&
         gemini.fileManager &&
         !hasSeenSimilarSuggestion
       ) {
         const suggestionSchema: Schema = {
-          type: SchemaType.OBJECT,
-          description: 'The best matched suggestions ID.',
+          type: Type.OBJECT,
+          description: "The best matched suggestions ID.",
           example: { matchedFound: true, id: 1 },
           properties: {
             matchedFound: {
-              type: SchemaType.BOOLEAN,
-              description: 'Whether a match was found',
+              type: Type.BOOLEAN,
+              description: "Whether a match was found",
             },
             id: {
-              type: SchemaType.NUMBER,
-              description: 'The matched suggestion ID (0 if no match)',
+              type: Type.NUMBER,
+              description: "The matched suggestion ID (0 if no match)",
             },
           },
-          required: ['matchedFound', 'id'],
+          required: ["matchedFound", "id"],
         };
 
         const suggestions = await getNamelessSuggestions();
@@ -289,32 +298,31 @@ const command: CommandType = {
             content: suggestion.content,
           }));
 
-        createTempDataFile('suggestions.json', JSON.stringify(openSuggestions));
+        createTempDataFile("suggestions.json", JSON.stringify(openSuggestions));
 
-        const suggestionData = await gemini.fileManager.uploadFile(
-          'temp/suggestions.json',
-          {
-            displayName: 'Suggestions',
-            mimeType: 'text/json',
-          }
-        );
-
-        gemini.model.generationConfig.responseMimeType = 'application/json';
-        gemini.model.generationConfig.responseSchema = suggestionSchema;
-
-        const result = await gemini.model.generateContent([
-          {
-            fileData: {
-              mimeType: 'text/json',
-              fileUri: suggestionData.file.uri,
-            },
+        const suggestionData = await gemini.fileManager.upload({
+          file: "temp/suggestions.json",
+          config: {
+            displayName: "Suggestions",
+            mimeType: "text/json",
           },
-          {
-            text: `Is there a similar suggestion mentioned below already made? If yes return the matchedFound as true and the id of the suggestion. If no return matchedFound as false and id as 0.\n\nSuggestion:\nTitle: ${embedMessage.data.title}\nContent: ${embedMessage.data.description}`,
-          },
-        ]);
+        });
 
-        const output = JSON.parse(result.response.text());
+        const result = await gemini.model.generateContent({
+          model: geminiModel || "gemini-2.5-flash",
+          contents: createUserContent([
+            createPartFromUri(suggestionData.uri!, suggestionData.mimeType!),
+            `Is there a similar suggestion mentioned below already made? If yes return the matchedFound as true and the id of the suggestion. If no return matchedFound as false and id as 0.\n\nSuggestion:\nTitle: ${embedMessage.data.title}\nContent: ${embedMessage.data.description}`,
+          ]),
+          config: {
+            responseJsonSchema: suggestionSchema,
+            responseMimeType: "application/json",
+          },
+        });
+
+        if (!result.text) throw new Error("Failed to get response");
+
+        const output = JSON.parse(result.text);
 
         if (output.matchedFound) {
           const suggestion = suggestions.find(
@@ -322,8 +330,8 @@ const command: CommandType = {
           )!;
 
           const linkToSuggestion = new ButtonBuilder({
-            emoji: '🔗',
-            label: 'View Similar Suggestion',
+            emoji: "🔗",
+            label: "View Similar Suggestion",
             style: ButtonStyle.Link,
             url: suggestion.link,
           });
@@ -332,13 +340,13 @@ const command: CommandType = {
 
           await i.followUp({
             content:
-              'It looks like someone has already made a suggestion similar to yours. If you still would like to post your suggestion please click the button again.',
+              "It looks like someone has already made a suggestion similar to yours. If you still would like to post your suggestion please click the button again.",
             components: [
               new ActionRowBuilder<ButtonBuilder>({
                 components: [linkToSuggestion],
               }),
             ],
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
 
           return;
@@ -347,12 +355,12 @@ const command: CommandType = {
 
       await submitSuggestion(i);
 
-      categoryMenuCollector.stop('Suggestion was submitted');
-      submitBtnCollector.stop('Suggestion was submitted');
-      editSuggestionBtnCollector.stop('Suggestion was submitted');
+      categoryMenuCollector.stop("Suggestion was submitted");
+      submitBtnCollector.stop("Suggestion was submitted");
+      editSuggestionBtnCollector.stop("Suggestion was submitted");
     });
 
-    debugStream.write('Collectors created!');
+    debugStream.write("Collectors created!");
   },
 };
 

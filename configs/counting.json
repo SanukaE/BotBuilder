@@ -1,0 +1,24 @@
+[
+  {
+    "channelID": "1334114656461258784",
+    "muteDuration": 1
+  },
+  {
+    "name": "Counting",
+    "description": "Configuration for the counting feature in the bot."
+  },
+  {
+    "channelID": {
+      "name": "Channel ID",
+      "type": "string",
+      "default": "",
+      "description": "The ID of the channel where counting takes place."
+    },
+    "muteDuration": {
+      "name": "Mute Duration",
+      "type": "number",
+      "default": 1,
+      "description": "The duration in minutes for which a user is muted after sending an incorrect count."
+    }
+  }
+]

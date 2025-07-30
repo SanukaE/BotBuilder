@@ -1,27 +1,29 @@
-import CommandType from '#types/CommandType.js';
-import { PermissionFlagsBits } from 'discord.js';
-import config from '#config' with { type: 'json' };
+import CommandType from "#types/CommandType.js";
+import { PermissionFlagsBits } from "discord.js";
+import getConfig from "#utils/getConfig.js";
 
 const command: CommandType = {
-  name: 'nameless-update-bot',
+  name: "nameless-update-bot",
   description: "Update's discord bot setting on your website.",
   permissions: [PermissionFlagsBits.Administrator],
 
   async script(client, interaction, debugStream) {
-    debugStream.write('Getting data from interaction...');
+    debugStream.write("Getting data from interaction...");
 
     const bot = client.user;
 
-    debugStream.write('Data gotten! Getting config guild id...');
+    debugStream.write("Data gotten! Getting config guild id...");
 
-    const { productionGuildID } = config;
+    const { productionGuildID } = getConfig("application") as {
+      productionGuildID: string;
+    };
 
-    debugStream.write('Making API request...');
+    debugStream.write("Making API request...");
 
     const response = await fetch(
-      process.env.NAMELESSMC_API_URL + '/discord/update-bot-settings',
+      process.env.NAMELESSMC_API_URL + "/discord/update-bot-settings",
       {
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
         },
@@ -36,23 +38,23 @@ const command: CommandType = {
 
     debugStream.write(`Response Status: ${response.status}`);
 
-    debugStream.write('Getting JSON data...');
+    debugStream.write("Getting JSON data...");
     const responseData = await response.json();
 
     if (responseData.error)
       throw new Error(
         `Failed to fetch from NamelessMC. Error: ${responseData.error}, ${
-          responseData.message ? 'Message :' + responseData.message : ''
-        }, ${responseData.meta ? 'Meta :' + responseData.meta : ''}`
+          responseData.message ? "Message :" + responseData.message : ""
+        }, ${responseData.meta ? "Meta :" + responseData.meta : ""}`
       );
 
-    debugStream.write('No errors! Sending follow up...');
+    debugStream.write("No errors! Sending follow up...");
 
     await interaction.followUp({
-      content: 'Bot settings updated!',
+      content: "Bot settings updated!",
     });
 
-    debugStream.write('Message sent!');
+    debugStream.write("Message sent!");
   },
 };
 

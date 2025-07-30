@@ -1,0 +1,24 @@
+[
+  {
+    "serverIP": "hypixel.net",
+    "bedrock": false
+  },
+  {
+    "name": "Minecraft",
+    "description": "Configuration for Minecraft server connection settings."
+  },
+  {
+    "serverIP": {
+      "name": "Minecraft Server IP",
+      "type": "string",
+      "default": "",
+      "description": "The IP address of the Minecraft server to connect to."
+    },
+    "bedrock": {
+      "name": "Bedrock Server",
+      "type": "boolean",
+      "default": false,
+      "description": "The IP address is for a Bedrock server."
+    }
+  }
+]

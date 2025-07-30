@@ -2,6 +2,7 @@ import {
   Client,
   ChatInputCommandInteraction,
   APIApplicationCommandOption,
+  AutocompleteInteraction,
 } from 'discord.js';
 import { LoggerType } from '#utils/createLogger.js';
 
@@ -33,6 +34,11 @@ type CommandType = {
     client: Client,
     interaction: ChatInputCommandInteraction,
     debugStream: LoggerType
+  ) => Promise<void>;
+  handleAutoComplete?: (
+    client: Client,
+    interaction: AutocompleteInteraction,
+    focusedOption: string
   ) => Promise<void>;
 };
 

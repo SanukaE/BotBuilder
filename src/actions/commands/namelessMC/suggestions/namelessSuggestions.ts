@@ -1,11 +1,11 @@
-import Redis from '#libs/Redis.js';
-import CommandType from '#types/CommandType.js';
-import createEmbed from '#utils/createEmbed.js';
-import getNamelessSuggestionData from '#utils/getNamelessSuggestionData.js';
-import getNamelessSuggestions from '#utils/getNamelessSuggestions.js';
-import getNamelessUserAvatar from '#utils/getNamelessUserAvatar.js';
-import getNamelessUserID from '#utils/getNamelessUserID.js';
-import { createPageButtons, getPageData } from '#utils/getPageData.js';
+import Redis from "#libs/Redis.js";
+import CommandType from "#types/CommandType.js";
+import createEmbed from "#utils/createEmbed.js";
+import getNamelessSuggestionData from "#utils/getNamelessSuggestionData.js";
+import getNamelessSuggestions from "#utils/getNamelessSuggestions.js";
+import getNamelessUserAvatar from "#utils/getNamelessUserAvatar.js";
+import getNamelessUserID from "#utils/getNamelessUserID.js";
+import { createPageButtons, getPageData } from "#utils/getPageData.js";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -13,36 +13,37 @@ import {
   ButtonStyle,
   Colors,
   ComponentType,
+  MessageFlags,
   ModalBuilder,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
   TextInputBuilder,
   TextInputStyle,
-} from 'discord.js';
+} from "discord.js";
 
 const command: CommandType = {
-  name: 'nameless-suggestions',
-  description: 'View all the suggestion made on the website.',
+  name: "nameless-suggestions",
+  description: "View all the suggestion made on the website.",
 
   async script(_, interaction, debugStream) {
-    debugStream.write('Getting data from interaction...');
+    debugStream.write("Getting data from interaction...");
 
     const namelessUserID = await getNamelessUserID(interaction.user.username);
 
     debugStream.write(`namelessUserID: ${namelessUserID}`);
 
-    debugStream.write('Fetching data...');
+    debugStream.write("Fetching data...");
 
     const suggestions = await getNamelessSuggestions();
 
     if (!suggestions.length) {
-      debugStream.write('No suggestions recorded! Sending message...');
-      await interaction.editReply('No suggestions found!');
-      debugStream.write('Message sent!');
+      debugStream.write("No suggestions recorded! Sending message...");
+      await interaction.editReply("No suggestions found!");
+      debugStream.write("Message sent!");
       return;
     }
 
-    debugStream.write('Data collected! Creating embed...');
+    debugStream.write("Data collected! Creating embed...");
 
     const firstSuggestion = suggestions[0];
     const suggestionEmbed = createEmbed({ color: Colors.DarkGold });
@@ -55,35 +56,35 @@ const command: CommandType = {
       );
       suggestionEmbed.setURL(suggestionData.author.link);
       suggestionEmbed.setFields([
-        { name: 'Author', value: suggestionData.author.username, inline: true },
+        { name: "Author", value: suggestionData.author.username, inline: true },
         {
-          name: 'Created',
+          name: "Created",
           value: `<t:${suggestionData.created}>`,
           inline: true,
         },
-        { name: 'Category', value: suggestionData.category.name, inline: true },
+        { name: "Category", value: suggestionData.category.name, inline: true },
         {
-          name: 'Status',
-          value: suggestionData.status.open ? 'Open' : 'Closed',
+          name: "Status",
+          value: suggestionData.status.open ? "Open" : "Closed",
           inline: true,
         },
         {
-          name: 'Last Updated By',
+          name: "Last Updated By",
           value: suggestionData.updated_by.username,
           inline: true,
         },
         {
-          name: 'Views',
+          name: "Views",
           value: suggestionData.views.toString(),
           inline: true,
         },
         {
-          name: 'Likes',
+          name: "Likes",
           value: suggestionData.likes_count.toString(),
           inline: true,
         },
         {
-          name: 'Dislikes',
+          name: "Dislikes",
           value: suggestionData.dislikes_count.toString(),
           inline: true,
         },
@@ -92,7 +93,7 @@ const command: CommandType = {
 
     await updateSuggestionEmbed(firstSuggestion);
 
-    debugStream.write('Embed created! Creating components...');
+    debugStream.write("Embed created! Creating components...");
 
     const pageBtnIds = [
       `nameless-suggestions-previous-end-collector`,
@@ -106,7 +107,7 @@ const command: CommandType = {
 
     const likeBtn = new ButtonBuilder({
       customId: `nameless-suggestion-like-${firstSuggestion.id}-collector`,
-      emoji: '👍',
+      emoji: "👍",
       style: firstSuggestion.likes.includes(namelessUserID.valueOf())
         ? ButtonStyle.Success
         : ButtonStyle.Secondary,
@@ -114,7 +115,7 @@ const command: CommandType = {
 
     const dislikeBtn = new ButtonBuilder({
       customId: `nameless-suggestion-dislike-${firstSuggestion.id}-collector`,
-      emoji: '👎',
+      emoji: "👎",
       style: firstSuggestion.dislikes.includes(namelessUserID.valueOf())
         ? ButtonStyle.Danger
         : ButtonStyle.Secondary,
@@ -122,8 +123,8 @@ const command: CommandType = {
 
     const commentBtn = new ButtonBuilder({
       customId: `nameless-suggestion-comment-${firstSuggestion.id}-collector`,
-      label: 'Comment',
-      emoji: '💬',
+      label: "Comment",
+      emoji: "💬",
       style: ButtonStyle.Primary,
       disabled: !firstSuggestion.status.open,
     });
@@ -136,9 +137,9 @@ const command: CommandType = {
 
     const categoryFilter = new StringSelectMenuBuilder({
       customId: `nameless-suggestions-category-filter-collector`,
-      placeholder: 'Filter by Category',
+      placeholder: "Filter by Category",
       options: [
-        { label: 'All', value: '0' },
+        { label: "All", value: "0" },
         ...suggestionData.categories.map((category: any) => ({
           label: category.name,
           value: category.id.toString(),
@@ -149,9 +150,9 @@ const command: CommandType = {
 
     const statusFilter = new StringSelectMenuBuilder({
       customId: `nameless-suggestions-status-filter-collector`,
-      placeholder: 'Filter by Status',
+      placeholder: "Filter by Status",
       options: [
-        { label: 'All', value: '0' },
+        { label: "All", value: "0" },
         ...suggestionData.status.map((status: any) => ({
           label: status.name,
           value: status.id.toString(),
@@ -168,7 +169,7 @@ const command: CommandType = {
       components: [statusFilter],
     });
 
-    debugStream.write('Components created! Sending follow up...');
+    debugStream.write("Components created! Sending follow up...");
 
     const followUpMsg = await interaction.followUp({
       embeds: [suggestionEmbed],
@@ -180,11 +181,11 @@ const command: CommandType = {
       ],
     });
 
-    debugStream.write('Follow up sent!');
+    debugStream.write("Follow up sent!");
 
     if (suggestions.length === 1) return;
 
-    debugStream.write('Creating collectors...');
+    debugStream.write("Creating collectors...");
 
     const pagesCollector = followUpMsg.createMessageComponentCollector({
       componentType: ComponentType.Button,
@@ -207,7 +208,7 @@ const command: CommandType = {
       );
     };
 
-    pagesCollector.on('collect', async (i) => {
+    pagesCollector.on("collect", async (i) => {
       const result = getPageData(data, currentPage, i.customId, firstActionRow);
       currentPage = result.currentPageIndex;
 
@@ -243,19 +244,19 @@ const command: CommandType = {
     });
 
     const handleVote = async (i: ButtonInteraction) => {
-      const suggestionID = parseInt(i.customId.split('-')[3]);
-      const vote = i.customId.split('-')[2] as 'like' | 'dislike';
+      const suggestionID = parseInt(i.customId.split("-")[3]);
+      const vote = i.customId.split("-")[2] as "like" | "dislike";
       const currentSuggestion = suggestions.find((s) => s.id === suggestionID)!;
 
       const hasVoted =
-        vote === 'like'
+        vote === "like"
           ? currentSuggestion.likes.includes(namelessUserID.valueOf())
           : currentSuggestion.dislikes.includes(namelessUserID.valueOf());
 
       const response = await fetch(
         process.env.NAMELESSMC_API_URL + `/suggestions/${suggestionID}/${vote}`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
           },
@@ -273,14 +274,14 @@ const command: CommandType = {
           content: `Failed to fetch from NamelessMC. Error: ${
             responseData.error
           }, ${
-            responseData.message ? 'Message :' + responseData.message : ''
-          }, ${responseData.meta ? 'Meta :' + responseData.meta : ''}`,
+            responseData.message ? "Message :" + responseData.message : ""
+          }, ${responseData.meta ? "Meta :" + responseData.meta : ""}`,
         });
         return;
       }
 
       if (hasVoted) {
-        if (vote === 'like') {
+        if (vote === "like") {
           currentSuggestion.likes = currentSuggestion.likes.filter(
             (id) => id !== namelessUserID.valueOf()
           );
@@ -292,7 +293,7 @@ const command: CommandType = {
           currentSuggestion.dislikes_count--;
         }
       } else {
-        if (vote === 'like') {
+        if (vote === "like") {
           currentSuggestion.likes.push(namelessUserID.valueOf());
           currentSuggestion.likes_count++;
 
@@ -333,7 +334,7 @@ const command: CommandType = {
 
       suggestions[currentPage] = currentSuggestion;
 
-      await Redis.set('namelessmc-suggestions', JSON.stringify(suggestions), {
+      await Redis.set("namelessmc-suggestions", JSON.stringify(suggestions), {
         EX: 60,
       });
       await Redis.set(
@@ -359,29 +360,29 @@ const command: CommandType = {
       componentType: ComponentType.Button,
       filter: (i) =>
         i.user.id === interaction.user.id &&
-        i.customId.startsWith('nameless-suggestion-like'),
+        i.customId.startsWith("nameless-suggestion-like"),
     });
 
-    likeCollector.on('collect', async (i) => await handleVote(i));
+    likeCollector.on("collect", async (i) => await handleVote(i));
 
     const dislikeCollector = followUpMsg.createMessageComponentCollector({
       componentType: ComponentType.Button,
       filter: (i) =>
         i.user.id === interaction.user.id &&
-        i.customId.startsWith('nameless-suggestion-dislike'),
+        i.customId.startsWith("nameless-suggestion-dislike"),
     });
 
-    dislikeCollector.on('collect', async (i) => await handleVote(i));
+    dislikeCollector.on("collect", async (i) => await handleVote(i));
 
     const commentBtnCollector = followUpMsg.createMessageComponentCollector({
       componentType: ComponentType.Button,
       filter: (i) =>
         i.user.id === interaction.user.id &&
-        i.customId.startsWith('nameless-suggestion-comment'),
+        i.customId.startsWith("nameless-suggestion-comment"),
     });
 
-    commentBtnCollector.on('collect', async (i) => {
-      const suggestionID = parseInt(i.customId.split('-')[3]);
+    commentBtnCollector.on("collect", async (i) => {
+      const suggestionID = parseInt(i.customId.split("-")[3]);
       const suggestion = suggestions.find(
         (suggestion) => suggestion.id === suggestionID
       )!;
@@ -393,8 +394,8 @@ const command: CommandType = {
 
       const commentTextInput = new TextInputBuilder({
         customId: `nameless-suggestion-comment-input-collector`,
-        label: 'New comment:',
-        placeholder: 'Enter your comment here...',
+        label: "New comment:",
+        placeholder: "Enter your comment here...",
         required: true,
         style: TextInputStyle.Paragraph,
       });
@@ -417,13 +418,13 @@ const command: CommandType = {
       modalResponse.deferUpdate();
 
       const comment = modalResponse.fields.getTextInputValue(
-        'nameless-suggestion-comment-input-collector'
+        "nameless-suggestion-comment-input-collector"
       );
 
       const response = await fetch(
         process.env.NAMELESSMC_API_URL + `/suggestions/${suggestionID}/comment`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.NAMELESSMC_API_KEY}`,
           },
@@ -441,16 +442,16 @@ const command: CommandType = {
           content: `Failed to fetch from NamelessMC. Error: ${
             responseData.error
           }, ${
-            responseData.message ? 'Message :' + responseData.message : ''
-          }, ${responseData.meta ? 'Meta :' + responseData.meta : ''}`,
-          ephemeral: true,
+            responseData.message ? "Message :" + responseData.message : ""
+          }, ${responseData.meta ? "Meta :" + responseData.meta : ""}`,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
 
       await modalResponse.followUp({
         content: `Comment added!`,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     });
 
@@ -459,9 +460,9 @@ const command: CommandType = {
 
     const handleFilter = async (i: StringSelectMenuInteraction) => {
       const filterID = parseInt(i.values[0]);
-      const filterType = i.customId.split('-')[2] as 'category' | 'status';
+      const filterType = i.customId.split("-")[2] as "category" | "status";
 
-      if (filterType === 'category') categoryID = filterID;
+      if (filterType === "category") categoryID = filterID;
       else statusID = filterID;
 
       data = suggestions.filter(
@@ -519,22 +520,22 @@ const command: CommandType = {
         componentType: ComponentType.StringSelect,
         filter: (i) =>
           i.user.id === interaction.user.id &&
-          i.customId === 'nameless-suggestions-category-filter-collector',
+          i.customId === "nameless-suggestions-category-filter-collector",
       }
     );
 
-    categoryFilterCollector.on('collect', async (i) => await handleFilter(i));
+    categoryFilterCollector.on("collect", async (i) => await handleFilter(i));
 
     const statusFilterCollector = followUpMsg.createMessageComponentCollector({
       componentType: ComponentType.StringSelect,
       filter: (i) =>
         i.user.id === interaction.user.id &&
-        i.customId === 'nameless-suggestions-status-filter-collector',
+        i.customId === "nameless-suggestions-status-filter-collector",
     });
 
-    statusFilterCollector.on('collect', async (i) => await handleFilter(i));
+    statusFilterCollector.on("collect", async (i) => await handleFilter(i));
 
-    debugStream.write('Collectors created!');
+    debugStream.write("Collectors created!");
   },
 };
 

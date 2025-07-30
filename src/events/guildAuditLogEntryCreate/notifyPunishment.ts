@@ -1,4 +1,4 @@
-import createEmbed from '#utils/createEmbed.js';
+import createEmbed from "#utils/createEmbed.js";
 import {
   ActionRowBuilder,
   AuditLogEvent,
@@ -10,8 +10,8 @@ import {
   GuildAuditLogsActionType,
   GuildAuditLogsEntry,
   GuildAuditLogsTargetType,
-} from 'discord.js';
-import config from '#config' with { type: 'json' };
+} from "discord.js";
+import getConfig from "#utils/getConfig.js";
 
 export default async function (
   client: Client,
@@ -37,7 +37,7 @@ export default async function (
   const executor = await client.users.fetch(executorId);
 
   if (targetUser.bot) return;
-  const { punishmentAppealLink } = config;
+  const { appealLink } = getConfig("moderation") as { appealLink: string };
 
   const embedMessage = createEmbed({
     color:
@@ -48,9 +48,9 @@ export default async function (
     title:
       action === AuditLogEvent.MemberBanAdd ||
       action === AuditLogEvent.MemberKick
-        ? 'Punishment Notice'
-        : 'Punishment Notice Revoked',
-    thumbnail: { url: guild.iconURL() || '' },
+        ? "Punishment Notice"
+        : "Punishment Notice Revoked",
+    thumbnail: { url: guild.iconURL() || "" },
   });
 
   if (
@@ -59,27 +59,26 @@ export default async function (
   ) {
     embedMessage.setDescription(`
             **Action:** ${
-              action === AuditLogEvent.MemberBanAdd ? 'Ban' : 'Kick'
+              action === AuditLogEvent.MemberBanAdd ? "Ban" : "Kick"
             }
             **Moderator:** ${executor?.displayName} (${executor?.id})
-            **Reason:** ${reason || 'No reason provided'}
+            **Reason:** ${reason || "No reason provided"}
         `);
 
     embedMessage.setFields({
-      name: 'Appeal:',
-      value:
-        action === AuditLogEvent.MemberBanAdd ? punishmentAppealLink : 'N/A',
+      name: "Appeal:",
+      value: action === AuditLogEvent.MemberBanAdd ? appealLink : "N/A",
     });
   } else {
     embedMessage.setDescription(`
             **Action:** Ban Revoked
             **Moderator:** ${executor?.displayName} (${executor?.id})
-            **Reason:** ${reason || 'No reason provided'}
+            **Reason:** ${reason || "No reason provided"}
         `);
   }
 
   const serverButton = new ButtonBuilder({
-    customId: 'punishmentServerButton',
+    customId: "punishmentServerButton",
     disabled: true,
     label: `Server: ${guild.name}`,
     style: ButtonStyle.Secondary,

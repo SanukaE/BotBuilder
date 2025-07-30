@@ -1,0 +1,158 @@
+/* EndPoints */
+.endpoints {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto 40px auto;
+  min-height: 200px;
+  padding-bottom: 30px;
+}
+
+.api-route {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  box-shadow: 0 2px 14px 0 rgba(32, 28, 50, 0.13);
+  padding: 22px 28px 18px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  border-left: 6px solid var(--accent-color);
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+
+.api-route:hover {
+  box-shadow: 0 4px 24px 0 rgba(255, 95, 109, 0.13);
+  border-left: 6px solid #ffc371;
+}
+
+.api-route h3 {
+  font-size: 1.13rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-bottom: 2px;
+  word-break: break-all;
+}
+
+.api-route p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 7px;
+  font-size: 0.93rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: #23243a;
+  color: #fff2e7;
+  box-shadow: 0 1px 4px 0 rgba(32, 28, 50, 0.1);
+  user-select: none;
+}
+
+.badge-method {
+  background: var(--accent-gradient);
+  color: #fff;
+  text-transform: uppercase;
+  border: none;
+}
+
+.badge-guild {
+  background: #23243a;
+  color: #ffc371;
+  border: 1px solid #ffc371;
+}
+
+.api-types {
+  background: #181c24;
+  color: #ffe6d3;
+  font-size: 0.97rem;
+  border-radius: 8px;
+  padding: 13px 15px;
+  margin-top: 4px;
+  overflow-x: auto;
+  font-family: "Fira Mono", "Consolas", "Menlo", monospace;
+  line-height: 1.5;
+  box-shadow: 0 1px 6px 0 rgba(32, 28, 50, 0.1);
+}
+
+.api-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 95, 109, 0.13);
+  color: #ff5f6d;
+  border-radius: 8px;
+  padding: 16px 18px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 auto;
+  max-width: 420px;
+  justify-content: center;
+}
+
+.api-error i {
+  font-size: 1.3em;
+}
+
+/* Loading icon style */
+.fa-clock {
+  color: #ffc371;
+  font-size: 1.5em;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+@media (max-width: 900px) {
+  .endpoints {
+    max-width: 98vw;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .api-route {
+    padding: 18px 12px 14px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .api-route {
+    padding: 13px 7px 10px 10px;
+    border-left-width: 4px;
+    gap: 8px;
+  }
+  .api-route h3 {
+    font-size: 1rem;
+  }
+  .api-route p {
+    font-size: 0.93rem;
+  }
+  .api-types {
+    font-size: 0.92rem;
+    padding: 9px 7px;
+  }
+  .badges {
+    gap: 7px;
+  }
+  .badge {
+    font-size: 0.85rem;
+    padding: 2px 8px;
+  }
+  .api-error {
+    font-size: 0.97rem;
+    padding: 12px 8px;
+  }
+}

@@ -1,13 +1,19 @@
-import Gemini from '#libs/Gemini.js';
-import CommandType from '#types/CommandType.js';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath, pathToFileURL } from 'url';
-import createTempDataFile from '#utils/createTempDataFile.js';
-import getAllFiles from '#utils/getAllFiles.js';
-import { ApplicationCommandOptionType, Colors } from 'discord.js';
-import createEmbed from '#utils/createEmbed.js';
-import { Schema, SchemaType } from '@google/generative-ai';
+import Gemini from "#libs/Gemini.js";
+import CommandType from "#types/CommandType.js";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import createTempDataFile from "#utils/createTempDataFile.js";
+import getAllFiles from "#utils/getAllFiles.js";
+import { ApplicationCommandOptionType, Colors } from "discord.js";
+import createEmbed from "#utils/createEmbed.js";
+import {
+  createPartFromUri,
+  createUserContent,
+  Schema,
+  Type,
+} from "@google/genai";
+import getConfig from "#utils/getConfig.js";
 
 type Data = {
   username: string;
@@ -21,46 +27,50 @@ type Data = {
   embeds?: { title: string; description: string }[];
 };
 
+const gemini = Gemini();
+
 const command: CommandType = {
-  name: 'ai-catchup',
-  description: 'Catch up on what you missed in the past.',
+  name: "ai-catchup",
+  description: "Catch up on what you missed in the past.",
   isGuildOnly: true,
   options: [
     {
-      name: 'messages',
+      name: "messages",
       description:
-        'Specify the number of unread messages you want to catch up on.',
+        "Specify the number of unread messages you want to catch up on.",
       type: ApplicationCommandOptionType.Integer,
       min_value: 10,
       max_value: 100,
       required: true,
     },
   ],
+  isDisabled: !gemini.enabled,
 
   async script(_, interaction, debugStream) {
-    debugStream.write('Initializing AI...');
-    const gemini = Gemini();
+    const { geminiModel } = getConfig("ai") as { geminiModel: string };
+
+    debugStream.write("Initializing AI...");
 
     if (!gemini.enabled) {
-      debugStream.write('AI is not enabled! Sending reply...');
-      await interaction.editReply('AI is not enabled');
-      debugStream.write('Reply sent!');
+      debugStream.write("AI is not enabled! Sending reply...");
+      await interaction.editReply("AI is not enabled");
+      debugStream.write("Reply sent!");
       return;
-    } else debugStream.write('Done! Getting data from interaction...');
+    } else debugStream.write("Done! Getting data from interaction...");
 
-    const messageNo = interaction.options.getInteger('messages', true);
+    const messageNo = interaction.options.getInteger("messages", true);
 
     debugStream.write(`messageNo: ${messageNo}`);
-    debugStream.write('Fetching messages...');
+    debugStream.write("Fetching messages...");
 
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
 
     const tempFilePath = getAllFiles(
-      path.join(__dirname, '../../../../temp')
+      path.join(__dirname, "../../../../temp")
     ).find((filePath) =>
       filePath
-        .split('\\')
+        .split("\\")
         .pop()
         ?.startsWith(`aiCatchup-${interaction.channelId}`)
     );
@@ -76,16 +86,16 @@ const command: CommandType = {
       const messageArray = Array.from(channelMessage.values()).reverse(); //old --> new
 
       const allowedContentTypes = [
-        'application/pdf',
-        'text/javascript',
-        'text/x-python',
-        'text/plain',
-        'text/html',
-        'text/css',
-        'text/md',
-        'text/csv',
-        'text/xml',
-        'text/rtf',
+        "application/pdf",
+        "text/javascript",
+        "text/x-python",
+        "text/plain",
+        "text/html",
+        "text/css",
+        "text/md",
+        "text/csv",
+        "text/xml",
+        "text/rtf",
       ];
 
       let tempDataArray: Data[] = [];
@@ -115,8 +125,8 @@ const command: CommandType = {
 
         if (message.embeds.length > 0)
           messageData.embeds = message.embeds.map((embed) => ({
-            title: embed.title ?? '',
-            description: embed.description ?? '',
+            title: embed.title ?? "",
+            description: embed.description ?? "",
           }));
 
         tempDataArray.push(messageData);
@@ -126,16 +136,16 @@ const command: CommandType = {
     };
 
     if (tempFilePath) {
-      const oldMessageNo = tempFilePath.split('\\').pop()!.split('-')[2];
+      const oldMessageNo = tempFilePath.split("\\").pop()!.split("-")[2];
       const oldTimestamp = tempFilePath
-        .split('\\')
+        .split("\\")
         .pop()!
-        .split('-')[3]
+        .split("-")[3]
         .slice(0, -5);
 
       const remainingMsg = messageNo - Number(oldMessageNo);
 
-      const fileContent = fs.readFileSync(tempFilePath, 'utf-8');
+      const fileContent = fs.readFileSync(tempFilePath, "utf-8");
       dataArray = JSON.parse(fileContent);
 
       if (remainingMsg < 0) {
@@ -174,7 +184,7 @@ const command: CommandType = {
       );
     }
 
-    debugStream.write('Messages collected! Generating summary...');
+    debugStream.write("Messages collected! Generating summary...");
 
     const getFileData = async (file: {
       contentType: string;
@@ -187,79 +197,75 @@ const command: CommandType = {
       const fileData = Buffer.from(fileBuffer);
       createTempDataFile(file.fileName, fileData);
 
-      const uploadResult = await gemini.fileManager!.uploadFile(
-        `./public/${file.fileName}`,
-        {
-          mimeType: file.contentType,
-          displayName: file.fileName,
-        }
-      );
+      const uploadResult = await gemini.fileManager!.upload({
+        file: `./public/${file.fileName}`,
+        config: { mimeType: file.contentType },
+      });
 
-      return {
-        fileData: {
-          fileUri: uploadResult.file.uri,
-          mimeType: uploadResult.file.mimeType,
-        },
-      };
+      return createPartFromUri(uploadResult.uri!, uploadResult.mimeType!);
     };
 
-    const filePromises = dataArray
-      .filter((data) => data.attachments && data.attachments.length > 0)
-      .flatMap((data) => data.attachments!)
-      .map((attachment) => getFileData(attachment));
-
-    const fileResults = await Promise.all(filePromises);
-
-    const configFileResponse = await gemini.fileManager!.uploadFile(
-      `./temp/aiCatchup-${interaction.channelId}-${messageNo}-${dataArray[0].createdTimestamp}.json`,
-      {
-        mimeType: 'text/json',
-        displayName: 'Messages',
-      }
+    const fileResults = await Promise.all(
+      dataArray
+        .filter((data) => data.attachments && data.attachments.length > 0)
+        .flatMap((data) => data.attachments!)
+        .map((attachment) => getFileData(attachment))
     );
 
+    const configFileResponse = await gemini.fileManager!.upload({
+      file: `./temp/aiCatchup-${interaction.channelId}-${messageNo}-${dataArray[0].createdTimestamp}.json`,
+      config: {
+        mimeType: "text/json",
+      },
+    });
+
     const summarySchema: Schema = {
-      type: SchemaType.ARRAY,
-      description: 'A summary of the conversation',
+      type: Type.ARRAY,
+      description: "A summary of the conversation",
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
           heading: {
-            type: SchemaType.STRING,
+            type: Type.STRING,
             description:
-              'A brief heading summarizing the main point or topic of the conversation segment.',
+              "A brief heading summarizing the main point or topic of the conversation segment.",
           },
           content: {
-            type: SchemaType.STRING,
+            type: Type.STRING,
             description:
-              'A detailed description of the conversation segment, providing more context and information.',
+              "A detailed description of the conversation segment, providing more context and information.",
           },
         },
-        required: ['heading', 'content'],
+        required: ["heading", "content"],
       },
+      maxItems: "25",
+      minItems: "1",
     };
 
-    gemini.model!.generationConfig.responseMimeType = 'application/json';
-    gemini.model!.generationConfig.responseSchema = summarySchema;
-
-    const result = await gemini.model!.generateContent([
-      ...fileResults,
-      {
-        fileData: {
-          fileUri: configFileResponse.file.uri,
-          mimeType: configFileResponse.file.mimeType,
-        },
+    const result = await gemini.model!.generateContent({
+      model: geminiModel || "gemini-2.5-flash",
+      contents: createUserContent([
+        ...fileResults,
+        createPartFromUri(
+          configFileResponse.uri!,
+          configFileResponse.mimeType!
+        ),
+        "Generate a summary of the conversation from the provided messages file. This file contains messages from a Discord channel, including potential threads and attachments. The summary should be clear, concise, and no longer than 2000 characters. Use markdown formatting where appropriate to enhance readability.",
+      ]),
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: summarySchema,
       },
-      'Generate a summary of the conversation from the provided "Messages" file. This file contains messages from a Discord channel, including potential threads and attachments. The summary should be clear, concise, and no longer than 2000 characters. Use markdown formatting where appropriate to enhance readability.',
-    ]);
+    });
 
-    debugStream.write('Summary generated! Sending follow up...');
+    debugStream.write("Summary generated! Sending follow up...");
+
+    if (!result.text) throw new Error("Failed to generate summary.");
 
     const embedMessage = createEmbed({
       color: Colors.Blue,
-      title: 'Catchup',
-      description: 'Please use caution as AI can make mistakes.',
-      fields: JSON.parse(result.response.text()).map((summary: any) => ({
+      title: "Catchup",
+      fields: JSON.parse(result.text).map((summary: any) => ({
         name: summary.heading,
         value: summary.content,
       })),
@@ -269,7 +275,7 @@ const command: CommandType = {
       embeds: [embedMessage],
     });
 
-    debugStream.write('Follow up sent!');
+    debugStream.write("Follow up sent!");
   },
 };
 

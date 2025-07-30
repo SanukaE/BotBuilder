@@ -1,0 +1,201 @@
+/* Leaderboard */
+.leaderboard-section {
+  max-width: 900px;
+  margin: 40px auto 0 auto;
+  background: rgba(32, 28, 50, 0.92);
+  border-radius: 18px;
+  box-shadow: 0 4px 32px 0 rgba(32, 28, 50, 0.18);
+  padding: 36px 40px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.leaderboard-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--accent-color);
+  margin-bottom: 8px;
+  text-align: center;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.leaderboard-description {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 18px;
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  background: none;
+}
+
+.leaderboard-table thead th {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-secondary);
+  font-size: 1.08rem;
+  font-weight: 700;
+  padding: 12px 10px;
+  border-radius: 0;
+  text-align: left;
+  letter-spacing: 0.5px;
+}
+
+.leaderboard-table thead th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.leaderboard-table thead th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.leaderboard-table tbody tr {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 7px;
+  transition: background 0.15s;
+}
+
+.leaderboard-row:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.leaderboard-table td {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+  padding: 10px 10px;
+  vertical-align: middle;
+}
+
+.leaderboard-rank {
+  font-weight: 700;
+  color: var(--accent-color);
+  text-align: center;
+  width: 60px;
+  font-size: 1.1rem;
+}
+
+.leaderboard-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.leaderboard-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
+  background: #23243a;
+}
+
+.leaderboard-username {
+  font-weight: 700;
+  color: #ffe6d3;
+  font-size: 1.05rem;
+  letter-spacing: 0.2px;
+  word-break: break-all;
+}
+
+.leaderboard-exp {
+  font-variant-numeric: tabular-nums;
+  color: #ffc371;
+  font-weight: 600;
+  font-size: 1.03rem;
+}
+
+.exp-current {
+  color: var(--accent-color);
+  font-weight: 700;
+}
+
+.exp-required {
+  color: #ffe6d3;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.leaderboard-level {
+  font-weight: 800;
+  color: var(--accent-color);
+  font-size: 1.08rem;
+  text-align: center;
+}
+
+.no-data {
+  text-align: center;
+  color: #ffe6d3;
+  font-size: 1.05rem;
+  opacity: 0.8;
+  padding: 18px 0;
+}
+
+@media (max-width: 900px) {
+  .leaderboard-section {
+    padding: 28px 12px 24px 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .leaderboard-section {
+    max-width: 98vw;
+    padding: 12px 2vw 18px 2vw;
+    gap: 16px;
+  }
+  .leaderboard-title {
+    font-size: 1.35rem;
+  }
+  .leaderboard-description {
+    font-size: 0.98rem;
+    margin-bottom: 10px;
+  }
+  .leaderboard-table thead th {
+    font-size: 0.97rem;
+    padding: 8px 4px;
+  }
+  .leaderboard-table td {
+    font-size: 0.97rem;
+    padding: 7px 4px;
+  }
+  .leaderboard-avatar {
+    width: 30px;
+    height: 30px;
+  }
+  .leaderboard-username {
+    font-size: 0.97rem;
+  }
+  .leaderboard-rank,
+  .leaderboard-level {
+    font-size: 1rem;
+    width: 40px;
+  }
+}
+
+@media (max-width: 420px) {
+  .leaderboard-section {
+    padding: 8px 0 10px 0;
+  }
+  .leaderboard-table thead th,
+  .leaderboard-table td {
+    font-size: 0.93rem;
+    padding: 5px 2px;
+  }
+  .leaderboard-avatar {
+    width: 22px;
+    height: 22px;
+  }
+  .leaderboard-username {
+    font-size: 0.93rem;
+  }
+}

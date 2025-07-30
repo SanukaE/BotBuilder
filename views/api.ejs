@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A dashboard to control your Discord bot powered by BotBuilder.">
+    <meta name="keywords" content="BotBuilder, Sanuka's Projects, Discord Bot, Free, Setup">
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <title>BotBuilder Dashboard | API</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/styles/global.css">
+    <link rel="stylesheet" href="/styles/api.css">
+</head>
+<body>
+    <!-- Header with Hamburger Menu -->
+    <header>
+        <a class="header-left" href="https://github.com/SanukaE/BotBuilder" style="text-decoration: none; color: inherit;">
+            <img src="https://i.postimg.cc/wB6FR8PP/Bot-Builder-Logo.webp" alt="Logo of BotBuilder" class="header-logo">
+            <div>
+                <p class="header-title">Powered By BotBuilder!</p>
+                <p class="header-subtitle">A project by Sanuka.</p>
+            </div>
+        </a>
+
+        <button class="mobile-menu-btn" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="header-nav">
+            <a href="/stats" class="header-link">Server Statistics</a>
+            <a href="/api" class="header-link">API Endpoints</a>
+            <a href="/config" class="header-link">Configurations</a>
+            <a href="https://buy.stripe.com/aEU1567wDeEE5XyaEI" class="header-support">
+                <i class="fas fa-heart"></i>
+                <span>Support</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-nav">
+            <button class="mobile-menu-close" id="menuClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <a href="/stats" class="mobile-link">
+                <i class="fas fa-chart-line"></i> Server Statistics
+            </a>
+            <a href="/api" class="mobile-link">
+                <i class="fas fa-code"></i> API Endpoints
+            </a>
+            <a href="/config" class="mobile-link">
+                <i class="fas fa-cog"></i> Configurations
+            </a>
+            <a href="<%= locals.serverInvite || "https://discord.gg/HUCE56pP" %>" class="mobile-link">
+                <i class="fab fa-discord"></i> Join Discord
+            </a>
+            <a href="https://buy.stripe.com/aEU1567wDeEE5XyaEI" class="mobile-link" style="background: var(--accent-gradient);">
+                <i class="fas fa-heart"></i> Support Project
+            </a>
+        </div>
+    </div>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- Search -->
+    <section class="search-bar-container">
+        <div class="search-bar">
+            <input
+                type="text"
+                id="endpointSearch"
+                class="search-input"
+                placeholder="Search..."
+                autocomplete="off"
+                disabled
+            >
+            <button
+                type="button"
+                id="searchBtn"
+                class="search-btn"
+                aria-label="Search"
+                onclick=handleSearch()
+                disabled
+            >
+                <svg height="48" width="48" viewBox="0 0 48 48">
+                    <circle cx="22" cy="22" r="13" stroke="#111" stroke-width="3" fill="none"/>
+                    <path d="M34 34 L42 42" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M27 17 Q29 19 27 21" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </section>
+
+    <div class="break-line"></div>
+
+    <!-- Endpoints -->
+    <section id="apiRoutes" class="endpoints">
+
+        <i class="fa-solid fa-clock"></i> Loading Endpoints...
+
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2025 BotBuilder - All Rights Reserved</p>
+    </footer>
+
+    <script src="/scripts/global.js"></script>
+    <script src="/scripts/api.js"></script>
+</body>
+</html>

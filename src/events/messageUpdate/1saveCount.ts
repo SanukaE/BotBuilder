@@ -1,5 +1,5 @@
-import { Client, Message, PartialMessage } from 'discord.js';
-import config from '#config' with { type: 'json' };
+import { Client, Message, PartialMessage } from "discord.js";
+import getConfig from "#utils/getConfig.js";
 
 export default async function (
   _: Client,
@@ -9,9 +9,9 @@ export default async function (
   if (newMessage.author?.bot) return;
   if (!newMessage.inGuild()) return;
 
-  const { countChannelID } = config;
-  if (!countChannelID) return;
-  if (newMessage.channelId !== countChannelID) return;
+  const { channelID } = getConfig("counting") as { channelID: string };
+  if (!channelID) return;
+  if (newMessage.channelId !== channelID) return;
 
   const countChannel = newMessage.channel;
 
@@ -24,5 +24,5 @@ export default async function (
   await countChannel.sendTyping();
 
   const currentCount = await countChannel.send(oldMsgCount);
-  await currentCount.react('✔');
+  await currentCount.react("✔");
 }

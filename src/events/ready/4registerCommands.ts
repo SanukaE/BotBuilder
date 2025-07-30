@@ -1,10 +1,12 @@
-import { Client } from 'discord.js';
-import { getActions, ActionTypes } from '#utils/getActions.js';
-import getRegisteredCommands from '#utils/getRegisteredCommands.js';
-import areCommandsDifferent from '#utils/areCommandsDifferent.js';
-import CommandType from '#types/CommandType.js';
+import { Client } from "discord.js";
+import { getActions, ActionTypes } from "#utils/getActions.js";
+import getRegisteredCommands from "#utils/getRegisteredCommands.js";
+import areCommandsDifferent from "#utils/areCommandsDifferent.js";
+import CommandType from "#types/CommandType.js";
 
 export default async function (client: Client) {
+  console.log("[System] Registering slash commands...");
+
   try {
     const localCommands = (await getActions(
       ActionTypes.Commands
@@ -23,10 +25,11 @@ export default async function (client: Client) {
         }
 
         if (areCommandsDifferent(localCommand, registeredCommand)) {
-          await client.application!.commands.edit(
-            registeredCommand.id!,
-            localCommand
+          console.log(
+            `[System] Updating command: ${localCommand.name} (${localCommand.description})`
           );
+          await client.application!.commands.delete(registeredCommand.id!);
+          await client.application!.commands.create(localCommand);
         }
       } else {
         if (localCommand.isDisabled) continue;
@@ -47,7 +50,7 @@ export default async function (client: Client) {
       await client.application!.commands.delete(deletedCommand.id!);
     }
 
-    console.log('[System] All slash commands are updated');
+    console.log("[System] All slash commands are updated.");
   } catch (error: any) {
     console.error(
       `[Error] Failed to register commands: ${error.message || error}`

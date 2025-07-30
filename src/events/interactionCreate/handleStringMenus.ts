@@ -1,20 +1,27 @@
-import { Client, Interaction, StringSelectMenuInteraction } from 'discord.js';
-import config from '#config' with { type: 'json' };
-import { getActions, ActionTypes } from '#utils/getActions.js';
-import StringMenuType from '#types/StringMenuType.js';
-import { createLogger, LoggerOptions } from '#utils/createLogger.js';
-import getErrorSolution from '#utils/getErrorSolution.js';
+import {
+  Client,
+  Interaction,
+  MessageFlags,
+  StringSelectMenuInteraction,
+} from "discord.js";
+import getConfig from "#utils/getConfig.js";
+import { getActions, ActionTypes } from "#utils/getActions.js";
+import StringMenuType from "#types/StringMenuType.js";
+import { createLogger, LoggerOptions } from "#utils/createLogger.js";
+import getErrorSolution from "#utils/getErrorSolution.js";
 
 export default async function (client: Client, interaction: Interaction) {
   if (!interaction.isStringSelectMenu()) return;
-  if (interaction.customId.endsWith('collector')) return;
+  if (interaction.customId.endsWith("collector")) return;
 
-  const { developmentGuildID, isMaintenanceEnabled } = config;
+  const { developmentGuildID, isMaintenanceEnabled } = getConfig(
+    "application"
+  ) as { developmentGuildID: string; isMaintenanceEnabled: boolean };
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   if (isMaintenanceEnabled && interaction.guildId !== developmentGuildID) {
-    await interaction.editReply('The bot is under maintenance.');
+    await interaction.editReply("The bot is under maintenance.");
     return;
   }
 
@@ -27,23 +34,23 @@ export default async function (client: Client, interaction: Interaction) {
   );
 
   if (!stringMenu) {
-    await interaction.editReply('Unknown menu.');
+    await interaction.editReply("Unknown menu.");
     return;
   }
 
   if (stringMenu.isDisabled) {
-    await interaction.editReply('This menu is currently disabled.');
+    await interaction.editReply("This menu is currently disabled.");
     return;
   }
 
   if (stringMenu.isGuildOnly && !interaction.inGuild()) {
-    await interaction.editReply('This menu can only be used in a server.');
+    await interaction.editReply("This menu can only be used in a server.");
     return;
   }
 
   if (stringMenu.isDevOnly && interaction.guildId !== developmentGuildID) {
     await interaction.editReply(
-      'This menu is currently under development. Please try again later.'
+      "This menu is currently under development. Please try again later."
     );
     return;
   }
@@ -52,11 +59,11 @@ export default async function (client: Client, interaction: Interaction) {
     for (const permission of stringMenu.permissions) {
       if (
         !interaction.member ||
-        typeof interaction.member.permissions === 'string' ||
+        typeof interaction.member.permissions === "string" ||
         !interaction.member.permissions.has(permission)
       ) {
         await interaction.editReply(
-          'You do not have the right permissions to perform this action.'
+          "You do not have the right permissions to perform this action."
         );
         return;
       }
@@ -96,12 +103,12 @@ export default async function (client: Client, interaction: Interaction) {
     if (solution) {
       await interaction.followUp({
         content:
-          solution.length > 2000 ? solution.slice(0, 1998) + '...' : solution,
+          solution.length > 2000 ? solution.slice(0, 1998) + "..." : solution,
         ephemeral: true,
       });
     } else if (stringMenu.isDevOnly && stringMenu.enableDebug) {
       await interaction.followUp({
-        content: 'No possible fix found.',
+        content: "No possible fix found.",
         ephemeral: true,
       });
     }
