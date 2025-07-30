@@ -11,6 +11,7 @@ const filesInProcess = new Set<string>();
 const { geminiModel } = getConfig("ai") as { geminiModel: string };
 
 export default function (client: Client) {
+  return; //!WIP
   let actionFilePaths: string[] = [];
 
   const __filename = fileURLToPath(import.meta.url);
