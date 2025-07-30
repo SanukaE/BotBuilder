@@ -97,6 +97,18 @@ export function createLogger(
  * - Also logs a condensed warning message to the console
  */
 export function createWarning(warning: string, result: string, fix: string, fileName: string) {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  const fileDir = path.join(__dirname, '..', '..', 'ApplicationLogs', 'warnings', `${fileName}.txt`);
+
+  if(fs.existsSync(fileDir)) {
+    const fileData = fs.readFileSync(fileDir, 'utf-8');
+    const warnings = fileData.split('\n').filter(line => line.startsWith('Warning:')).map(line => line.replace('Warning: ', '').trim());
+
+    if(warnings.includes(warning)) return;
+  }
+
   const warningLogger = createLogger(
     fileName,
     LoggerOptions.Warning,

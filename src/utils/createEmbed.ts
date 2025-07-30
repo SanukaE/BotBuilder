@@ -1,12 +1,12 @@
-import { EmbedBuilder, APIEmbed } from 'discord.js';
-import getConfig from './getConfig.js';
-import { client } from '../index.js';
+import { EmbedBuilder, APIEmbed } from "discord.js";
+import getConfig from "./getConfig.js";
+import { client } from "../index.js";
 
 /**
  * Creates a Discord embed with default BotBuilder branding
  * @param data - Optional APIEmbed data to extend the default embed
  * @returns A new EmbedBuilder instance with BotBuilder branding and optional custom data
- * 
+ *
  * @example
  * ```typescript
  * const embed = createEmbed({
@@ -16,21 +16,21 @@ import { client } from '../index.js';
  * ```
  */
 export default function (data?: APIEmbed) {
-  const { appMotto } = getConfig('application') as { appMotto: string };
+  const { appMotto } = getConfig("application") as { appMotto: string };
 
   return new EmbedBuilder({
     author: {
-      name: 'Powered by BotBuilder',
-      url: 'https://builtbybit.com/resources/botbuilder.59151',
-      icon_url: 'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp',
+      name: "Powered by BotBuilder",
+      url: "https://builtbybit.com/resources/botbuilder.59151",
+      icon_url: "https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp",
     },
 
     footer: {
-      text: appMotto || 'Your Free, Open-Source, All-In-One Discord Companion',
+      text: appMotto || "Your Free, Open-Source, All-In-One Discord Companion",
       icon_url: appMotto
         ? client.user?.displayAvatarURL() ||
-          'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp'
-        : 'https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp',
+          "https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp"
+        : "https://i.postimg.cc/wB6FR8PP/Bot-Builder.webp",
     },
 
     ...data,

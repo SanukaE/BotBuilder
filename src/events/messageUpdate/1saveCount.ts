@@ -1,5 +1,5 @@
-import { Client, Message, PartialMessage } from 'discord.js';
-import getConfig from '#utils/getConfig.js';
+import { Client, Message, PartialMessage } from "discord.js";
+import getConfig from "#utils/getConfig.js";
 
 export default async function (
   _: Client,
@@ -24,5 +24,5 @@ export default async function (
   await countChannel.sendTyping();
 
   const currentCount = await countChannel.send(oldMsgCount);
-  await currentCount.react('✔');
+  await currentCount.react("✔");
 }

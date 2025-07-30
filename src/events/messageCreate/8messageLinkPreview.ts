@@ -5,8 +5,8 @@ import {
   Message,
   OmitPartialGroupDMChannel,
   StringSelectMenuBuilder,
-} from 'discord.js';
-import getConfig from '#utils/getConfig.js';
+} from "discord.js";
+import getConfig from "#utils/getConfig.js";
 
 export default async function (
   client: Client,
@@ -15,7 +15,9 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.bot || !message.inGuild()) return;
 
-  const { messageLinkPreview } = getConfig("misc") as { messageLinkPreview: boolean };
+  const { messageLinkPreview } = getConfig("misc") as {
+    messageLinkPreview: boolean;
+  };
 
   if (!messageLinkPreview) return;
 
@@ -49,13 +51,13 @@ export default async function (
   if (!messages.length) return;
 
   const selectMenu = new StringSelectMenuBuilder({
-    customId: 'message-link-preview-collector',
+    customId: "message-link-preview-collector",
     options: messages.map((msg) => ({
       label: `By ${msg.author.displayName}`,
-      description: !msg.channel.isDMBased() ? `in #${msg.channel.name}` : '',
+      description: !msg.channel.isDMBased() ? `in #${msg.channel.name}` : "",
       value: msg.id,
     })),
-    placeholder: 'Pick a message to preview',
+    placeholder: "Pick a message to preview",
   });
 
   const row = new ActionRowBuilder<StringSelectMenuBuilder>({
@@ -74,7 +76,7 @@ export default async function (
     componentType: ComponentType.StringSelect,
   });
 
-  menuCollector.on('collect', async (i) => {
+  menuCollector.on("collect", async (i) => {
     await i.deferUpdate();
 
     const messageID = i.values[0];
@@ -83,10 +85,10 @@ export default async function (
     const member = await message.guild!.members.fetch(i.user.id);
     if (
       !message.channel.isDMBased() &&
-      !message.channel.permissionsFor(member).has('ReadMessageHistory')
+      !message.channel.permissionsFor(member).has("ReadMessageHistory")
     ) {
       await i.followUp({
-        content: 'You do not have permission to view this message.',
+        content: "You do not have permission to view this message.",
         ephemeral: true,
       });
       return;

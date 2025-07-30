@@ -6,12 +6,12 @@ import {
   PartialMessageReaction,
   PartialUser,
   Message,
-} from 'discord.js';
-import getConfig from '#utils/getConfig.js';
-import { ActionTypes, getActions } from '#utils/getActions.js';
-import ReactionType from '#types/ReactionType.js';
-import { LoggerOptions, createLogger } from '#utils/createLogger.js';
-import getErrorSolution from '#utils/getErrorSolution.js';
+} from "discord.js";
+import getConfig from "#utils/getConfig.js";
+import { ActionTypes, getActions } from "#utils/getActions.js";
+import ReactionType from "#types/ReactionType.js";
+import { LoggerOptions, createLogger } from "#utils/createLogger.js";
+import getErrorSolution from "#utils/getErrorSolution.js";
 
 export default async function (
   client: Client,
@@ -19,11 +19,18 @@ export default async function (
   user: User | PartialUser,
   details: MessageReactionEventDetails
 ) {
-  const { developmentGuildID, isMaintenanceEnabled, channelID } = getConfig("application", "counting") as { developmentGuildID: string; isMaintenanceEnabled: boolean; channelID: string };
+  const { developmentGuildID, isMaintenanceEnabled, channelID } = getConfig(
+    "application",
+    "counting"
+  ) as {
+    developmentGuildID: string;
+    isMaintenanceEnabled: boolean;
+    channelID: string;
+  };
   if (
     (messageReaction.message.channelId === channelID &&
-      messageReaction.emoji.toString() === '✔') ||
-    messageReaction.emoji.toString() === '❌'
+      messageReaction.emoji.toString() === "✔") ||
+    messageReaction.emoji.toString() === "❌"
   )
     return;
   const message = messageReaction.message;
@@ -45,7 +52,7 @@ export default async function (
 
   if (messageReaction.count && messageReaction.count > 1) {
     const messageReply = await message.reply({
-      content: 'You can only react to a message once.',
+      content: "You can only react to a message once.",
       allowedMentions: { repliedUser: false },
     });
     await messageReaction.remove();
@@ -59,7 +66,7 @@ export default async function (
 
   if (isMaintenanceEnabled && message.guildId !== developmentGuildID) {
     const messageReply = await message.reply({
-      content: 'The bot is under maintenance.',
+      content: "The bot is under maintenance.",
       allowedMentions: { repliedUser: false },
     });
     await messageReaction.remove();
@@ -73,7 +80,7 @@ export default async function (
 
   if (reaction.isGuildOnly && !message.inGuild()) {
     const messageReply = await message.reply({
-      content: 'This reaction can only be used in a server.',
+      content: "This reaction can only be used in a server.",
       allowedMentions: { repliedUser: false },
     });
     await messageReaction.remove();
@@ -118,12 +125,12 @@ export default async function (
     if (solution) {
       solutionReply = await errorMessageReply.reply({
         content:
-          solution.length > 2000 ? solution.slice(0, 1998) + '...' : solution,
+          solution.length > 2000 ? solution.slice(0, 1998) + "..." : solution,
         allowedMentions: { repliedUser: false },
       });
     } else if (reaction.isDevOnly && reaction.enableDebug) {
       solutionReply = await errorMessageReply.reply({
-        content: 'No possible fix found.',
+        content: "No possible fix found.",
         allowedMentions: { repliedUser: false },
       });
     }

@@ -1,6 +1,6 @@
-import { Client, Colors, Message, OmitPartialGroupDMChannel } from 'discord.js';
-import getConfig from '#utils/getConfig.js';
-import createEmbed from '#utils/createEmbed.js';
+import { Client, Colors, Message, OmitPartialGroupDMChannel } from "discord.js";
+import getConfig from "#utils/getConfig.js";
+import createEmbed from "#utils/createEmbed.js";
 
 export default async function (
   client: Client,
@@ -9,7 +9,10 @@ export default async function (
   if (!message.deletable) return;
   if (!message.inGuild()) return;
 
-  const { channelID, muteDuration } = getConfig("counting") as { channelID: string; muteDuration: number };
+  const { channelID, muteDuration } = getConfig("counting") as {
+    channelID: string;
+    muteDuration: number;
+  };
   if (message.channelId !== channelID) return;
   if (message.author.id === client.user?.id) return;
 
@@ -33,32 +36,32 @@ export default async function (
   if (newNumber !== previousNumber + 1) {
     const notificationEmbed = createEmbed({
       color: Colors.Red,
-      title: 'Count destroyed!',
+      title: "Count destroyed!",
       description: `The count was destroyed by user \`${message.author.username}\`. The count will now have to start again from \`0\`. I'll start.`,
       fields: [
         {
-          name: 'Previous Number',
+          name: "Previous Number",
           value: `\`${previousNumber}\``,
           inline: true,
         },
-        { name: 'Number Entered', value: `\`${newNumber}\``, inline: true },
+        { name: "Number Entered", value: `\`${newNumber}\``, inline: true },
       ],
       thumbnail: {
-        url: 'https://th.bing.com/th/id/OIP.TJ7-kIoyGTTvlkGpNw6MzQHaFg?rs=1&pid=ImgDetMain',
+        url: "https://th.bing.com/th/id/OIP.TJ7-kIoyGTTvlkGpNw6MzQHaFg?rs=1&pid=ImgDetMain",
       },
     });
 
-    await message.react('❌');
+    await message.react("❌");
 
     if (muteDuration) {
       await message.channel.edit({
-        permissionOverwrites: [{ id: message.member!, deny: ['SendMessages'] }],
+        permissionOverwrites: [{ id: message.member!, deny: ["SendMessages"] }],
       });
 
       setTimeout(async () => {
         await message.channel.edit({
           permissionOverwrites: [
-            { id: message.member!, allow: ['SendMessages'] },
+            { id: message.member!, allow: ["SendMessages"] },
           ],
         });
       }, muteDuration * 24 * 60 * 60_000);
@@ -70,10 +73,10 @@ export default async function (
       embeds: [notificationEmbed],
     });
 
-    const resetCountMsg = await message.channel.send('0');
-    await resetCountMsg.react('✔');
+    const resetCountMsg = await message.channel.send("0");
+    await resetCountMsg.react("✔");
     return;
   }
 
-  await message.react('✔');
+  await message.react("✔");
 }

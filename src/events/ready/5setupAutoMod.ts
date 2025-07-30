@@ -3,19 +3,22 @@ import {
   AutoModerationRuleEventType,
   AutoModerationRuleTriggerType,
   Client,
-} from 'discord.js';
-import getConfig from '#utils/getConfig.js';
-import { createWarning } from '#utils/createLogger.js';
+} from "discord.js";
+import getConfig from "#utils/getConfig.js";
+import { createWarning } from "#utils/createLogger.js";
 
 export default async function (client: Client) {
-  const { productionGuildID, autoModEnvProtection } = getConfig("application", "moderation") as { productionGuildID: string; autoModEnvProtection: boolean };
+  const { productionGuildID, autoModEnvProtection } = getConfig(
+    "application",
+    "moderation"
+  ) as { productionGuildID: string; autoModEnvProtection: boolean };
 
   if (!productionGuildID) {
     createWarning(
-      'Missing productionGuildID in config.json',
-      'AutoMod rules will not be set up',
-      'Add productionGuildID to config.json',
-      'setupAutoMod-readyEvent'
+      "Missing productionGuildID in config.json",
+      "AutoMod rules will not be set up",
+      "Add productionGuildID to config.json",
+      "setupAutoMod-readyEvent"
     );
     return;
   }
@@ -26,20 +29,20 @@ export default async function (client: Client) {
   try {
     const autoModRules = await guildAutoModRules.fetch();
     const existingRule = autoModRules.find(
-      (rule) => rule.name === 'BotBuilder Env Variables'
+      (rule) => rule.name === "BotBuilder Env Variables"
     );
 
     if (autoModEnvProtection)
       createWarning(
-        'AutoMod Env Protection is enabled in config.json',
-        'Your environment variables has a risk of being leaked',
-        'Set autoModEnvProtection to false in config.json',
-        'setupAutoMod-readyEvent'
+        "AutoMod Env Protection is enabled in config.json",
+        "Your environment variables has a risk of being leaked",
+        "Set autoModEnvProtection to false in config.json",
+        "setupAutoMod-readyEvent"
       );
 
     if (!existingRule && autoModEnvProtection) {
       await guildAutoModRules.create({
-        name: 'BotBuilder Env Variables',
+        name: "BotBuilder Env Variables",
         enabled: true,
         actions: [
           { type: AutoModerationActionType.BlockMessage },
@@ -60,7 +63,7 @@ export default async function (client: Client) {
         },
       });
 
-      console.log('[System] AutoMod Env Protection rule created.');
+      console.log("[System] AutoMod Env Protection rule created.");
     } else if (autoModEnvProtection) {
       await existingRule?.setKeywordFilter([
         `*${process.env.MYSQL_PASSWORD}*`,
@@ -69,15 +72,15 @@ export default async function (client: Client) {
         `*${process.env.GEMINI_API_KEY}*`,
       ]);
 
-      console.log('[System] AutoMod Env Protection rule updated.');
+      console.log("[System] AutoMod Env Protection rule updated.");
     }
 
     if (!autoModEnvProtection && existingRule) {
       await existingRule.delete(
-        'AutoMod Env Protection is disabled in config.'
+        "AutoMod Env Protection is disabled in config."
       );
 
-      console.log('[System] AutoMod Env Protection rule deleted.');
+      console.log("[System] AutoMod Env Protection rule deleted.");
     }
   } catch (error: any) {
     console.error(`[Error] ${error.message || error}`);
