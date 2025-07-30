@@ -92,9 +92,7 @@ Contributions are always welcome! Here's how you can help:
 
 ## 📱 Community Support
 
-Need help or want to join our community? Connect with us on Discord:
-
-<iframe src="https://discord.com/widget?id=1055384504841285682&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+Need help or want to join our community? Connect with us on [Discord](https://discord.gg/fpkASGjwYT).
 
 ## 📄 License
 
