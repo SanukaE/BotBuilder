@@ -283,7 +283,7 @@ export default async function setup() {
   console.log("You can always change these settings later in the .env file.");
 
   fs.renameSync(
-    path.join(process.cwd(), "configs.example"),
+    path.join(process.cwd(), "configs.template"),
     path.join(process.cwd(), "configs")
   );
 
@@ -454,7 +454,7 @@ async function verifyGeminiAPIKey() {
       return true;
     }
   } catch (error: any) {
-    console.error("Failed to verify Gemini API key:", error.message);
+    console.error("Failed to verify Gemini API key:", error);
     return false;
   }
 }
@@ -538,10 +538,10 @@ function saveEnvironmentToFile() {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
-  const templateFilePath = path.join(__dirname, "..", "..", ".env.example");
+  const templateFilePath = path.join(__dirname, "..", "..", ".env.template");
   if (!fs.existsSync(templateFilePath)) {
     console.error(
-      "Template file .env.example not found. Please ensure it exists in the root directory."
+      "Template file .env.template not found. Please ensure it exists in the root directory."
     );
     process.exit(1);
   }
@@ -559,8 +559,7 @@ function saveEnvironmentToFile() {
   });
 
   const envFilePath = path.join(__dirname, "..", "..", ".env");
-
-  if (fs.existsSync(envFilePath)) fs.unlinkSync(envFilePath);
+  fs.renameSync(templateFilePath, envFilePath);
 
   fs.writeFileSync(envFilePath, environmentContent, "utf-8");
   console.log(`Environment saved to ${envFilePath}`);
