@@ -29,11 +29,18 @@ Before you begin, ensure you have installed:
 
 1. Download the latest version of BotBuilder from [BuiltByBit](https://builtbybit.com/resources/botbuilder.59151/?ref=discover) or from [here](https://github.com/SanukaE/BotBuilder/releases).
 
-2. Upload the `.zip` file to your server's file manager. Once uploaded, unarchive/unzip that file. You can delete that file afterwards.
+2. Upload the `BotBuilder [v2.x.x].zip` file to your server's file manager. Once uploaded, unarchive/unzip that file. You can delete that file afterwards.
 
-3. Set these values for your variables under the Startup category.
+3. Set these values for your variables under the Startup category:
 
-- MAIN FILE: `build/index.js`
+- Main File: `build/index.js`
+- Start File: `start.sh`
+
+4. Rename the `.env.template` file & `config.template` folder to `.env` & `config` respectively.
+
+5. Set the values in the `.env` file & configs in the `config` folder.
+
+6. Invite your bot to your development & production servers.
 
 ### 🖥️ On Computer
 
@@ -56,11 +63,13 @@ or
 pnpm install
 ```
 
+3. Invite your bot to your development & production servers.
+
 ## 🏗️ Building for Production
 
 ### ⚙️ On Server
 
-_This is not required. You can now start your server._
+_This is not required as a build is already included. You can now start your server._
 
 ### 🖥️ On Computer
 
