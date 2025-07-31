@@ -69,7 +69,7 @@ pnpm install
 
 ### ⚙️ On Server
 
-_This is not required as a build is already included. You can now start your server._
+_This is not required. You can now start your server._
 
 ### 🖥️ On Computer
 
