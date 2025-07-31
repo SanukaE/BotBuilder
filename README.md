@@ -5,7 +5,6 @@ Your Free, Open-Source, All-In-One Discord Companion
 ## ✨ Features
 
 - 👨‍💻 Basic Bot Features
-- 💬 Random Chat Events
 - 🤖 Helpful A.I Assistant
 - 🎨 Modern Dashboard
 - ⚙️ Easy Configuration
