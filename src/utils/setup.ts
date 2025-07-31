@@ -292,7 +292,7 @@ export default async function setup() {
   );
 
   console.log(
-    "If you have any questions or need help, feel free to ask in the Discord server: https://discord.gg/7Z2a3b4X5C"
+    "If you have any questions or need help, feel free to ask in the Discord server: https://discord.gg/fpkASGjwYT"
   );
   console.log(
     "If you want to make a donation to support the development of BotBuilder, you can do so at https://buy.stripe.com/aEU1567wDeEE5XyaEI"
