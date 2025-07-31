@@ -31,7 +31,7 @@ Before you begin, ensure you have installed:
 
 2. Upload the `BotBuilder [v2.x.x].zip` file to your server's file manager. Once uploaded, unarchive/unzip that file. You can delete that file afterwards.
 
-3. Set these values for your variables under the Startup category:
+3. Set these values for your variables:
 
 - Main File: `build/index.js`
 - Start File: `start.sh`
