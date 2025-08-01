@@ -443,7 +443,6 @@ async function verifyGeminiAPIKey() {
     const result = await ai.models.generateContent({
       contents: "Explain how AI works in a few words",
       model: "gemini-2.5-flash",
-      config: { maxOutputTokens: 500 },
     });
 
     if (!result.text) {
