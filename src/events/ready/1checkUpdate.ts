@@ -56,10 +56,10 @@ export default async function (client: Client) {
 
         const [localMajor, localMinor = 0, localPatch = 0] = localVersion
           .split('.')
-          .map(v => parseInt(v, 10));
+          .map(v => parseInt(v.replace(/\D/g, ""), 10));
         const [latestMajor, latestMinor = 0, latestPatch = 0] = (latestVersion as string)
           .split('.')
-          .map(v => parseInt(v, 10));
+          .map(v => parseInt(v.replace(/\D/g, ""), 10));
 
         const isOutdated =
           localMajor < latestMajor ||
