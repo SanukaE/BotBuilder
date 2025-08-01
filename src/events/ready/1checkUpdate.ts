@@ -20,6 +20,7 @@ export default async function (client: Client) {
 
   try {
     let updateFound = false;
+    let packageJsonUpdated = false;
 
     const checkUpdate = async (): Promise<void> => {
       // Prevent multiple simultaneous checks
@@ -76,13 +77,25 @@ export default async function (client: Client) {
           updateFound = true;
 
           if (autoUpdateEnabled) {
-            await updateFiles();
-            console.log(`[System] BotBuilder has been updated to the latest version. Please restart the bot to apply changes.`);
-            
-            // Clear the interval after successful update
-            if (updateChecker.intervalId) {
-              clearInterval(updateChecker.intervalId);
-              updateChecker.intervalId = undefined;
+            try {
+              await updateFiles();
+              console.log(`[System] BotBuilder has been updated to the latest version. Please restart the bot to apply changes.`);
+              
+              // Notify about package.json changes
+              if (packageJsonUpdated) {
+                console.log(
+                  '[System] package.json updated. Run "npm install" to install dependencies, then restart the bot.'
+                );
+              }
+              
+              // Clear the interval after successful update
+              if (updateChecker.intervalId) {
+                clearInterval(updateChecker.intervalId);
+                updateChecker.intervalId = undefined;
+              }
+            } catch (error: any) {
+              updateFound = false; // Reset to allow retry
+              console.log(`[System] Update failed: ${error.message}`);
             }
           }
         }
@@ -106,7 +119,9 @@ export default async function (client: Client) {
       'localData',
       '.git',
       '.env',
-      'configs'
+      'configs',
+      'ApplicationLogs',
+      'backups'
     ];
 
     const updateFiles = async (): Promise<void> => {
@@ -139,6 +154,9 @@ export default async function (client: Client) {
         }
 
         const mainBranchFiles = await mainBranchResponse.json();
+
+        // Fetch entire directory tree recursively
+        const remoteTree = await fetchRemoteTree(mainBranchFiles);
 
         // Helper to check if a file should be skipped
         const shouldSkipUpdate = (filePath: string): boolean => {
@@ -245,9 +263,19 @@ export default async function (client: Client) {
                 }
 
                 if (newFileContent !== localFileContent) {
+                  // Track package.json changes
+                  if (filePath === 'package.json') {
+                    packageJsonUpdated = true;
+                  }
+
                   // Create backup before overwriting
                   if (fs.existsSync(absFilePath)) {
-                    const backupPath = `${absFilePath}.backup.${Date.now()}`;
+                    const backupDir = path.join(process.cwd(), 'backups', 'update-backups');
+                    if (!fs.existsSync(backupDir)) {
+                      fs.mkdirSync(backupDir, { recursive: true });
+                    }
+                    const timestamp = Date.now();
+                    const backupPath = path.join(backupDir, `${path.basename(filePath)}.backup.${timestamp}`);
                     fs.copyFileSync(absFilePath, backupPath);
                   }
 
@@ -311,8 +339,8 @@ export default async function (client: Client) {
         }
 
         // Update files and then delete old ones
-        await updateFilesRecursive(mainBranchFiles);
-        await deleteOldFiles(mainBranchFiles);
+        await updateFilesRecursive(remoteTree);
+        await deleteOldFiles(remoteTree);
 
       } catch (error: any) {
         console.log(`[System] Update failed: ${error.message}`);
@@ -324,11 +352,11 @@ export default async function (client: Client) {
     // Initial check
     await checkUpdate();
 
-    // Set up interval for periodic checks (every 2 weeks) only if auto-update is disabled
-    // or if no update was found
-    if (!updateFound && !autoUpdateEnabled) {
-      updateChecker.intervalId = setInterval(checkUpdate, 14 * 24 * 60 * 60 * 1000);
-    }
+    // Always set up interval for periodic checks (every 2 weeks)
+    updateChecker.intervalId = setInterval(
+      checkUpdate, 
+      14 * 24 * 60 * 60 * 1000 // 2 weeks
+    );
 
     // Cleanup on process exit
     process.on('SIGINT', () => {
