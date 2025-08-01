@@ -62,6 +62,8 @@ export default async function Assistant(
       ) => Promise<{ functionName: string; success: boolean; data: any }>;
     } = await import(fileUrl);
 
+    if (!declaration) continue;
+
     functionDeclarations.push(declaration);
     functions.push({ name: declaration.name!, script });
   }
@@ -150,7 +152,6 @@ Current Channel ID: ${channelID}
   });
 
   if (response.functionCalls && response.functionCalls.length > 0) {
-    console.log("Functions to Call:", response.functionCalls); //!Debug
     let functionResults: FunctionResult[] = [];
     let responseMessage: string | null = null;
 

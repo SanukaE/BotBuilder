@@ -6,7 +6,7 @@ import {
   ChannelType,
 } from "discord.js";
 
-export const listEventsDeclaration: FunctionDeclaration = {
+export const declaration: FunctionDeclaration = {
   name: "listEvents",
   description:
     "Lists all scheduled events in the server with optional filtering.",
@@ -62,7 +62,7 @@ export const listEventsDeclaration: FunctionDeclaration = {
   },
 };
 
-export const listEventsScript = async (
+export const script = async (
   client: Client,
   channelID: string,
   userID: string,
