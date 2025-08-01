@@ -38,14 +38,14 @@ const command: CommandType = {
       emoji: "🤖",
       label: "Get BotBuilder",
       style: ButtonStyle.Link,
-      url: "https://builtbybit.com/resources/botbuilder.59151/",
+      url: "https://builtbybit.com/resources/botbuilder.59151/?ref=discover",
     });
 
     const supportBtn = new ButtonBuilder({
       emoji: "❤",
       label: "Support The Project",
       style: ButtonStyle.Link,
-      url: "https://buy.stripe.com/28oeVWcQX6881Hi6oo",
+      url: "https://buy.stripe.com/aEU1567wDeEE5XyaEI",
     });
 
     const row = new ActionRowBuilder<ButtonBuilder>({

@@ -7,7 +7,7 @@
     "appMotto": "Your Free, Open-Source, All-In-One Discord Companion",
     "appActivity": "🤖 Powered by BotBuilder!",
     "defaultLanguage": "en",
-    "serverInvite": "https://discord.gg/HUCE56pP",
+    "serverInvite": "https://discord.gg/fpkASGjwYT",
     "autoUpdateEnabled": true
   },
   {
@@ -60,7 +60,7 @@
     "serverInvite": {
       "name": "Server Invite",
       "type": "string",
-      "default": "https://discord.gg/HUCE56pP",
+      "default": "https://discord.gg/fpkASGjwYT",
       "description": "The invite link for your Discord server."
     },
     "autoUpdateEnabled": {
