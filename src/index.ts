@@ -12,6 +12,7 @@ import setup from "#utils/setup.js";
 import getAllFiles from "#utils/getAllFiles.js";
 import { registerFont } from "canvas";
 import canvacord from "canvacord";
+import { createWarning } from "#utils/createLogger.js";
 
 function logWelcomeMsg() {
   console.clear();
@@ -34,18 +35,25 @@ $$$$$$$  |\\$$$$$$  | \\$$$$  |$$$$$$$  |\\$$$$$$  |$$ |$$ |\\$$$$$$$ |\\$$$$$$$
 
 logWelcomeMsg();
 
-console.log("[System] Check for environment file...");
+console.log("[System] Getting version info...");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const envFilePath = path.join(__dirname, "../.env");
+const templateEnvFilePath = path.join(__dirname, "../.env.template");
 
 if (!fs.existsSync(envFilePath)) {
-  console.log("[System] .env file not found! Running setup...");
+  console.log("[System] Running setup...");
   await setup();
-  logWelcomeMsg();
-} else console.log("[System] .env file found!");
+} else if (fs.existsSync(templateEnvFilePath)) {
+  createWarning(
+    "Possible outdated files found.",
+    "Some features might not work as expected.",
+    "Download the .env file & config folder. Then delete them from the server & restart it.",
+    "main-index"
+  );
+}
 
 checkEnvVariables();
 

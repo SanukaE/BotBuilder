@@ -4,283 +4,348 @@ import fs from "fs";
 import path from 'path';
 import getConfig from '#utils/getConfig.js';
 
-export default async function (_: Client) {
+interface UpdateChecker {
+  intervalId?: NodeJS.Timeout;
+  isUpdating: boolean;
+  lastCheckTime: number;
+}
+
+const updateChecker: UpdateChecker = {
+  isUpdating: false,
+  lastCheckTime: 0
+};
+
+export default async function (client: Client) {
   const { autoUpdateEnabled } = getConfig('application') as { autoUpdateEnabled: boolean };
 
   try {
     let updateFound = false;
 
-    const checkUpdate = async () => {
-      if (updateFound) return;
+    const checkUpdate = async (): Promise<void> => {
+      // Prevent multiple simultaneous checks
+      if (updateChecker.isUpdating) return;
+      
+      // Rate limiting: don't check more than once per hour
+      const now = Date.now();
+      if (now - updateChecker.lastCheckTime < 60 * 60 * 1000) return;
+      
+      updateChecker.lastCheckTime = now;
 
-      const githubResponse = await fetch(
-        'https://raw.githubusercontent.com/SanukaE/BotBuilder/main/package.json'
-      );
-      const { version: latestVersion } = await githubResponse.json();
-      const { version: localVersion } = localPackage;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const [localMajor, localMinor = 0, localPatch = 0] = localVersion
-        .split('.')
-        .map(Number);
-      const [latestMajor, latestMinor = 0, latestPatch = 0] = latestVersion
-        .split('.')
-        .map(Number);
-
-      const isOutdated =
-        localMajor < latestMajor ||
-        (localMajor === latestMajor && localMinor < latestMinor) ||
-        (localMajor === latestMajor &&
-          localMinor === latestMinor &&
-          localPatch < latestPatch);
-
-      if (isOutdated) {
-        console.log(
-          `[System] A new version of BotBuilder is available: ${latestVersion}. You are currently using version ${localVersion}. Please consider updating.`
+        const githubResponse = await fetch(
+          'https://raw.githubusercontent.com/SanukaE/BotBuilder/main/package.json',
+          { 
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'BotBuilder-UpdateChecker/1.0'
+            }
+          }
         );
-        updateFound = true;
+        
+        clearTimeout(timeoutId);
+
+        if (!githubResponse.ok) {
+          throw new Error(`GitHub API returned ${githubResponse.status}`);
+        }
+
+        const { version: latestVersion } = await githubResponse.json();
+        const { version: localVersion } = localPackage;
+
+        const [localMajor, localMinor = 0, localPatch = 0] = localVersion
+          .split('.')
+          .map(v => parseInt(v, 10));
+        const [latestMajor, latestMinor = 0, latestPatch = 0] = (latestVersion as string)
+          .split('.')
+          .map(v => parseInt(v, 10));
+
+        const isOutdated =
+          localMajor < latestMajor ||
+          (localMajor === latestMajor && localMinor < latestMinor) ||
+          (localMajor === latestMajor &&
+            localMinor === latestMinor &&
+            localPatch < latestPatch);
+
+        if (isOutdated && !updateFound) {
+          console.log(
+            `[System] A new version of BotBuilder is available: ${latestVersion}. You are currently using version ${localVersion}.` + 
+            (autoUpdateEnabled ? ' Auto-updating...' : ' Please consider updating.')
+          );
+          updateFound = true;
+
+          if (autoUpdateEnabled) {
+            await updateFiles();
+            console.log(`[System] BotBuilder has been updated to the latest version. Please restart the bot to apply changes.`);
+            
+            // Clear the interval after successful update
+            if (updateChecker.intervalId) {
+              clearInterval(updateChecker.intervalId);
+              updateChecker.intervalId = undefined;
+            }
+          }
+        }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.log('[System] Update check timed out');
+        } else {
+          console.log(`[System] Failed to check for updates: ${error.message}`);
+        }
       }
     };
 
     // List of files to skip update check (relative to project root)
     const skipUpdateFiles = [
-      'faqAnswers.txt'
+      'faqAnswers.txt',
+      '.gitignore',
+      '.github',
+      '.vscode',
+      'node_modules',
+      'build',
+      'localData',
+      '.git',
+      '.env',
+      'configs'
     ];
 
-    const updateFiles = async () => {
-      if (!updateFound) return;
-
-      console.log(
-      `[System] Updating BotBuilder files to the latest version...`
-      );
-
-      const mainBranchResponse = await fetch('https://api.github.com/repos/SanukaE/BotBuilder/contents/');
-      const mainBranchFiles = await mainBranchResponse.json();
-
-      // List of config files to protect
-      const configDir = path.join(process.cwd(), 'configs');
-      // Dynamically fetch all config files in the configs directory
-      const protectedConfigs = fs.existsSync(configDir)
-      ? fs.readdirSync(configDir).filter(file => file.endsWith('.json'))
-      : [];
-
-      // Helper to check if a file is a protected config
-      const isProtectedConfig = (filePath: string) => {
-      return filePath.startsWith('configs/') && protectedConfigs.includes(path.basename(filePath));
-      };
-
-      // Helper to check if a file should be skipped
-      const shouldSkipUpdate = (filePath: string) => {
-      // Normalize for cross-platform
-      const normalized = filePath.replace(/\\/g, '/');
-      return skipUpdateFiles.some(skipFile => normalized === skipFile || normalized.endsWith('/' + skipFile));
-      };
-
-      // Helper to update config schema (properties) but not values
-      async function updateConfigFile(configPath: string, remoteUrl: string) {
-      const localConfigPath = path.join(process.cwd(), configPath);
-      let localConfig: any[] = [];
-      let remoteConfig: any[] = [];
-
-      try {
-        localConfig = JSON.parse(fs.readFileSync(localConfigPath, 'utf-8'));
-      } catch {
-        localConfig = [];
-      }
-
-      const remoteConfigText = await (await fetch(remoteUrl)).text();
-      try {
-        remoteConfig = JSON.parse(remoteConfigText);
-      } catch {
-        // If remote config is invalid, skip update
+    const updateFiles = async (): Promise<void> => {
+      if (updateChecker.isUpdating) {
+        console.log('[System] Update already in progress, skipping...');
         return;
       }
 
-      // Merge logic:
-      // - Section 0: values (preserve local values, add/remove keys as needed, only update value if type changed)
-      // - Section 1: meta (name/description, always update)
-      // - Section 2: schema (always update)
+      updateChecker.isUpdating = true;
+      console.log('[System] Updating BotBuilder files to the latest version...');
 
-      // Section 0: values
-      const localValues = localConfig[0] || {};
-      const remoteValues = remoteConfig[0] || {};
-      const remoteSchema = remoteConfig[2] || {};
-      const mergedValues: Record<string, any> = {};
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      // Add/update properties from remote
-      for (const key of Object.keys(remoteSchema)) {
-        if (key in localValues) {
-        // Only update value if type is different
-        const localType = typeof localValues[key];
-        const remoteType = remoteSchema[key].type?.replace('[]', 'Array') || typeof remoteValues[key];
-        const isArray = remoteSchema[key].type?.endsWith('[]');
-        if (
-          (isArray && !Array.isArray(localValues[key])) ||
-          (!isArray && localType !== remoteType && remoteType !== 'select')
-        ) {
-          // Type changed, use remote default
-          mergedValues[key] = remoteValues[key];
-        } else {
-          // Keep local value
-          mergedValues[key] = localValues[key];
-        }
-        } else {
-        // New property, use remote value
-        mergedValues[key] = remoteValues[key];
-        }
-      }
-      // Remove properties not in remote
-      for (const key of Object.keys(localValues)) {
-        if (!(key in remoteSchema)) {
-        // Property removed in remote, skip it
-        continue;
-        }
-      }
-
-      // Section 1: meta (always update)
-      const meta = remoteConfig[1] || {};
-
-      // Section 2: schema (always update)
-      const schema = remoteConfig[2] || {};
-
-      // Write merged config
-      const mergedConfig = [mergedValues, meta, schema];
-      fs.writeFileSync(localConfigPath, JSON.stringify(mergedConfig, null, 2), 'utf-8');
-      console.log(`[System] Updated config schema: ${configPath}`);
-      }
-
-      // Helper to build a set of all remote files/dirs (relative paths)
-      function buildRemotePaths(files: any[], basePath = ''): Set<string> {
-      const paths = new Set<string>();
-      for (const file of files) {
-        const filePath = path.join(basePath, file.name || file.path).replace(/\\/g, '/');
-        paths.add(filePath);
-        if (file.type === 'dir' && file._children) {
-        for (const childPath of buildRemotePaths(file._children, file.path)) {
-          paths.add(childPath);
-        }
-        }
-      }
-      return paths;
-      }
-
-      // Helper to recursively fetch all remote files/dirs and attach as _children
-      async function fetchRemoteTree(files: any[], basePath = ''): Promise<any[]> {
-      for (const file of files) {
-        if (file.type === 'dir') {
-        const dirFilesResponse = await fetch(`https://api.github.com/repos/SanukaE/BotBuilder/contents/${file.path}`);
-        const dirFiles = await dirFilesResponse.json();
-        file._children = await fetchRemoteTree(dirFiles, file.path);
-        }
-      }
-      return files;
-      }
-
-      // Recursive update function
-      async function updateFilesRecursive(files: any[], basePath = '') {
-      for (const file of files) {
-        const filePath = path.join(basePath, file.name || file.path);
-
-        if (shouldSkipUpdate(filePath)) {
-        console.log(`[System] Skipped file (update ignored): ${filePath}`);
-        continue;
-        }
-
-        if (file.type === 'file') {
-        if (isProtectedConfig(filePath)) {
-          // Only update schema/properties, not values
-          await updateConfigFile(filePath, file.download_url);
-          continue;
-        }
-
-        const absFilePath = path.join(process.cwd(), filePath);
-        fs.mkdirSync(path.dirname(absFilePath), { recursive: true });
-
-        const fileResponse = await fetch(file.download_url);
-        const newFileContent = await fileResponse.text();
-
-        let localFileContent = '';
-        if (fs.existsSync(absFilePath)) {
-          localFileContent = fs.readFileSync(absFilePath, 'utf-8');
-        }
-
-        if (newFileContent !== localFileContent) {
-          fs.writeFileSync(absFilePath, newFileContent, 'utf-8');
-          console.log(`[System] Updated file: ${filePath}`);
-        }
-        } else if (file.type === 'dir') {
-        const dirPath = path.join(process.cwd(), filePath);
-        if (!fs.existsSync(dirPath)) {
-          fs.mkdirSync(dirPath, { recursive: true });
-        }
-        const dirFilesResponse = await fetch(`https://api.github.com/repos/SanukaE/BotBuilder/contents/${file.path}`);
-        const dirFiles = await dirFilesResponse.json();
-        await updateFilesRecursive(dirFiles, file.path);
-        }
-      }
-      }
-
-      // Delete local files/dirs that do not exist in remote
-      async function deleteOldFiles(remoteFiles: any[]) {
-      // Build remote paths set
-      const remoteTree = await fetchRemoteTree(remoteFiles);
-      const remotePaths = buildRemotePaths(remoteTree);
-
-      // Helper to recursively delete files/dirs not in remote
-      function deleteRecursively(localDir: string, basePath = '') {
-        const entries = fs.readdirSync(localDir, { withFileTypes: true });
-        for (const entry of entries) {
-        const relPath = path.join(basePath, entry.name).replace(/\\/g, '/');
-        const absPath = path.join(localDir, entry.name);
-
-        // Never delete node_modules, build, localData, .git, .env, or protected configs
-        if (
-          relPath.startsWith('node_modules') ||
-          relPath.startsWith('build') ||
-          relPath.startsWith('localData') ||
-          relPath.startsWith('.git') ||
-          relPath === '.env' ||
-          isProtectedConfig(relPath) ||
-          shouldSkipUpdate(relPath)
-        ) {
-          continue;
-        }
-
-        if (!remotePaths.has(relPath)) {
-          // Not in remote, delete
-          if (entry.isDirectory()) {
-          fs.rmSync(absPath, { recursive: true, force: true });
-          console.log(`[System] Deleted old directory: ${relPath}`);
-          } else {
-          fs.unlinkSync(absPath);
-          console.log(`[System] Deleted old file: ${relPath}`);
+        const mainBranchResponse = await fetch(
+          'https://api.github.com/repos/SanukaE/BotBuilder/contents/',
+          { 
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'BotBuilder-UpdateChecker/1.0'
+            }
           }
-        } else if (entry.isDirectory()) {
-          deleteRecursively(absPath, relPath);
-        }
-        }
-      }
+        );
+        
+        clearTimeout(timeoutId);
 
-      deleteRecursively(process.cwd());
-      }
+        if (!mainBranchResponse.ok) {
+          throw new Error(`GitHub API returned ${mainBranchResponse.status}`);
+        }
 
-      // Update files and then delete old ones
-      await updateFilesRecursive(mainBranchFiles);
-      await deleteOldFiles(mainBranchFiles);
-    }
+        const mainBranchFiles = await mainBranchResponse.json();
+
+        // Helper to check if a file should be skipped
+        const shouldSkipUpdate = (filePath: string): boolean => {
+          const normalized = filePath.replace(/\\/g, '/');
+          return skipUpdateFiles.some(skipFile => 
+            normalized === skipFile || 
+            normalized.startsWith(skipFile + '/') ||
+            normalized.endsWith('/' + skipFile)
+          );
+        };
+
+        // Helper to build a set of all remote files/dirs (relative paths)
+        function buildRemotePaths(files: any[], basePath = ''): Set<string> {
+          const paths = new Set<string>();
+          for (const file of files) {
+            const filePath = path.join(basePath, file.name || file.path).replace(/\\/g, '/');
+            paths.add(filePath);
+            if (file.type === 'dir' && file._children) {
+              for (const childPath of buildRemotePaths(file._children, file.path)) {
+                paths.add(childPath);
+              }
+            }
+          }
+          return paths;
+        }
+
+        // Helper to recursively fetch all remote files/dirs with retry logic
+        async function fetchRemoteTree(files: any[], basePath = ''): Promise<any[]> {
+          for (const file of files) {
+            if (file.type === 'dir') {
+              let retries = 3;
+              while (retries > 0) {
+                try {
+                  const controller = new AbortController();
+                  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+                  const dirFilesResponse = await fetch(
+                    `https://api.github.com/repos/SanukaE/BotBuilder/contents/${file.path}`,
+                    { 
+                      signal: controller.signal,
+                      headers: {
+                        'User-Agent': 'BotBuilder-UpdateChecker/1.0'
+                      }
+                    }
+                  );
+                  
+                  clearTimeout(timeoutId);
+
+                  if (!dirFilesResponse.ok) {
+                    throw new Error(`Failed to fetch directory: ${dirFilesResponse.status}`);
+                  }
+
+                  const dirFiles = await dirFilesResponse.json();
+                  file._children = await fetchRemoteTree(dirFiles, file.path);
+                  break;
+                } catch (error: any) {
+                  retries--;
+                  if (retries === 0) {
+                    console.log(`[System] Failed to fetch directory ${file.path}: ${error.message}`);
+                    file._children = [];
+                  } else {
+                    console.log(`[System] Retrying fetch for ${file.path} (${retries} attempts left)`);
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                  }
+                }
+              }
+            }
+          }
+          return files;
+        }
+
+        // Recursive update function with better error handling
+        async function updateFilesRecursive(files: any[], basePath = ''): Promise<void> {
+          for (const file of files) {
+            const filePath = path.join(basePath, file.name || file.path);
+
+            if (shouldSkipUpdate(filePath)) continue;
+
+            try {
+              if (file.type === 'file') {
+                const absFilePath = path.join(process.cwd(), filePath);
+                
+                // Ensure directory exists
+                const dirPath = path.dirname(absFilePath);
+                if (!fs.existsSync(dirPath)) {
+                  fs.mkdirSync(dirPath, { recursive: true });
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+                const fileResponse = await fetch(file.download_url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (!fileResponse.ok) {
+                  throw new Error(`Failed to download file: ${fileResponse.status}`);
+                }
+
+                const newFileContent = await fileResponse.text();
+
+                let localFileContent = '';
+                if (fs.existsSync(absFilePath)) {
+                  localFileContent = fs.readFileSync(absFilePath, 'utf-8');
+                }
+
+                if (newFileContent !== localFileContent) {
+                  // Create backup before overwriting
+                  if (fs.existsSync(absFilePath)) {
+                    const backupPath = `${absFilePath}.backup.${Date.now()}`;
+                    fs.copyFileSync(absFilePath, backupPath);
+                  }
+
+                  fs.writeFileSync(absFilePath, newFileContent, 'utf-8');
+                  console.log(`[System] Updated file: ${filePath}`);
+                }
+              } else if (file.type === 'dir') {
+                const dirPath = path.join(process.cwd(), filePath);
+                if (!fs.existsSync(dirPath)) {
+                  fs.mkdirSync(dirPath, { recursive: true });
+                }
+                
+                if (file._children) {
+                  await updateFilesRecursive(file._children, file.path);
+                }
+              }
+            } catch (error: any) {
+              console.log(`[System] Failed to update ${filePath}: ${error.message}`);
+            }
+          }
+        }
+
+        // Delete local files/dirs that do not exist in remote
+        async function deleteOldFiles(remoteFiles: any[]): Promise<void> {
+          try {
+            const remoteTree = await fetchRemoteTree(remoteFiles);
+            const remotePaths = buildRemotePaths(remoteTree);
+
+            function deleteRecursively(localDir: string, basePath = ''): void {
+              if (!fs.existsSync(localDir)) return;
+
+              const entries = fs.readdirSync(localDir, { withFileTypes: true });
+              for (const entry of entries) {
+                const relPath = path.join(basePath, entry.name).replace(/\\/g, '/');
+                const absPath = path.join(localDir, entry.name);
+
+                if (shouldSkipUpdate(relPath)) continue;
+
+                if (!remotePaths.has(relPath)) {
+                  try {
+                    if (entry.isDirectory()) {
+                      fs.rmSync(absPath, { recursive: true, force: true });
+                      console.log(`[System] Deleted old directory: ${relPath}`);
+                    } else {
+                      fs.unlinkSync(absPath);
+                      console.log(`[System] Deleted old file: ${relPath}`);
+                    }
+                  } catch (error: any) {
+                    console.log(`[System] Failed to delete ${relPath}: ${error.message}`);
+                  }
+                } else if (entry.isDirectory()) {
+                  deleteRecursively(absPath, relPath);
+                }
+              }
+            }
+
+            deleteRecursively(process.cwd());
+          } catch (error: any) {
+            console.log(`[System] Failed to delete old files: ${error.message}`);
+          }
+        }
+
+        // Update files and then delete old ones
+        await updateFilesRecursive(mainBranchFiles);
+        await deleteOldFiles(mainBranchFiles);
+
+      } catch (error: any) {
+        console.log(`[System] Update failed: ${error.message}`);
+      } finally {
+        updateChecker.isUpdating = false;
+      }
+    };
 
     // Initial check
     await checkUpdate();
 
-    // Check every 2 weeks (14 days)
-    if (!updateFound) setInterval(checkUpdate, 14 * 24 * 60 * 60 * 1000);
-    else if(autoUpdateEnabled) {
-      await updateFiles();
-      console.log(`[System] BotBuilder has been updated to the latest version. Please restart the bot to apply changes.`);
-      updateFound = false; // Reset after update
+    // Set up interval for periodic checks (every 2 weeks) only if auto-update is disabled
+    // or if no update was found
+    if (!updateFound && !autoUpdateEnabled) {
+      updateChecker.intervalId = setInterval(checkUpdate, 14 * 24 * 60 * 60 * 1000);
     }
+
+    // Cleanup on process exit
+    process.on('SIGINT', () => {
+      if (updateChecker.intervalId) {
+        clearInterval(updateChecker.intervalId);
+      }
+    });
+
+    process.on('SIGTERM', () => {
+      if (updateChecker.intervalId) {
+        clearInterval(updateChecker.intervalId);
+      }
+    });
+
   } catch (error: any) {
     console.log(
-      `[Error] Failed to check for any updates: ${error.message || error}`
+      `[Error] Failed to initialize update checker: ${error.message || error}`
     );
   }
 }
