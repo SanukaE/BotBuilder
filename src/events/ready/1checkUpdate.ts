@@ -110,7 +110,7 @@ export default async function (_: Client) {
 
         const macOSPath = path.join(process.cwd(), '__MACOSX');
         if(fs.existsSync(macOSPath))
-          fs.rmSync(macOSPath);
+          fs.rmSync(macOSPath, { recursive: true, force: true });
 
         console.log(`[System] BotBuilder has been successfully updated! Please start the bot to apply changes.`);
         updateFound = false; // Reset after update
