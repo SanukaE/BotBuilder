@@ -67,7 +67,7 @@
       "name": "Auto Update Enabled",
       "type": "boolean",
       "default": true,
-      "description": "Enable or disable automatic updates for the bot."
+      "description": "Enable or disable automatic updates for the bot. Please keep a backup if enable."
     }
   }
 ]
