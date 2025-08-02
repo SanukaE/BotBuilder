@@ -93,7 +93,7 @@ const command: CommandType = {
     const speech = new AttachmentBuilder(tempFilePath, {
       name: `${interaction.user.displayName}\'s Speech`,
       description: `AI-generated speech: ${text.substring(0, 100)}${
-        prompt.length > 100 ? "..." : ""
+        text.length > 100 ? "..." : ""
       }`,
     });
 

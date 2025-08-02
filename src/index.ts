@@ -12,6 +12,7 @@ import setup from "#utils/setup.js";
 import getAllFiles from "#utils/getAllFiles.js";
 import { registerFont } from "canvas";
 import canvacord from "canvacord";
+import { createWarning } from "#utils/createLogger.js";
 
 function logWelcomeMsg() {
   console.clear();
@@ -34,18 +35,26 @@ $$$$$$$  |\\$$$$$$  | \\$$$$  |$$$$$$$  |\\$$$$$$  |$$ |$$ |\\$$$$$$$ |\\$$$$$$$
 
 logWelcomeMsg();
 
-console.log("[System] Check for environment file...");
+console.log("[System] Getting version info...");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const envFilePath = path.join(__dirname, "../.env");
+const tempEnvFilePath = path.join(__dirname, "../.env.template");
 
 if (!fs.existsSync(envFilePath)) {
-  console.log("[System] .env file not found! Running setup...");
+  console.log("[System] Running setup...");
   await setup();
-  logWelcomeMsg();
-} else console.log("[System] .env file found!");
+}
+if (fs.existsSync(tempEnvFilePath)) {
+  createWarning(
+    "Possible outdated config/env variables found.",
+    "Some features might not work or could break the bot.",
+    "To update your server variables, delete the .env file and config folder from your server files. Before deleting these files, make a copy so you can save time resetting them. Then, restart your server.",
+    "main-index"
+  );
+}
 
 checkEnvVariables();
 

@@ -1,7 +1,7 @@
 import Gemini from "#libs/Gemini.js";
 import CommandType from "#types/CommandType.js";
 import path from "path";
-import fs from "fs";
+import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import createTempDataFile from "#utils/createTempDataFile.js";
 import getAllFiles from "#utils/getAllFiles.js";
@@ -27,6 +27,11 @@ type Data = {
   embeds?: { title: string; description: string }[];
 };
 
+type SummaryItem = {
+  heading: string;
+  content: string;
+};
+
 const gemini = Gemini();
 
 const command: CommandType = {
@@ -47,235 +52,337 @@ const command: CommandType = {
   isDisabled: !gemini.enabled,
 
   async script(_, interaction, debugStream) {
-    const { geminiModel } = getConfig("ai") as { geminiModel: string };
+    try {
+      const { geminiModel } = getConfig("ai") as { geminiModel: string };
 
-    debugStream.write("Initializing AI...");
+      debugStream.write("Initializing AI...");
 
-    if (!gemini.enabled) {
-      debugStream.write("AI is not enabled! Sending reply...");
-      await interaction.editReply("AI is not enabled");
-      debugStream.write("Reply sent!");
-      return;
-    } else debugStream.write("Done! Getting data from interaction...");
+      if (!gemini.enabled) {
+        debugStream.write("AI is not enabled! Sending reply...");
+        await interaction.editReply("AI is not enabled");
+        debugStream.write("Reply sent!");
+        return;
+      }
 
-    const messageNo = interaction.options.getInteger("messages", true);
+      debugStream.write("Done! Getting data from interaction...");
 
-    debugStream.write(`messageNo: ${messageNo}`);
-    debugStream.write("Fetching messages...");
+      const messageNo = interaction.options.getInteger("messages", true);
+      debugStream.write(`messageNo: ${messageNo}`);
+      debugStream.write("Fetching messages...");
 
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
 
-    const tempFilePath = getAllFiles(
-      path.join(__dirname, "../../../../temp")
-    ).find((filePath) =>
-      filePath
-        .split("\\")
-        .pop()
-        ?.startsWith(`aiCatchup-${interaction.channelId}`)
-    );
+      // Find existing temp file
+      const tempDir = path.join(__dirname, "../../../../temp");
+      const allFiles = getAllFiles(tempDir);
+      const tempFilePath = allFiles.find((filePath) =>
+        path.basename(filePath).startsWith(`aiCatchup-${interaction.channelId}`)
+      );
 
-    let dataArray: Data[] = [];
+      let dataArray: Data[] = [];
 
-    const getMessages = async (noOfMessage: number, before?: string) => {
-      const channelMessage = await interaction.channel!.messages.fetch({
-        limit: noOfMessage,
-        before,
-      });
+      const getMessages = async (noOfMessage: number, before?: string) => {
+        if (!interaction.channel) {
+          throw new Error("Channel not found");
+        }
 
-      const messageArray = Array.from(channelMessage.values()).reverse(); //old --> new
+        const channelMessage = await interaction.channel.messages.fetch({
+          limit: noOfMessage,
+          before,
+        });
 
-      const allowedContentTypes = [
-        "application/pdf",
-        "text/javascript",
-        "text/x-python",
-        "text/plain",
-        "text/html",
-        "text/css",
-        "text/md",
-        "text/csv",
-        "text/xml",
-        "text/rtf",
-      ];
+        const messageArray = Array.from(channelMessage.values()).reverse();
 
-      let tempDataArray: Data[] = [];
+        const allowedContentTypes = [
+          "application/pdf",
+          "text/javascript",
+          "text/x-python",
+          "text/plain",
+          "text/html",
+          "text/css",
+          "text/markdown",
+          "text/csv",
+          "text/xml",
+          "text/rtf",
+          "application/json",
+        ];
 
-      for (const message of messageArray) {
-        const messageData: Data = {
-          username: message.author.displayName,
-          createdTimestamp: message.createdTimestamp,
-        };
+        const tempDataArray: Data[] = [];
 
-        if (message.content) messageData.messageContent = message.content;
+        for (const message of messageArray) {
+          const messageData: Data = {
+            username: message.author.displayName,
+            createdTimestamp: message.createdTimestamp,
+          };
 
-        const messageAttachments = message.attachments.filter(
-          (attachment) =>
-            attachment.contentType &&
-            allowedContentTypes.includes(attachment.contentType)
-        );
+          if (message.content.trim()) {
+            messageData.messageContent = message.content;
+          }
 
-        if (messageAttachments.size > 0)
-          messageData.attachments = Array.from(messageAttachments.values()).map(
-            (a) => ({
+          const messageAttachments = message.attachments.filter(
+            (attachment) =>
+              attachment.contentType &&
+              allowedContentTypes.includes(attachment.contentType) &&
+              attachment.size <= 20 * 1024 * 1024 // 20MB limit
+          );
+
+          if (messageAttachments.size > 0) {
+            messageData.attachments = Array.from(
+              messageAttachments.values()
+            ).map((a) => ({
               contentType: a.contentType!,
               fileName: a.name,
               fileURL: a.url,
-            })
-          );
-
-        if (message.embeds.length > 0)
-          messageData.embeds = message.embeds.map((embed) => ({
-            title: embed.title ?? "",
-            description: embed.description ?? "",
-          }));
-
-        tempDataArray.push(messageData);
-      }
-
-      return tempDataArray;
-    };
-
-    if (tempFilePath) {
-      const oldMessageNo = tempFilePath.split("\\").pop()!.split("-")[2];
-      const oldTimestamp = tempFilePath
-        .split("\\")
-        .pop()!
-        .split("-")[3]
-        .slice(0, -5);
-
-      const remainingMsg = messageNo - Number(oldMessageNo);
-
-      const fileContent = fs.readFileSync(tempFilePath, "utf-8");
-      dataArray = JSON.parse(fileContent);
-
-      if (remainingMsg < 0) {
-        const elementsToRemove = Math.abs(remainingMsg);
-        dataArray = dataArray.splice(elementsToRemove - 1);
-      }
-
-      if (remainingMsg > 0) {
-        dataArray = [
-          ...(await getMessages(remainingMsg, oldTimestamp)),
-          ...dataArray,
-        ];
-
-        const newFileName = `aiCatchup-${interaction.channelId}-${messageNo}-${dataArray[0].createdTimestamp}.json`;
-        const newTempFilePath = path.join(
-          path.dirname(tempFilePath),
-          newFileName
-        );
-
-        fs.writeFileSync(tempFilePath, JSON.stringify(dataArray));
-        fs.renameSync(tempFilePath, newTempFilePath);
-
-        setTimeout(() => {
-          if (fs.existsSync(newTempFilePath)) {
-            fs.unlinkSync(newTempFilePath);
+            }));
           }
-        }, 60 * 60 * 1000); //1h
+
+          if (message.embeds.length > 0) {
+            messageData.embeds = message.embeds
+              .filter((embed) => embed.title || embed.description)
+              .map((embed) => ({
+                title: embed.title ?? "",
+                description: embed.description ?? "",
+              }));
+          }
+
+          tempDataArray.push(messageData);
+        }
+
+        return tempDataArray;
+      };
+
+      // Handle existing temp file
+      if (tempFilePath) {
+        try {
+          const fileName = path.basename(tempFilePath);
+          const parts = fileName.split("-");
+          const oldMessageNo = parseInt(parts[2]);
+          const oldTimestamp = parts[3].replace(".json", "");
+
+          const remainingMsg = messageNo - oldMessageNo;
+
+          const fileContent = await fs.readFile(tempFilePath, "utf-8");
+          dataArray = JSON.parse(fileContent);
+
+          if (remainingMsg < 0) {
+            const elementsToRemove = Math.abs(remainingMsg);
+            dataArray = dataArray.slice(elementsToRemove);
+          } else if (remainingMsg > 0) {
+            const newMessages = await getMessages(remainingMsg, oldTimestamp);
+            dataArray = [...newMessages, ...dataArray];
+
+            const newFileName = `aiCatchup-${interaction.channelId}-${messageNo}-${dataArray[0].createdTimestamp}.json`;
+            const newTempFilePath = path.join(
+              path.dirname(tempFilePath),
+              newFileName
+            );
+
+            await fs.writeFile(
+              newTempFilePath,
+              JSON.stringify(dataArray, null, 2)
+            );
+            await fs.unlink(tempFilePath);
+
+            // Clean up after 1 hour
+            setTimeout(async () => {
+              try {
+                await fs.access(newTempFilePath);
+                await fs.unlink(newTempFilePath);
+              } catch (error) {
+                // File already deleted
+              }
+            }, 60 * 60 * 1000);
+          }
+        } catch (error) {
+          debugStream.write(`Error handling temp file: ${error}`);
+          dataArray = await getMessages(messageNo);
+        }
+      } else {
+        dataArray = await getMessages(messageNo);
+
+        if (dataArray.length > 0) {
+          createTempDataFile(
+            `aiCatchup-${interaction.channelId}-${messageNo}-${dataArray[0].createdTimestamp}.json`,
+            JSON.stringify(dataArray, null, 2),
+            60 * 60 * 1000
+          );
+        }
       }
-    } else {
-      dataArray = await getMessages(messageNo);
 
-      createTempDataFile(
-        `aiCatchup-${interaction.channelId}-${messageNo}-${dataArray[0].createdTimestamp}.json`,
-        JSON.stringify(dataArray),
-        60 * 60 * 1000 //1h
-      );
-    }
+      if (dataArray.length === 0) {
+        await interaction.editReply("No messages found to summarize.");
+        return;
+      }
 
-    debugStream.write("Messages collected! Generating summary...");
+      debugStream.write("Messages collected! Processing attachments...");
 
-    const getFileData = async (file: {
-      contentType: string;
-      fileName: string;
-      fileURL: string;
-    }) => {
-      const fileBuffer = await fetch(file.fileURL).then((response) =>
-        response.arrayBuffer()
-      );
-      const fileData = Buffer.from(fileBuffer);
-      createTempDataFile(file.fileName, fileData);
+      const uploadedFiles: any[] = [];
+      const processedAttachments = new Set<string>();
 
-      const uploadResult = await gemini.fileManager!.upload({
-        file: `./public/${file.fileName}`,
-        config: { mimeType: file.contentType },
+      // Process attachments with better error handling
+      for (const data of dataArray) {
+        if (data.attachments && data.attachments.length > 0) {
+          for (const attachment of data.attachments) {
+            const fileKey = `${attachment.fileName}-${attachment.fileURL}`;
+
+            if (processedAttachments.has(fileKey)) {
+              continue; // Skip duplicate attachments
+            }
+
+            processedAttachments.add(fileKey);
+
+            try {
+              const response = await fetch(attachment.fileURL);
+              if (!response.ok) {
+                debugStream.write(
+                  `Failed to fetch ${attachment.fileName}: ${response.status}`
+                );
+                continue;
+              }
+
+              const fileBuffer = await response.arrayBuffer();
+              const fileData = Buffer.from(fileBuffer);
+
+              // Validate file size (Gemini has limits)
+              if (fileData.length > 20 * 1024 * 1024) {
+                debugStream.write(
+                  `File ${attachment.fileName} too large, skipping`
+                );
+                continue;
+              }
+
+              const tempFileName = `temp_${Date.now()}_${attachment.fileName}`;
+              createTempDataFile(tempFileName, fileData);
+
+              const uploadResult = await gemini.fileManager!.upload({
+                file: `./public/${tempFileName}`,
+                config: { mimeType: attachment.contentType },
+              });
+
+              uploadedFiles.push(
+                createPartFromUri(uploadResult.uri!, uploadResult.mimeType!)
+              );
+            } catch (error) {
+              debugStream.write(
+                `Error processing attachment ${attachment.fileName}: ${error}`
+              );
+            }
+          }
+        }
+      }
+
+      debugStream.write("Generating summary...");
+
+      // Create a simplified data structure for the summary
+      const summaryData = dataArray.map((data) => ({
+        username: data.username,
+        timestamp: new Date(data.createdTimestamp).toISOString(),
+        message: data.messageContent || "",
+        embeds: data.embeds || [],
+        hasAttachments: (data.attachments?.length || 0) > 0,
+      }));
+
+      const summarySchema: Schema = {
+        type: Type.ARRAY,
+        description: "A summary of the conversation",
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            heading: {
+              type: Type.STRING,
+              description:
+                "A brief heading summarizing the main point or topic of the conversation segment.",
+            },
+            content: {
+              type: Type.STRING,
+              description:
+                "A detailed description of the conversation segment, providing more context and information.",
+            },
+          },
+          required: ["heading", "content"],
+        },
+        maxItems: "25",
+        minItems: "1",
+      };
+
+      const prompt = `
+Generate a summary of the following Discord channel conversation. 
+The data contains ${
+        summaryData.length
+      } messages with timestamps, usernames, and content.
+Focus on the main topics, important discussions, and key information shared.
+Keep the summary concise but informative, and use markdown formatting where appropriate.
+
+Conversation Data:
+${JSON.stringify(summaryData, null, 2)}
+      `.trim();
+
+      const contentParts = [...uploadedFiles, prompt];
+
+      const result = await gemini.model!.generateContent({
+        model: geminiModel || "gemini-2.0-flash",
+        contents: createUserContent(contentParts),
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: summarySchema,
+        },
       });
 
-      return createPartFromUri(uploadResult.uri!, uploadResult.mimeType!);
-    };
+      debugStream.write("Summary generated! Sending follow up...");
 
-    const fileResults = await Promise.all(
-      dataArray
-        .filter((data) => data.attachments && data.attachments.length > 0)
-        .flatMap((data) => data.attachments!)
-        .map((attachment) => getFileData(attachment))
-    );
+      if (!result.text) {
+        throw new Error("Failed to generate summary - empty response");
+      }
 
-    const configFileResponse = await gemini.fileManager!.upload({
-      file: `./temp/aiCatchup-${interaction.channelId}-${messageNo}-${dataArray[0].createdTimestamp}.json`,
-      config: {
-        mimeType: "text/json",
-      },
-    });
+      let summaryItems: SummaryItem[];
+      try {
+        summaryItems =
+          typeof result.text === "string"
+            ? JSON.parse(result.text)
+            : result.text;
+      } catch (parseError) {
+        throw new Error(`Failed to parse summary response: ${parseError}`);
+      }
 
-    const summarySchema: Schema = {
-      type: Type.ARRAY,
-      description: "A summary of the conversation",
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          heading: {
-            type: Type.STRING,
-            description:
-              "A brief heading summarizing the main point or topic of the conversation segment.",
-          },
-          content: {
-            type: Type.STRING,
-            description:
-              "A detailed description of the conversation segment, providing more context and information.",
-          },
-        },
-        required: ["heading", "content"],
-      },
-      maxItems: "25",
-      minItems: "1",
-    };
+      if (!Array.isArray(summaryItems) || summaryItems.length === 0) {
+        throw new Error("Invalid summary format received");
+      }
 
-    const result = await gemini.model!.generateContent({
-      model: geminiModel || "gemini-2.5-flash",
-      contents: createUserContent([
-        ...fileResults,
-        createPartFromUri(
-          configFileResponse.uri!,
-          configFileResponse.mimeType!
-        ),
-        "Generate a summary of the conversation from the provided messages file. This file contains messages from a Discord channel, including potential threads and attachments. The summary should be clear, concise, and no longer than 2000 characters. Use markdown formatting where appropriate to enhance readability.",
-      ]),
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: summarySchema,
-      },
-    });
+      // Ensure each field value is within Discord's limits (1024 characters)
+      const processedFields = summaryItems.map((summary, index) => ({
+        name: summary.heading.slice(0, 256) || `Summary ${index + 1}`,
+        value: summary.content.slice(0, 1024) || "No content available",
+        inline: false,
+      }));
 
-    debugStream.write("Summary generated! Sending follow up...");
+      const embedMessage = createEmbed({
+        color: Colors.Blue,
+        title: `📋 Catchup - ${messageNo} Messages`,
+        description: `Summary of the last ${dataArray.length} messages in this channel`,
+        fields: processedFields,
+      });
 
-    if (!result.text) throw new Error("Failed to generate summary.");
+      await interaction.followUp({
+        embeds: [embedMessage],
+      });
 
-    const embedMessage = createEmbed({
-      color: Colors.Blue,
-      title: "Catchup",
-      fields: JSON.parse(result.text).map((summary: any) => ({
-        name: summary.heading,
-        value: summary.content,
-      })),
-    });
+      debugStream.write("Follow up sent!");
+    } catch (error) {
+      debugStream.write(`Error occurred: ${error}`);
 
-    await interaction.followUp({
-      embeds: [embedMessage],
-    });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
 
-    debugStream.write("Follow up sent!");
+      try {
+        await interaction.followUp({
+          content: `❌ Failed to generate summary: ${errorMessage}`,
+          ephemeral: true,
+        });
+      } catch (followUpError) {
+        debugStream.write(`Failed to send error message: ${followUpError}`);
+      }
+    }
   },
 };
 

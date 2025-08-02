@@ -13,7 +13,7 @@
       "name": "Gemini Model",
       "type": "select",
       "options": ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.5-pro"],
-      "default": "gemini-2.5-pro",
+      "default": "gemini-2.0-flash",
       "description": "The Gemini model to use for AI interactions."
     },
     "imageModel": {
