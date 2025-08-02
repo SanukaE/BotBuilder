@@ -39,5 +39,8 @@
     "@types/unzipper": "^0.10.11",
     "@types/wav": "^1.0.4",
     "typescript": "^5.8.3"
+  },
+  "optionalDependencies": {
+    "pnpm": "^10.14.0"
   }
 }
