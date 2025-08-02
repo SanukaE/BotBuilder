@@ -43,7 +43,7 @@ export default async function (_: Client) {
 
       if (isOutdated) {
         console.log(
-          `[System] A new version of BotBuilder is available: ${latestVersion}. You are currently using version ${localVersion}.${autoUpdateEnabled ? '' : ' Please consider updating.'}`
+          `[System] A new version of BotBuilder is available: ${latestVersion}. You are currently using version ${localVersion}.${autoUpdateEnabled ? ' Updating now...' : ' Please consider updating.'}`
         );
         updateFound = true;
 
@@ -55,8 +55,6 @@ export default async function (_: Client) {
     const updateFiles = async () => {
       if(!autoUpdateEnabled) return;
       if (!updateFound) return;
-
-      console.log(`[System] Downloading and installing the latest version of BotBuilder...`);
 
       try {
         // Get latest release information
@@ -109,6 +107,10 @@ export default async function (_: Client) {
         await directory.extract({ path: process.cwd() });
 
         fs.rmSync(zipPath);
+
+        const macOSPath = path.join(process.cwd(), '__MACOSX');
+        if(fs.existsSync(macOSPath))
+          fs.rmSync(macOSPath);
 
         console.log(`[System] BotBuilder has been successfully updated! Please start the bot to apply changes.`);
         updateFound = false; // Reset after update
