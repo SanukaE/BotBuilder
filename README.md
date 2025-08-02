@@ -28,7 +28,7 @@ Before you begin, ensure you have installed:
 
 1. Download the latest version of BotBuilder from [BuiltByBit](https://builtbybit.com/resources/botbuilder.59151/?ref=discover) or from [here](https://github.com/SanukaE/BotBuilder/releases).
 
-2. Upload the `.zip` file to your server's file manager. Once uploaded, unarchive/unzip that file. You can delete that file afterwards.
+2. Upload the `BotBuilder vX.X.X.zip` file to your server's file manager. Once uploaded, unarchive/unzip that file. You can delete that file afterwards.
 
 3. Set these values for your variables:
 
