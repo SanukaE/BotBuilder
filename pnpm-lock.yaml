@@ -72,10 +72,6 @@ importers:
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
-    optionalDependencies:
-      pnpm:
-        specifier: ^10.14.0
-        version: 10.14.0
 
 packages:
 
@@ -1401,11 +1397,6 @@ packages:
 
   pgpass@1.0.5:
     resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
-
-  pnpm@10.14.0:
-    resolution: {integrity: sha512-rSenlkG0nD5IGhaoBbqnGBegS74Go40X5g4urug/ahRsamiBJfV5LkjdW6MOfaUqXNpMOZK5zPMz+c4iOvhHSA==}
-    engines: {node: '>=18.12'}
-    hasBin: true
 
   portfinder@1.0.37:
     resolution: {integrity: sha512-yuGIEjDAYnnOex9ddMnKZEMFE0CcGo6zbfzDklkmT1m5z734ss6JMzN9rNB3+RR7iS+F10D4/BVIaXOyh8PQKw==}
@@ -3183,9 +3174,6 @@ snapshots:
   pgpass@1.0.5:
     dependencies:
       split2: 4.2.0
-
-  pnpm@10.14.0:
-    optional: true
 
   portfinder@1.0.37:
     dependencies:

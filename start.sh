@@ -1,3 +1,3 @@
-pnpm install
-pnpm run build
-pnpm run start
+npm install
+npm run build
+npm run start
