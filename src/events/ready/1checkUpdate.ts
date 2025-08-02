@@ -43,9 +43,12 @@ export default async function (_: Client) {
 
       if (isOutdated) {
         console.log(
-          `[System] A new version of BotBuilder is available: ${latestVersion}. You are currently using version ${localVersion}.${autoUpdateEnabled ? ' Updating now...' : ' Please consider updating.'}`
+          `[System] A new version of BotBuilder is available: ${latestVersion}. You are currently using version ${localVersion}.${autoUpdateEnabled ? '' : ' Please consider updating.'}`
         );
         updateFound = true;
+
+        if(autoUpdateEnabled)
+          await updateFiles();
       }
     };
 
@@ -67,7 +70,6 @@ export default async function (_: Client) {
 
         const zipPath = path.join(process.cwd(), 'update.zip');
 
-        console.log(`[System] Downloading update...`);
         const downloadResponse = await fetch(downloadUrl);
         
         if (!downloadResponse.ok) {
@@ -90,7 +92,6 @@ export default async function (_: Client) {
         ];
 
         // Remove old files (except preserved items)
-        console.log(`[System] Removing old files...`);
         const rootItems = fs.readdirSync(process.cwd());
         
         for (const item of rootItems) {
@@ -104,13 +105,15 @@ export default async function (_: Client) {
           }
         }
 
-        console.log(`[System] Extracting files...`);
         const directory = await unzipper.Open.file(zipPath);
         await directory.extract({ path: process.cwd() });
 
-        console.log(`[System] BotBuilder has been successfully updated! Please restart the bot to apply changes.`);
+        fs.rmSync(zipPath);
+
+        console.log(`[System] BotBuilder has been successfully updated! Please start the bot to apply changes.`);
         updateFound = false; // Reset after update
 
+        process.exit(0);
       } catch (error: any) {
         console.error(`[Error] Failed to update BotBuilder: ${error.message || error}`);
       }
@@ -118,9 +121,6 @@ export default async function (_: Client) {
 
     await checkUpdate(); // Initial check
     setInterval(checkUpdate, 14 * 24 * 60 * 60 * 1000); // Check every 2 weeks (14 days)
-
-    if(autoUpdateEnabled)
-      setInterval(updateFiles, 14 * 24 * 60 * 60 * 1000);
 
   } catch (error: any) {
     console.log(
