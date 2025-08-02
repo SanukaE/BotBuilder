@@ -2,12 +2,24 @@ import { Client } from 'discord.js';
 import localPackage from '../../../package.json' with { type: 'json' };
 import fs from "fs";
 import path from 'path';
+import { pipeline } from 'stream/promises';
+import { createWriteStream, createReadStream } from 'fs';
+import { Extract } from 'unzipper';
 import getConfig from '#utils/getConfig.js';
 
 interface UpdateChecker {
   intervalId?: NodeJS.Timeout;
   isUpdating: boolean;
   lastCheckTime: number;
+}
+
+interface GitHubRelease {
+  tag_name: string;
+  name: string;
+  zipball_url: string;
+  tarball_url: string;
+  prerelease: boolean;
+  draft: boolean;
 }
 
 const updateChecker: UpdateChecker = {
@@ -36,29 +48,38 @@ export default async function (client: Client) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-        const githubResponse = await fetch(
-          'https://raw.githubusercontent.com/SanukaE/BotBuilder/main/package.json',
+        const releasesResponse = await fetch(
+          'https://api.github.com/repos/SanukaE/BotBuilder/releases/latest',
           { 
             signal: controller.signal,
             headers: {
-              'User-Agent': 'BotBuilder-UpdateChecker/1.0'
+              'User-Agent': 'BotBuilder-UpdateChecker/1.0',
+              'Accept': 'application/vnd.github.v3+json'
             }
           }
         );
         
         clearTimeout(timeoutId);
 
-        if (!githubResponse.ok) {
-          throw new Error(`GitHub API returned ${githubResponse.status}`);
+        if (!releasesResponse.ok) {
+          throw new Error(`GitHub API returned ${releasesResponse.status}`);
         }
 
-        const { version: latestVersion } = await githubResponse.json();
+        const latestRelease: GitHubRelease = await releasesResponse.json();
+        
+        // Skip prereleases and drafts
+        if (latestRelease.prerelease || latestRelease.draft) {
+          console.log('[System] Latest release is a prerelease or draft, skipping update check.');
+          return;
+        }
+
+        const latestVersion = latestRelease.tag_name.replace(/^v/, ''); // Remove 'v' prefix if present
         const { version: localVersion } = localPackage;
 
         const [localMajor, localMinor = 0, localPatch = 0] = localVersion
           .split('.')
           .map(v => parseInt(v.replace(/\D/g, ""), 10));
-        const [latestMajor, latestMinor = 0, latestPatch = 0] = (latestVersion as string)
+        const [latestMajor, latestMinor = 0, latestPatch = 0] = latestVersion
           .split('.')
           .map(v => parseInt(v.replace(/\D/g, ""), 10));
 
@@ -71,15 +92,15 @@ export default async function (client: Client) {
 
         if (isOutdated && !updateFound) {
           console.log(
-            `[System] A new version of BotBuilder is available: ${latestVersion}. You are currently using version ${localVersion}.` + 
+            `[System] A new version of BotBuilder is available: ${latestVersion} (${latestRelease.name}). You are currently using version ${localVersion}.` + 
             (autoUpdateEnabled ? ' Auto-updating...' : ' Please consider updating.')
           );
           updateFound = true;
 
           if (autoUpdateEnabled) {
             try {
-              await updateFiles();
-              console.log(`[System] BotBuilder has been updated to the latest version. Please restart the bot to apply changes.`);
+              await updateFromRelease(latestRelease);
+              console.log(`[System] BotBuilder has been updated to version ${latestVersion}. Please restart the bot to apply changes.`);
               
               // Notify about package.json changes
               if (packageJsonUpdated) {
@@ -124,228 +145,254 @@ export default async function (client: Client) {
       'backups'
     ];
 
-    const updateFiles = async (): Promise<void> => {
+    const updateFromRelease = async (release: GitHubRelease): Promise<void> => {
       if (updateChecker.isUpdating) {
         console.log('[System] Update already in progress, skipping...');
         return;
       }
 
       updateChecker.isUpdating = true;
-      console.log('[System] Updating BotBuilder files to the latest version...');
+      console.log(`[System] Updating BotBuilder to version ${release.tag_name}...`);
+
+      const tempDir = path.join(process.cwd(), 'temp-update');
+      const zipPath = path.join(tempDir, 'release.zip');
 
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-        const mainBranchResponse = await fetch(
-          'https://api.github.com/repos/SanukaE/BotBuilder/contents/',
-          { 
-            signal: controller.signal,
-            headers: {
-              'User-Agent': 'BotBuilder-UpdateChecker/1.0'
-            }
-          }
-        );
-        
-        clearTimeout(timeoutId);
-
-        if (!mainBranchResponse.ok) {
-          throw new Error(`GitHub API returned ${mainBranchResponse.status}`);
+        // Create temp directory
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
         }
 
-        const mainBranchFiles = await mainBranchResponse.json();
+        // Download the release zip
+        console.log('[System] Downloading release archive...');
+        await downloadRelease(release.zipball_url, zipPath);
 
-        // Fetch entire directory tree recursively
-        const remoteTree = await fetchRemoteTree(mainBranchFiles);
+        // Extract the zip
+        console.log('[System] Extracting release archive...');
+        const extractedDir = await extractRelease(zipPath, tempDir);
 
-        // Helper to check if a file should be skipped
-        const shouldSkipUpdate = (filePath: string): boolean => {
-          const normalized = filePath.replace(/\\/g, '/');
-          return skipUpdateFiles.some(skipFile => 
-            normalized === skipFile || 
-            normalized.startsWith(skipFile + '/') ||
-            normalized.endsWith('/' + skipFile)
-          );
-        };
+        // Update files from extracted release
+        console.log('[System] Updating files...');
+        await updateFilesFromExtracted(extractedDir);
 
-        // Helper to build a set of all remote files/dirs (relative paths)
-        function buildRemotePaths(files: any[], basePath = ''): Set<string> {
-          const paths = new Set<string>();
-          for (const file of files) {
-            const filePath = path.join(basePath, file.name || file.path).replace(/\\/g, '/');
-            paths.add(filePath);
-            if (file.type === 'dir' && file._children) {
-              for (const childPath of buildRemotePaths(file._children, file.path)) {
-                paths.add(childPath);
-              }
-            }
-          }
-          return paths;
-        }
-
-        // Helper to recursively fetch all remote files/dirs with retry logic
-        async function fetchRemoteTree(files: any[], basePath = ''): Promise<any[]> {
-          for (const file of files) {
-            if (file.type === 'dir') {
-              let retries = 3;
-              while (retries > 0) {
-                try {
-                  const controller = new AbortController();
-                  const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-                  const dirFilesResponse = await fetch(
-                    `https://api.github.com/repos/SanukaE/BotBuilder/contents/${file.path}`,
-                    { 
-                      signal: controller.signal,
-                      headers: {
-                        'User-Agent': 'BotBuilder-UpdateChecker/1.0'
-                      }
-                    }
-                  );
-                  
-                  clearTimeout(timeoutId);
-
-                  if (!dirFilesResponse.ok) {
-                    throw new Error(`Failed to fetch directory: ${dirFilesResponse.status}`);
-                  }
-
-                  const dirFiles = await dirFilesResponse.json();
-                  file._children = await fetchRemoteTree(dirFiles, file.path);
-                  break;
-                } catch (error: any) {
-                  retries--;
-                  if (retries === 0) {
-                    console.log(`[System] Failed to fetch directory ${file.path}: ${error.message}`);
-                    file._children = [];
-                  } else {
-                    console.log(`[System] Retrying fetch for ${file.path} (${retries} attempts left)`);
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-                  }
-                }
-              }
-            }
-          }
-          return files;
-        }
-
-        // Recursive update function with better error handling
-        async function updateFilesRecursive(files: any[], basePath = ''): Promise<void> {
-          for (const file of files) {
-            const filePath = path.join(basePath, file.name || file.path);
-
-            if (shouldSkipUpdate(filePath)) continue;
-
-            try {
-              if (file.type === 'file') {
-                const absFilePath = path.join(process.cwd(), filePath);
-                
-                // Ensure directory exists
-                const dirPath = path.dirname(absFilePath);
-                if (!fs.existsSync(dirPath)) {
-                  fs.mkdirSync(dirPath, { recursive: true });
-                }
-
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-                const fileResponse = await fetch(file.download_url, { signal: controller.signal });
-                clearTimeout(timeoutId);
-
-                if (!fileResponse.ok) {
-                  throw new Error(`Failed to download file: ${fileResponse.status}`);
-                }
-
-                const newFileContent = await fileResponse.text();
-
-                let localFileContent = '';
-                if (fs.existsSync(absFilePath)) {
-                  localFileContent = fs.readFileSync(absFilePath, 'utf-8');
-                }
-
-                if (newFileContent !== localFileContent) {
-                  // Track package.json changes
-                  if (filePath === 'package.json') {
-                    packageJsonUpdated = true;
-                  }
-
-                  // Create backup before overwriting
-                  if (fs.existsSync(absFilePath)) {
-                    const backupDir = path.join(process.cwd(), 'backups', 'update-backups');
-                    if (!fs.existsSync(backupDir)) {
-                      fs.mkdirSync(backupDir, { recursive: true });
-                    }
-                    const timestamp = Date.now();
-                    const backupPath = path.join(backupDir, `${path.basename(filePath)}.backup.${timestamp}`);
-                    fs.copyFileSync(absFilePath, backupPath);
-                  }
-
-                  fs.writeFileSync(absFilePath, newFileContent, 'utf-8');
-                  console.log(`[System] Updated file: ${filePath}`);
-                }
-              } else if (file.type === 'dir') {
-                const dirPath = path.join(process.cwd(), filePath);
-                if (!fs.existsSync(dirPath)) {
-                  fs.mkdirSync(dirPath, { recursive: true });
-                }
-                
-                if (file._children) {
-                  await updateFilesRecursive(file._children, file.path);
-                }
-              }
-            } catch (error: any) {
-              console.log(`[System] Failed to update ${filePath}: ${error.message}`);
-            }
-          }
-        }
-
-        // Delete local files/dirs that do not exist in remote
-        async function deleteOldFiles(remoteFiles: any[]): Promise<void> {
-          try {
-            const remoteTree = await fetchRemoteTree(remoteFiles);
-            const remotePaths = buildRemotePaths(remoteTree);
-
-            function deleteRecursively(localDir: string, basePath = ''): void {
-              if (!fs.existsSync(localDir)) return;
-
-              const entries = fs.readdirSync(localDir, { withFileTypes: true });
-              for (const entry of entries) {
-                const relPath = path.join(basePath, entry.name).replace(/\\/g, '/');
-                const absPath = path.join(localDir, entry.name);
-
-                if (shouldSkipUpdate(relPath)) continue;
-
-                if (!remotePaths.has(relPath)) {
-                  try {
-                    if (entry.isDirectory()) {
-                      fs.rmSync(absPath, { recursive: true, force: true });
-                      console.log(`[System] Deleted old directory: ${relPath}`);
-                    } else {
-                      fs.unlinkSync(absPath);
-                      console.log(`[System] Deleted old file: ${relPath}`);
-                    }
-                  } catch (error: any) {
-                    console.log(`[System] Failed to delete ${relPath}: ${error.message}`);
-                  }
-                } else if (entry.isDirectory()) {
-                  deleteRecursively(absPath, relPath);
-                }
-              }
-            }
-
-            deleteRecursively(process.cwd());
-          } catch (error: any) {
-            console.log(`[System] Failed to delete old files: ${error.message}`);
-          }
-        }
-
-        // Update files and then delete old ones
-        await updateFilesRecursive(remoteTree);
-        await deleteOldFiles(remoteTree);
+        // Clean up temp directory
+        fs.rmSync(tempDir, { recursive: true, force: true });
 
       } catch (error: any) {
-        console.log(`[System] Update failed: ${error.message}`);
+        // Clean up temp directory on error
+        if (fs.existsSync(tempDir)) {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+        throw error;
       } finally {
         updateChecker.isUpdating = false;
+      }
+    };
+
+    const downloadRelease = async (downloadUrl: string, outputPath: string): Promise<void> => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+      try {
+        const response = await fetch(downloadUrl, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'BotBuilder-UpdateChecker/1.0'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to download release: ${response.status}`);
+        }
+
+        if (!response.body) {
+          throw new Error('No response body received');
+        }
+
+        const fileStream = createWriteStream(outputPath);
+        await pipeline(response.body, fileStream);
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    const extractRelease = async (zipPath: string, extractDir: string): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        let extractedDirName = '';
+        
+        createReadStream(zipPath)
+          .pipe(Extract({ path: extractDir }))
+          .on('entry', (entry) => {
+            // Capture the root directory name from the first entry
+            if (!extractedDirName && entry.type === 'Directory') {
+              extractedDirName = entry.path;
+            }
+          })
+          .on('close', () => {
+            if (extractedDirName) {
+              resolve(path.join(extractDir, extractedDirName));
+            } else {
+              // Fallback: find the extracted directory
+              const entries = fs.readdirSync(extractDir, { withFileTypes: true });
+              const dir = entries.find(entry => entry.isDirectory());
+              if (dir) {
+                resolve(path.join(extractDir, dir.name));
+              } else {
+                reject(new Error('Could not find extracted directory'));
+              }
+            }
+          })
+          .on('error', reject);
+      });
+    };
+
+    const updateFilesFromExtracted = async (extractedDir: string): Promise<void> => {
+      // Helper to check if a file should be skipped
+      const shouldSkipUpdate = (filePath: string): boolean => {
+        const normalized = filePath.replace(/\\/g, '/');
+        return skipUpdateFiles.some(skipFile => 
+          normalized === skipFile || 
+          normalized.startsWith(skipFile + '/') ||
+          normalized.endsWith('/' + skipFile)
+        );
+      };
+
+      // Get all files from extracted directory
+      const getAllFiles = (dir: string, basePath = ''): Array<{ sourcePath: string, relativePath: string, isDirectory: boolean }> => {
+        const files: Array<{ sourcePath: string, relativePath: string, isDirectory: boolean }> = [];
+        
+        if (!fs.existsSync(dir)) return files;
+
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        
+        for (const entry of entries) {
+          const relativePath = path.join(basePath, entry.name).replace(/\\/g, '/');
+          const sourcePath = path.join(dir, entry.name);
+          
+          if (shouldSkipUpdate(relativePath)) continue;
+
+          if (entry.isDirectory()) {
+            files.push({ sourcePath, relativePath, isDirectory: true });
+            files.push(...getAllFiles(sourcePath, relativePath));
+          } else {
+            files.push({ sourcePath, relativePath, isDirectory: false });
+          }
+        }
+        
+        return files;
+      };
+
+      const extractedFiles = getAllFiles(extractedDir);
+
+      // Create backup directory
+      const backupDir = path.join(process.cwd(), 'backups', 'update-backups');
+      const timestamp = Date.now();
+      const backupPath = path.join(backupDir, `backup-${timestamp}`);
+
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
+      }
+
+      // Update files
+      for (const file of extractedFiles) {
+        try {
+          const targetPath = path.join(process.cwd(), file.relativePath);
+
+          if (file.isDirectory) {
+            // Create directory if it doesn't exist
+            if (!fs.existsSync(targetPath)) {
+              fs.mkdirSync(targetPath, { recursive: true });
+              console.log(`[System] Created directory: ${file.relativePath}`);
+            }
+          } else {
+            // Ensure parent directory exists
+            const parentDir = path.dirname(targetPath);
+            if (!fs.existsSync(parentDir)) {
+              fs.mkdirSync(parentDir, { recursive: true });
+            }
+
+            // Check if file content has changed
+            let shouldUpdate = true;
+            if (fs.existsSync(targetPath)) {
+              const existingContent = fs.readFileSync(targetPath, 'utf-8');
+              const newContent = fs.readFileSync(file.sourcePath, 'utf-8');
+              shouldUpdate = existingContent !== newContent;
+            }
+
+            if (shouldUpdate) {
+              // Create backup of existing file
+              if (fs.existsSync(targetPath)) {
+                const backupFilePath = path.join(backupPath, file.relativePath);
+                const backupFileDir = path.dirname(backupFilePath);
+                if (!fs.existsSync(backupFileDir)) {
+                  fs.mkdirSync(backupFileDir, { recursive: true });
+                }
+                fs.copyFileSync(targetPath, backupFilePath);
+              }
+
+              // Track package.json changes
+              if (file.relativePath === 'package.json') {
+                packageJsonUpdated = true;
+              }
+
+              // Copy new file
+              fs.copyFileSync(file.sourcePath, targetPath);
+              console.log(`[System] Updated file: ${file.relativePath}`);
+            }
+          }
+        } catch (error: any) {
+          console.log(`[System] Failed to update ${file.relativePath}: ${error.message}`);
+        }
+      }
+
+      // Delete old files that don't exist in the new release
+      await deleteOldFiles(extractedFiles);
+    };
+
+    const deleteOldFiles = async (newFiles: Array<{ relativePath: string, isDirectory: boolean }>): Promise<void> => {
+      const shouldSkipUpdate = (filePath: string): boolean => {
+        const normalized = filePath.replace(/\\/g, '/');
+        return skipUpdateFiles.some(skipFile => 
+          normalized === skipFile || 
+          normalized.startsWith(skipFile + '/') ||
+          normalized.endsWith('/' + skipFile)
+        );
+      };
+
+      const newFilePaths = new Set(newFiles.map(f => f.relativePath));
+
+      const deleteRecursively = (localDir: string, basePath = ''): void => {
+        if (!fs.existsSync(localDir)) return;
+
+        const entries = fs.readdirSync(localDir, { withFileTypes: true });
+        for (const entry of entries) {
+          const relPath = path.join(basePath, entry.name).replace(/\\/g, '/');
+          const absPath = path.join(localDir, entry.name);
+
+          if (shouldSkipUpdate(relPath)) continue;
+
+          if (!newFilePaths.has(relPath)) {
+            try {
+              if (entry.isDirectory()) {
+                fs.rmSync(absPath, { recursive: true, force: true });
+                console.log(`[System] Deleted old directory: ${relPath}`);
+              } else {
+                fs.unlinkSync(absPath);
+                console.log(`[System] Deleted old file: ${relPath}`);
+              }
+            } catch (error: any) {
+              console.log(`[System] Failed to delete ${relPath}: ${error.message}`);
+            }
+          } else if (entry.isDirectory()) {
+            deleteRecursively(absPath, relPath);
+          }
+        }
+      };
+
+      try {
+        deleteRecursively(process.cwd());
+      } catch (error: any) {
+        console.log(`[System] Failed to delete old files: ${error.message}`);
       }
     };
 
