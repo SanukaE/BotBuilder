@@ -14,27 +14,35 @@ export default async function (client: Client) {
     const registeredCommands = await getRegisteredCommands(client);
 
     for (const localCommand of localCommands) {
-      const registeredCommand = registeredCommands.find(
-        (command) => command.name === localCommand.name
-      );
+      try {
+        const registeredCommand = registeredCommands.find(
+          (command) => command.name === localCommand.name
+        );
 
-      if (registeredCommand) {
-        if (localCommand.isDisabled) {
-          await client.application!.commands.delete(registeredCommand.id!);
-          continue;
-        }
+        if (registeredCommand) {
+          if (localCommand.isDisabled) {
+            await client.application!.commands.delete(registeredCommand.id!);
+            continue;
+          }
 
-        if (areCommandsDifferent(localCommand, registeredCommand)) {
-          console.log(
-            `[System] Updating command: ${localCommand.name} (${localCommand.description})`
-          );
-          await client.application!.commands.delete(registeredCommand.id!);
+          if (areCommandsDifferent(localCommand, registeredCommand)) {
+            console.log(
+              `[System] Updating command: ${localCommand.name} (${localCommand.description})`
+            );
+            await client.application!.commands.delete(registeredCommand.id!);
+            await client.application!.commands.create(localCommand);
+          }
+        } else {
+          if (localCommand.isDisabled) continue;
+
           await client.application!.commands.create(localCommand);
         }
-      } else {
-        if (localCommand.isDisabled) continue;
-
-        await client.application!.commands.create(localCommand);
+      } catch (err: any) {
+        console.log(
+          `[Error] Failed to check command ${localCommand.name}: ${
+            err.message ?? err
+          }`
+        );
       }
     }
 
@@ -47,7 +55,15 @@ export default async function (client: Client) {
     });
 
     for (const deletedCommand of deletedCommands) {
-      await client.application!.commands.delete(deletedCommand.id!);
+      try {
+        await client.application!.commands.delete(deletedCommand.id!);
+      } catch (err: any) {
+        console.log(
+          `[Error] Failed to check command ${deletedCommand.name}: ${
+            err.message ?? err
+          }`
+        );
+      }
     }
 
     console.log("[System] All slash commands are updated.");
