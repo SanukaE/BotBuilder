@@ -17,14 +17,12 @@ export default async function (
   if (!autoMessageTranslation) return;
 
   if (message.author.bot) return;
-
-  if (!message.content || message.content.length >= 50) return;
+  if (!message.content) return;
 
   const translationData = await translate(
     message.content,
-    undefined,
-    defaultLanguage,
-    true
+    null,
+    defaultLanguage
   ).catch((err) => console.log(`[Error] Failed to translate: ${err}`));
 
   if (!translationData || translationData.language.from === defaultLanguage)
