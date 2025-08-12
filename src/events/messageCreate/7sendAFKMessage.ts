@@ -1,6 +1,7 @@
-import { Client, Message, OmitPartialGroupDMChannel } from 'discord.js';
-import MySQL from '#libs/MySQL.js';
-import { RowDataPacket } from 'mysql2';
+import { Client, Message, OmitPartialGroupDMChannel } from "discord.js";
+import MySQL from "#libs/MySQL.js";
+import { RowDataPacket } from "mysql2";
+import getConfig from "#utils/getConfig.js";
 
 export default async function (
   client: Client,
@@ -10,6 +11,11 @@ export default async function (
 
   if (!message.deletable) return;
   if (message.author.bot) return;
+
+  const { channelID } = getConfig("counting") as {
+    channelID: string;
+  };
+  if (message.channelId !== channelID) return;
 
   const mentionMembers = Array.from(message.mentions.members.values()).filter(
     (member) => !member.user.bot
@@ -21,7 +27,7 @@ export default async function (
   try {
     for (const member of mentionMembers) {
       const [rows] = await MySQL.query<RowDataPacket[]>(
-        'SELECT * FROM afk_users WHERE userID = ?',
+        "SELECT * FROM afk_users WHERE userID = ?",
         [member.id]
       );
 
@@ -49,9 +55,9 @@ export default async function (
             preValue +
             `\n${mentionedMember.displayName}: ${currValue.afkMessage}`
           );
-        }, ''),
+        }, ""),
     });
   } catch (error) {
-    console.error('[Error] Failed checking AFK status:', error);
+    console.error("[Error] Failed checking AFK status:", error);
   }
 }

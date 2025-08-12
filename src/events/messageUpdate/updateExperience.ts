@@ -19,6 +19,11 @@ export default async function (
   )
     return;
 
+  const { channelID: countChannelID } = getConfig("counting") as {
+    channelID: string;
+  };
+  if (newMessage.channelId === countChannelID) return;
+
   const experienceConfig = getConfig("experience") as any;
   if (!experienceConfig.enableExperience) return;
 

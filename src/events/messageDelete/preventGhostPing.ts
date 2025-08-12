@@ -1,16 +1,22 @@
-import createEmbed from '#utils/createEmbed.js';
+import createEmbed from "#utils/createEmbed.js";
+import getConfig from "#utils/getConfig.js";
 import {
   Client,
   Colors,
   Message,
   OmitPartialGroupDMChannel,
   PartialMessage,
-} from 'discord.js';
+} from "discord.js";
 
 export default async function (
   client: Client,
   message: OmitPartialGroupDMChannel<Message<boolean> | PartialMessage>
 ) {
+  const { channelID: countChannelID } = getConfig("counting") as {
+    channelID: string;
+  };
+  if (message.channelId === countChannelID) return;
+
   if (message.author?.bot || !message.inGuild()) return;
 
   const members = message.mentions.members.filter(
@@ -23,16 +29,16 @@ export default async function (
   const embedMessage = createEmbed({
     color: Colors.Red,
     thumbnail: {
-      url: 'https://i.postimg.cc/Px5nt9db/cartoon-ghost-icon-png.png',
+      url: "https://i.postimg.cc/Px5nt9db/cartoon-ghost-icon-png.png",
     },
-    title: 'Ghost Ping Detected!',
+    title: "Ghost Ping Detected!",
     description: `${message.author?.displayName} (${
       message.author?.tag
     }) deleted a messaged that mentioned some members.\nThose mentioned members are: ${Array.from(
       members.values()
     )
       .map((member) => member.user.tag)
-      .join(', ')}`,
+      .join(", ")}`,
   });
 
   await message.channel.send({ embeds: [embedMessage] });

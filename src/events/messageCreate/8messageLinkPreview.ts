@@ -15,11 +15,16 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.bot || !message.inGuild()) return;
 
-  const { messageLinkPreview } = getConfig("misc") as {
+  const { messageLinkPreview, channelID: countChannelID } = getConfig(
+    "misc",
+    "counting"
+  ) as {
     messageLinkPreview: boolean;
+    channelID: string;
   };
 
   if (!messageLinkPreview) return;
+  if (message.channelId === countChannelID) return;
 
   const messagePattern =
     /https?:\/\/(?:ptb\.|canary\.)?discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/g;

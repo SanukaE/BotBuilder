@@ -18,7 +18,6 @@ import {
   TextInputStyle,
   ChannelType,
   ModalSubmitInteraction,
-  TextChannel,
 } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import { Schema, Type } from "@google/genai";
@@ -44,6 +43,25 @@ export default async function (
 
   if (!eventConfig.enableChatEvents) return;
   if (message.channel.type !== ChannelType.GuildText) return;
+
+  const { channelID: countChannelID, supportChannelID } = getConfig(
+    "counting",
+    "support"
+  ) as {
+    channelID: string;
+    supportChannelID: string;
+  };
+  if (
+    message.channelId === countChannelID ||
+    message.channelId === supportChannelID
+  )
+    return;
+
+  const [rows] = await MySQL.query<RowDataPacket[]>(
+    "SELECT * FROM tickets WHERE channelID = ?",
+    [message.channelId]
+  );
+  if (rows.length > 0) return;
 
   // Check if channel is allowed for events
   if (

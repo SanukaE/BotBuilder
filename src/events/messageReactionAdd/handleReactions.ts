@@ -19,6 +19,11 @@ export default async function (
   user: User | PartialUser,
   details: MessageReactionEventDetails
 ) {
+  const { channelID: countChannelID } = getConfig("counting") as {
+    channelID: string;
+  };
+  if (messageReaction.message.channelId === countChannelID) return;
+
   const { developmentGuildID, isMaintenanceEnabled, channelID } = getConfig(
     "application",
     "counting"

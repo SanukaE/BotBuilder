@@ -16,15 +16,18 @@ export default async function (
 ) {
   if (!message.inGuild()) return;
 
-  const { voiceMessageTranscript, defaultLanguage, geminiModel } = getConfig(
-    "application",
-    "misc",
-    "ai"
-  ) as {
+  const {
+    voiceMessageTranscript,
+    defaultLanguage,
+    geminiModel,
+    channelID: countChannelID,
+  } = getConfig("application", "misc", "ai", "counting") as {
     voiceMessageTranscript: boolean;
     defaultLanguage: string;
     geminiModel: string;
+    channelID: string;
   };
+  if (message.channel.id === countChannelID) return;
   if (!voiceMessageTranscript) return;
 
   if (!message.deletable) return;

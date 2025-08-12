@@ -10,11 +10,18 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.id === client.user?.id) return;
 
-  const { autoMessageTranslation, defaultLanguage } = getConfig(
-    "misc",
-    "application"
-  ) as { autoMessageTranslation: boolean; defaultLanguage: string };
+  const {
+    autoMessageTranslation,
+    defaultLanguage,
+    channelID: countChannelID,
+  } = getConfig("misc", "application", "counting") as {
+    autoMessageTranslation: boolean;
+    defaultLanguage: string;
+    channelID: string;
+  };
   if (!autoMessageTranslation) return;
+
+  if (message.channelId === countChannelID) return;
 
   if (message.author.bot) return;
   if (!message.content) return;
