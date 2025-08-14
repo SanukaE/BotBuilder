@@ -225,7 +225,7 @@ function handleSearch() {
     .toLowerCase();
   const configContainer = document.getElementById("config-container");
   if (!configs.length) {
-    alert("There are no modules to search for.");
+    showSaveError("There are no modules to search for.");
     return;
   }
   configContainer.innerHTML = '<i class="fa-solid fa-clock"></i> Searching...';
@@ -460,106 +460,348 @@ document.addEventListener("keypress", (ev) => {
 
 async function saveModule(moduleName, formData) {
   if (!moduleName || !formData) throw new Error("Missing module data.");
-  const config = configs.find((c) => c.name === moduleName);
-  if (!config) throw new Error("Config module couldn't be found.");
-  const { name: fileName, data: moduleData } = config;
-  const [values, meta, fields] = moduleData;
 
-  for (const [key, field] of Object.entries(fields)) {
-    const value = formData[key];
-    const type = field.type;
-    if (type === "boolean" && typeof value !== "boolean") {
-      alert(`Field "${field.name || key}" must be a boolean.`);
-      return;
-    }
-    if (
-      (type === "number" || type === "float") &&
-      (typeof value !== "number" || isNaN(value))
-    ) {
-      alert(`Field "${field.name || key}" must be a number.`);
-      return;
-    }
-    if (
-      type === "integer" &&
-      (typeof value !== "number" || !Number.isInteger(value))
-    ) {
-      alert(`Field "${field.name || key}" must be an integer.`);
-      return;
-    }
-    if (
-      (type === "string" || type === "password") &&
-      typeof value !== "string"
-    ) {
-      alert(`Field "${field.name || key}" must be a string.`);
-      return;
-    }
-    if (
-      type === "string[]" &&
-      (!Array.isArray(value) || !value.every((v) => typeof v === "string"))
-    ) {
-      alert(`Field "${field.name || key}" must be an array of strings.`);
-      return;
-    }
-    if (
-      type === "number[]" &&
-      (!Array.isArray(value) || !value.every((v) => typeof v === "number"))
-    ) {
-      alert(`Field "${field.name || key}" must be an array of numbers.`);
-      return;
-    }
-    if (
-      type === "object" &&
-      (typeof value !== "object" || value === null || Array.isArray(value))
-    ) {
-      alert(`Field "${field.name || key}" must be an object.`);
-      return;
-    }
-    if (type === "select" && Array.isArray(field.options)) {
-      const validOptions = field.options.map((opt) => opt.value ?? opt);
-      if (!validOptions.includes(value)) {
-        alert(
-          `Field "${field.name || key}" must be one of: ${validOptions.join(
-            ", "
-          )}`
+  showSaveLoading("Saving your configuration...");
+
+  try {
+    const config = configs.find((c) => c.name === moduleName);
+    if (!config) throw new Error("Config module couldn't be found.");
+    const { name: fileName, data: moduleData } = config;
+    const [values, meta, fields] = moduleData;
+
+    for (const [key, field] of Object.entries(fields)) {
+      const value = formData[key];
+      const type = field.type;
+      if (type === "boolean" && typeof value !== "boolean") {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be a boolean.`
+        );
+        return;
+      }
+
+      if (
+        (type === "number" || type === "float") &&
+        (typeof value !== "number" || isNaN(value))
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be a number.`
+        );
+        return;
+      }
+
+      if (
+        type === "integer" &&
+        (typeof value !== "number" || !Number.isInteger(value))
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be an integer.`
+        );
+        return;
+      }
+
+      if (
+        (type === "string" || type === "password") &&
+        typeof value !== "string"
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be a string.`
+        );
+        return;
+      }
+
+      if (
+        type === "string[]" &&
+        (!Array.isArray(value) || !value.every((v) => typeof v === "string"))
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be an array of strings.`
+        );
+        return;
+      }
+
+      if (
+        type === "number[]" &&
+        (!Array.isArray(value) || !value.every((v) => typeof v === "number"))
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be an array of numbers.`
+        );
+        return;
+      }
+
+      if (
+        type === "object" &&
+        (typeof value !== "object" || value === null || Array.isArray(value))
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be an object.`
+        );
+        return;
+      }
+
+      if (type === "select" && Array.isArray(field.options)) {
+        const validOptions = field.options.map((opt) => opt.value ?? opt);
+        if (!validOptions.includes(value)) {
+          showValidationError(
+            field.name || key,
+            `Field "${field.name || key}" must be one of: ${validOptions.join(
+              ", "
+            )}`
+          );
+          return;
+        }
+      }
+
+      if (
+        type === "date" &&
+        (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value))
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be a valid date (YYYY-MM-DD).`
+        );
+        return;
+      }
+
+      if (
+        type === "time" &&
+        (typeof value !== "string" || !/^\d{2}:\d{2}$/.test(value))
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${field.name || key}" must be a valid time (HH:MM).`
+        );
+        return;
+      }
+
+      if (
+        type === "datetime" &&
+        (typeof value !== "string" ||
+          !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value))
+      ) {
+        showValidationError(
+          field.name || key,
+          `Field "${
+            field.name || key
+          }" must be a valid datetime (YYYY-MM-DDTHH:MM).`
         );
         return;
       }
     }
-    if (
-      type === "date" &&
-      (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value))
-    ) {
-      alert(`Field "${field.name || key}" must be a valid date (YYYY-MM-DD).`);
-      return;
+
+    const apiKey = getCookie("apiKey") || "";
+    const response = await fetch("api/configuration-save", {
+      headers: { Authorization: apiKey, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({ fileName, formData }),
+    });
+
+    if (!response.ok) throw new Error("Server response was not ok");
+
+    const configIndex = configs.findIndex((c) => c.name === moduleName);
+    configs[configIndex].data[0] = formData;
+
+    closeSavePopup();
+    showSaveSuccess("Module saved successfully!");
+  } catch (error) {
+    console.error("Save error:", error);
+    closeSavePopup();
+    showSaveError("Failed to save configuration. Please try again.");
+  }
+}
+
+class SavePopup {
+  constructor() {
+    this.overlay = document.getElementById("savePopupOverlay");
+    this.popup = document.getElementById("savePopup");
+    this.icon = document.getElementById("savePopupIcon");
+    this.iconContent = document.getElementById("savePopupIconContent");
+    this.title = document.getElementById("savePopupTitle");
+    this.message = document.getElementById("savePopupMessage");
+    this.progress = document.getElementById("savePopupProgress");
+    this.actions = document.getElementById("savePopupActions");
+    this.primaryBtn = document.getElementById("savePopupPrimary");
+    this.closeBtn = document.getElementById("savePopupClose");
+
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    this.closeBtn.addEventListener("click", () => this.hide());
+    this.overlay.addEventListener("click", (e) => {
+      if (e.target === this.overlay) this.hide();
+    });
+  }
+
+  show(type = "success", title, message, options = {}) {
+    this.reset();
+
+    // Set content
+    this.title.textContent = title;
+    this.message.textContent = message;
+
+    // Apply styling based on type
+    this.applyStyle(type);
+
+    // Handle options
+    if (options.showProgress) {
+      this.progress.style.display = "block";
+    } else {
+      this.progress.style.display = "none";
     }
-    if (
-      type === "time" &&
-      (typeof value !== "string" || !/^\d{2}:\d{2}$/.test(value))
-    ) {
-      alert(`Field "${field.name || key}" must be a valid time (HH:MM).`);
-      return;
+
+    if (options.buttons) {
+      this.setupButtons(options.buttons);
     }
-    if (
-      type === "datetime" &&
-      (typeof value !== "string" ||
-        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value))
-    ) {
-      alert(
-        `Field "${
-          field.name || key
-        }" must be a valid datetime (YYYY-MM-DDTHH:MM).`
-      );
-      return;
+
+    if (options.autoClose) {
+      setTimeout(() => this.hide(), options.autoClose);
+    }
+
+    // Show popup
+    this.overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  applyStyle(type) {
+    // Reset classes
+    this.icon.className = "save-popup-icon";
+    this.title.className = "save-popup-title";
+
+    switch (type) {
+      case "success":
+        this.icon.classList.add("success");
+        this.title.classList.add("success");
+        this.iconContent.className = "fas fa-check";
+        break;
+      case "error":
+        this.icon.classList.add("error");
+        this.title.classList.add("error");
+        this.iconContent.className = "fas fa-exclamation-triangle";
+        break;
+      case "loading":
+        this.icon.classList.add("loading");
+        this.title.classList.add("loading");
+        this.iconContent.className = "fas fa-spinner";
+        break;
+      case "warning":
+        this.icon.classList.add("error");
+        this.title.classList.add("error");
+        this.iconContent.className = "fas fa-exclamation-circle";
+        break;
     }
   }
 
-  const apiKey = getCookie("apiKey") || "";
-  const response = await fetch("api/configuration-save", {
-    headers: { Authorization: apiKey, "Content-Type": "application/json" },
-    method: "POST",
-    body: JSON.stringify({ fileName, formData }),
-  });
+  setupButtons(buttons) {
+    this.actions.innerHTML = "";
 
-  if (!response.ok) throw new Error("Server response was not ok");
-  alert("Module saved!");
+    buttons.forEach((btn, index) => {
+      const button = document.createElement("button");
+      button.className = `save-popup-btn ${btn.secondary ? "secondary" : ""}`;
+      button.textContent = btn.text;
+      button.onclick = btn.action || (() => this.hide());
+      this.actions.appendChild(button);
+    });
+  }
+
+  reset() {
+    this.actions.innerHTML = `
+                    <button class="save-popup-btn" onclick="savePopupInstance.hide()">OK</button>
+                `;
+  }
+
+  hide() {
+    this.overlay.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  // Convenience methods
+  success(title, message, options = {}) {
+    this.show("success", title, message, options);
+  }
+
+  error(title, message, options = {}) {
+    this.show("error", title, message, options);
+  }
+
+  loading(title, message, options = {}) {
+    this.show("loading", title, message, { ...options, showProgress: true });
+  }
+
+  warning(title, message, options = {}) {
+    this.show("warning", title, message, options);
+  }
+}
+
+// Initialize popup system
+const savePopupInstance = new SavePopup();
+
+// Global functions for easy access
+function showSaveSuccess(message = "Configuration saved successfully!") {
+  savePopupInstance.success("Save Successful", message, { autoClose: 2500 });
+}
+
+function showSaveError(
+  message = "Failed to save configuration. Please try again."
+) {
+  savePopupInstance.error("Save Failed", message);
+}
+
+function showSaveLoading(message = "Saving your configuration...") {
+  savePopupInstance.loading("Saving", message);
+}
+
+function showValidationError(fieldName, message) {
+  const title = fieldName ? `Invalid ${fieldName}` : "Validation Error";
+  savePopupInstance.error(title, message);
+}
+
+function closeSavePopup() {
+  savePopupInstance.hide();
+}
+
+// Demo functions
+function showSavePopup(type) {
+  switch (type) {
+    case "loading":
+      savePopupInstance.loading(
+        "Saving Configuration",
+        "Please wait while we save your module settings..."
+      );
+      // Simulate loading completion
+      setTimeout(() => {
+        savePopupInstance.success(
+          "Save Successful",
+          "Your configuration has been saved successfully!",
+          { autoClose: 2500 }
+        );
+      }, 3000);
+      break;
+    case "success":
+      savePopupInstance.success(
+        "Module Saved!",
+        "Your configuration changes have been applied successfully."
+      );
+      break;
+    case "error":
+      savePopupInstance.error(
+        "Save Failed",
+        "Unable to save configuration. Please check your connection and try again."
+      );
+      break;
+  }
+}
+
+function showValidationError() {
+  savePopupInstance.error(
+    "Invalid Input",
+    'The field "Server Port" must be a number between 1 and 65535.'
+  );
 }
