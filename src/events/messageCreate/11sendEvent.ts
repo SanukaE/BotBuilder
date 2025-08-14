@@ -1135,7 +1135,7 @@ async function gameFinished(
   }
 
   await gameMessage.reply(
-    `This even is now over with ${
+    `This event is now over with ${
       winners
         ? winnerNames.join(", ") + " taking the win"
         : "no winners sadly : ("
@@ -1143,7 +1143,7 @@ async function gameFinished(
   );
 
   await gameMessage.edit({
-    content: `This even is now over with ${
+    content: `This event is now over with ${
       winners
         ? winnerNames.join(", ") + " taking the win"
         : "no winners sadly : ("
