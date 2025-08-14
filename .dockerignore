@@ -1,0 +1,15 @@
+#Production
+build
+node_modules
+ApplicationLogs
+temp
+localData
+
+#Variables
+.env
+configs
+
+#IDE
+.vscode
+.REST
+.DS_Store
