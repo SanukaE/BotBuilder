@@ -93,7 +93,7 @@ Once the setup is complete, your bot will be online.
 If you prefer to run BotBuilder in a [Docker container](https://hub.docker.com/repository/docker/sanukae/botbuilder), you can do so by running the command below:
 
 ```sh
-docker run -it botbuilder
+docker run -it sanukae/botbuilder
 ```
 
 ## 🤝 Contributing
