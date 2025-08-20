@@ -219,7 +219,6 @@ const command: CommandType = {
       filter: (i) =>
         i.user.id === interaction.user.id &&
         i.customId.startsWith("button-game-connect4"),
-      time: 300000, // 5 minutes
     });
 
     let gameEnded = false;
@@ -243,9 +242,17 @@ const command: CommandType = {
       // Player move
       dropPiece(gameBoard, column, 1); // Red
 
+      // Immediately update the board to show player's move
+      gameBoardLayout = updateGameBoardLayout();
+      await i.editReply({
+        content:
+          `You played column ${column + 1}! 🔴 My turn now... 🤔\n\n` +
+          gameBoardLayout,
+        components: [], // Disable buttons while AI is thinking
+      });
+
       // Check if player won
       if (checkWin(gameBoard, 1)) {
-        gameBoardLayout = updateGameBoardLayout();
         await i.editReply({
           content:
             `🎉 ${bold("You won!")} Congratulations! You got 4 in a row!\n\n` +
@@ -259,7 +266,6 @@ const command: CommandType = {
 
       // Check if board is full (tie)
       if (isBoardFull(gameBoard)) {
-        gameBoardLayout = updateGameBoardLayout();
         await i.editReply({
           content:
             `🤝 ${bold("It's a tie!")} The board is full! Good game!\n\n` +
@@ -287,28 +293,30 @@ const command: CommandType = {
       // Get available columns for AI
       const availableColumns = getAvailableColumns(gameBoard);
 
-      const aiResult = await gemini.model!.generateContent({
-        model: geminiModel || "",
-        contents: `This is a game of Connect 4 and you're playing as Yellow (🟡). Red is represented as 1, Yellow as 0 & undefined are the empty slots. 
-        The goal is to get 4 pieces in a row (horizontally, vertically, or diagonally).
-        
-        Current game board state (6 rows x 7 columns):
-        ${JSON.stringify(gameBoard)}
-        
-        Available columns to drop piece into: ${JSON.stringify(
-          availableColumns
-        )}
-        
-        From the game data above, which column (0-6) would you drop your Yellow piece into? 
-        Consider both offensive moves (trying to get 4 in a row) and defensive moves (blocking the opponent).
-        Return only the column number.`,
-        config: {
-          responseJsonSchema: responseSchema,
-          responseMimeType: "application/json",
-        },
-      });
+      let aiColumn: number;
 
       try {
+        const aiResult = await gemini.model!.generateContent({
+          model: geminiModel || "",
+          contents: `This is a game of Connect 4 and you're playing as Yellow (🟡). Red is represented as 1, Yellow as 0 & undefined are the empty slots. 
+          The goal is to get 4 pieces in a row (horizontally, vertically, or diagonally).
+          
+          Current game board state (6 rows x 7 columns):
+          ${JSON.stringify(gameBoard)}
+          
+          Available columns to drop piece into: ${JSON.stringify(
+            availableColumns
+          )}
+          
+          From the game data above, which column (0-6) would you drop your Yellow piece into? 
+          Consider both offensive moves (trying to get 4 in a row) and defensive moves (blocking the opponent).
+          Return only the column number.`,
+          config: {
+            responseJsonSchema: responseSchema,
+            responseMimeType: "application/json",
+          },
+        });
+
         if (!aiResult.text)
           throw new Error("Failed to get response from Gemini.");
 
@@ -321,31 +329,32 @@ const command: CommandType = {
           !availableColumns.includes(aiMove.column)
         ) {
           // Fallback to random available column if AI gives invalid response
-          const fallbackColumn =
+          aiColumn =
             availableColumns[
               Math.floor(Math.random() * availableColumns.length)
             ];
-          dropPiece(gameBoard, fallbackColumn, 0);
         } else {
-          dropPiece(gameBoard, aiMove.column, 0); // Yellow
+          aiColumn = aiMove.column;
         }
       } catch (error) {
         // Fallback to random available column if parsing fails
-        const fallbackColumn =
+        aiColumn =
           availableColumns[Math.floor(Math.random() * availableColumns.length)];
-        dropPiece(gameBoard, fallbackColumn, 0);
       }
 
-      // Update gameBoardLayout
+      // Make AI move
+      dropPiece(gameBoard, aiColumn, 0); // Yellow
+
+      // Update gameBoardLayout after AI move
       gameBoardLayout = updateGameBoardLayout();
 
       // Check if AI won
       if (checkWin(gameBoard, 0)) {
         await i.editReply({
           content:
-            `😏 ${bold(
-              "I won!"
-            )} I got 4 in a row! Better luck next time!\n\n` + gameBoardLayout,
+            `😎 ${bold("I won!")} I played column ${
+              aiColumn + 1
+            } and got 4 in a row! Better luck next time!\n\n` + gameBoardLayout,
           components: [],
         });
         gameEnded = true;
@@ -366,10 +375,12 @@ const command: CommandType = {
         return;
       }
 
-      // Continue game - update display
+      // Continue game - update display with AI's move
       await i.editReply({
         content:
-          `Your turn! Choose a column to drop your 🔴 piece!\n\n` +
+          `I played column ${
+            aiColumn + 1
+          }! 🟡 Your turn! Choose a column to drop your 🔴 piece!\n\n` +
           gameBoardLayout,
         components: [firstActionRow, secondActionRow],
       });

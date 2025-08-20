@@ -13,6 +13,11 @@ export default async function (
   client: Client,
   message: OmitPartialGroupDMChannel<Message<boolean> | PartialMessage>
 ) {
+  const { channelID: countChannelID } = getConfig("counting") as {
+    channelID: string;
+  };
+  if (message.channelId === countChannelID) return;
+
   if (!message.inGuild() || message.author?.bot) return;
 
   const experienceConfig = getConfig("experience") as any;

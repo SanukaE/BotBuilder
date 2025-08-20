@@ -88,6 +88,14 @@ pnpm start
 
 Once the setup is complete, your bot will be online.
 
+## 🐳 Running on Docker
+
+If you prefer to run BotBuilder in a [Docker container](https://hub.docker.com/repository/docker/sanukae/botbuilder), you can do so by running the command below:
+
+```sh
+docker run -it botbuilder
+```
+
 ## 🤝 Contributing
 
 Contributions are always welcome! Here's how you can help:

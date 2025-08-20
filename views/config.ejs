@@ -100,6 +100,32 @@
         <i class="fa-solid fa-clock"></i> Loading Configurations Modules...
 
     </section>
+
+    <!-- Save Popup Modal -->
+    <div class="save-popup-overlay" id="savePopupOverlay">
+        <div class="save-popup" id="savePopup">
+            <button class="save-popup-close" id="savePopupClose">
+                <i class="fas fa-times"></i>
+            </button>
+        
+            <div class="save-popup-icon" id="savePopupIcon">
+                <i class="fas fa-spinner" id="savePopupIconContent"></i>
+            </div>
+        
+            <h3 class="save-popup-title" id="savePopupTitle">Saving...</h3>
+            <p class="save-popup-message" id="savePopupMessage">Please wait while we save your configuration.</p>
+        
+            <div class="save-popup-progress" id="savePopupProgress" style="display: none;">
+                <div class="save-popup-progress-bar"></div>
+            </div>
+        
+            <div class="save-popup-actions" id="savePopupActions">
+                <button class="save-popup-btn" id="savePopupPrimary" onclick="closeSavePopup()">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
     
     <!-- Footer -->
     <footer>

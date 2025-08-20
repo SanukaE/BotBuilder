@@ -1,4 +1,5 @@
 import Assistant from "#libs/Assistant.js";
+import getConfig from "#utils/getConfig.js";
 import { Client, Message, OmitPartialGroupDMChannel } from "discord.js";
 
 export default async function (
@@ -9,6 +10,11 @@ export default async function (
   if (!message.inGuild()) return;
   if (message.author.bot) return;
   if (!message.content) return;
+
+  const { channelID: countChannelID } = getConfig("counting") as {
+    channelID: string;
+  };
+  if (message.channelId === countChannelID) return;
 
   const mentions = Array.from(message.mentions.members.values());
 

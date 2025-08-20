@@ -35,6 +35,19 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
+/**
+ * Runs the interactive CLI setup wizard for BotBuilder and persists configuration.
+ *
+ * Guides the user through collecting required and optional configuration values (Discord token/secret, web server,
+ * MySQL, Redis, Gemini API key, NamelessMC, MCStatistics), validates connectivity for each step, writes a populated
+ * .env file, copies configuration templates into a new `configs` directory, and then exits the process.
+ *
+ * The function is interactive (reads stdin) and performs network/database/API checks for verification. On successful
+ * completion it saves configuration files to the project working directory and calls process.exit(0). The function
+ * therefore does not return control to the caller.
+ *
+ * @returns A promise that resolves when the setup sequence finishes (the function will call process.exit(0) after completion).
+ */
 export default async function setup() {
   console.clear();
   console.log("========================================");
@@ -282,10 +295,10 @@ export default async function setup() {
 
   console.log("You can always change these settings later in the .env file.");
 
-  fs.renameSync(
-    path.join(process.cwd(), "configs.template"),
-    path.join(process.cwd(), "configs")
-  );
+  const templateConfigPath = path.join(process.cwd(), "configs.template");
+  const destPath = path.join(process.cwd(), "configs");
+  fs.cpSync(templateConfigPath, destPath, { recursive: true });
+  fs.rmSync(templateConfigPath, { recursive: true, force: true });
 
   console.log(
     "Your almost set to run BotBuilder! Please head over to your config files (located in configs folder) & configure how you would like BotBuilder to work.\n"
@@ -518,6 +531,23 @@ async function verifyMCStatisticsSecret() {
   }
 }
 
+/**
+ * Persists the collected setup values into a .env file based on the repository's .env.template.
+ *
+ * Verifies that required keys (APP_TOKEN, MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD,
+ * REDIS_HOST, REDIS_PORT) are present; if any are missing the function logs an error and returns
+ * without writing files. Locates the template at the repository root, reads it, replaces
+ * occurrences of `YOUR_<KEY>` with the corresponding value from the in-memory `environment`
+ * object, and treats values of `"-1"` or `undefined` as empty strings (also updating the
+ * `environment` object to reflect that).
+ *
+ * Side effects:
+ * - Copies `.env.template` from the current working directory to `.env`, then deletes the
+ *   template file.
+ * - Writes the populated environment contents to `.env`.
+ * - If the root `.env.template` (resolved relative to this file) is missing, logs an error and
+ *   exits the process with code 1.
+ */
 function saveEnvironmentToFile() {
   if (
     !environment.APP_TOKEN ||
@@ -557,8 +587,10 @@ function saveEnvironmentToFile() {
     environmentContent = environmentContent.replace(`YOUR_${key}`, value);
   });
 
-  const envFilePath = path.join(__dirname, "..", "..", ".env");
-  fs.renameSync(templateFilePath, envFilePath);
+  const templateEnvFilePath = path.join(process.cwd(), ".env.template");
+  const envFilePath = path.join(process.cwd(), ".env");
+  fs.copyFileSync(templateEnvFilePath, envFilePath);
+  fs.rmSync(templateEnvFilePath);
 
   fs.writeFileSync(envFilePath, environmentContent, "utf-8");
   console.log(`Environment saved to ${envFilePath}`);

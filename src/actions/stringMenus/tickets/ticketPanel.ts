@@ -1,10 +1,9 @@
 import MySQL from "#libs/MySQL.js";
-import CommandType from "#types/CommandType.js";
+import StringMenuType from "#types/StringMenuType.js";
 import getConfig from "#utils/getConfig.js";
 import openTicket from "#utils/openTicket.js";
 import {
   ActionRowBuilder,
-  ApplicationCommandOptionType,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
@@ -14,19 +13,6 @@ import {
 } from "discord.js";
 import { RowDataPacket } from "mysql2";
 
-type SupportConfig = {
-  supportChannelID: string;
-  enableTicketSystem: boolean;
-  ticketCategoryID: string;
-  ticketCategories: string[];
-  ticketWelcomeMessage: string;
-  autoCloseTicketsAfter: number;
-  mentionSupportTeam: boolean;
-  autoSaveTranscripts: boolean;
-  helpUserWithTicket: boolean;
-  allowMultipleTickets: boolean;
-};
-
 type FormField = {
   name: string;
   value?: string;
@@ -35,32 +21,14 @@ type FormField = {
   type: TextInputStyle;
 };
 
-const supportConfig = getConfig("support") as SupportConfig;
-
-const command: CommandType = {
-  name: "ticket-open",
-  description: "Open a ticket for support or assistance.",
-  options: [
-    {
-      name: "category",
-      description: "The category of the ticket.",
-      type: ApplicationCommandOptionType.String,
-      required: supportConfig.ticketCategories.length > 0,
-      choices: supportConfig.ticketCategories.map((category) => ({
-        name: category.split(":")[0],
-        value: category.split(":")[0],
-      })),
-    },
-  ],
+const stringMenu: StringMenuType = {
+  customID: "ticket-panel-select",
   isGuildOnly: true,
-  isDisabled: !supportConfig.enableTicketSystem,
 
   async script(client, interaction, debugStream) {
-    const category = interaction.options.getString("category", true);
-    const [categoryName, supportTeamRoleID, formTitle] =
-      supportConfig.ticketCategories
-        .find((cat) => cat.startsWith(category))!
-        .split(":");
+    const supportConfig = getConfig("support") as any;
+    const category = interaction.values[0];
+    const [categoryName, supportTeamRoleID, formTitle] = category.split(":");
 
     if (!supportConfig.allowMultipleTickets) {
       const [existingTickets] = await MySQL.query<RowDataPacket[]>(
@@ -149,4 +117,4 @@ const command: CommandType = {
   },
 };
 
-export default command;
+export default stringMenu;

@@ -18,7 +18,6 @@ import {
   TextInputStyle,
   ChannelType,
   ModalSubmitInteraction,
-  TextChannel,
 } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import { Schema, Type } from "@google/genai";
@@ -44,6 +43,25 @@ export default async function (
 
   if (!eventConfig.enableChatEvents) return;
   if (message.channel.type !== ChannelType.GuildText) return;
+
+  const { channelID: countChannelID, supportChannelID } = getConfig(
+    "counting",
+    "support"
+  ) as {
+    channelID: string;
+    supportChannelID: string;
+  };
+  if (
+    message.channelId === countChannelID ||
+    message.channelId === supportChannelID
+  )
+    return;
+
+  const [rows] = await MySQL.query<RowDataPacket[]>(
+    "SELECT * FROM tickets WHERE channelID = ?",
+    [message.channelId]
+  );
+  if (rows.length > 0) return;
 
   // Check if channel is allowed for events
   if (
@@ -1094,6 +1112,28 @@ async function trivia(
   }
 }
 
+/**
+ * Finalizes a finished mini-game: announces winners, reveals the answer, and awards experience.
+ *
+ * Sends channel messages (reply and edit) to mark the event as over, resolves winner display names
+ * (using the module-level `winners` variable), and — if enabled in configuration — awards XP to winners,
+ * updating the `user_levels` MySQL table and sending level-up notifications when applicable.
+ *
+ * Side effects:
+ * - Sends and edits messages in the game's channel.
+ * - Fetches Discord users and guild members.
+ * - Performs SELECT/INSERT/UPDATE queries against `user_levels`.
+ * - May call `sendLevelUpMessage` for level-up notifications.
+ *
+ * Notes:
+ * - Exits early if the original message is not in a guild text channel.
+ * - XP awarding only runs when `eventConfig.rewardExperience` and `experience.enableExperience` are enabled,
+ *   and when there are winners.
+ * - Uses the global `winners` value to determine single or multiple winners.
+ *
+ * @param gameMessage - The original game message used to post and edit the game state.
+ * @param gameAnswer - The correct answer to the completed game (revealed to the channel).
+ */
 async function gameFinished(
   client: Client,
   gameMessage: Message<false> | Message<true>,
@@ -1117,7 +1157,7 @@ async function gameFinished(
   }
 
   await gameMessage.reply(
-    `This even is now over with ${
+    `This event is now over with ${
       winners
         ? winnerNames.join(", ") + " taking the win"
         : "no winners sadly : ("
@@ -1125,7 +1165,7 @@ async function gameFinished(
   );
 
   await gameMessage.edit({
-    content: `This even is now over with ${
+    content: `This event is now over with ${
       winners
         ? winnerNames.join(", ") + " taking the win"
         : "no winners sadly : ("

@@ -4,13 +4,17 @@ import {
   Client,
   CommandInteraction,
   ModalSubmitInteraction,
+  StringSelectMenuInteraction,
 } from "discord.js";
 import saveTicketTranscript from "./saveTicketTranscript.js";
 import getConfig from "./getConfig.js";
 
 export default async function (
   client: Client,
-  interaction: CommandInteraction | ModalSubmitInteraction,
+  interaction:
+    | CommandInteraction
+    | ModalSubmitInteraction
+    | StringSelectMenuInteraction,
   categoryName: string,
   supportTeamRoleID: string,
   ticketWelcomeMessage: string,

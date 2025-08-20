@@ -12,6 +12,11 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.bot || !message.inGuild()) return;
 
+  const { channelID: countChannelID } = getConfig("counting") as {
+    channelID: string;
+  };
+  if (message.channelId === countChannelID) return;
+
   const experienceConfig = getConfig("experience") as any;
   if (!experienceConfig.enableExperience) return;
 

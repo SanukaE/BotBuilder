@@ -221,11 +221,14 @@ const command: CommandType = {
         return;
       }
 
-      gameBoard[inputData.row][inputData.element] = 1; //X
+      // Place user's move (X)
+      gameBoard[inputData.row][inputData.element] = 1;
+
+      // Update display immediately after user's move
+      gameBoardLayout = updateGameBoardLayout();
 
       // Check if player won
       if (checkWin(gameBoard, 1)) {
-        gameBoardLayout = updateGameBoardLayout();
         await i.editReply({
           content:
             `🎉 ${bold("You won!")} Congratulations!\n\n` + gameBoardLayout,
@@ -238,7 +241,6 @@ const command: CommandType = {
 
       // Check if board is full (tie)
       if (isBoardFull(gameBoard)) {
-        gameBoardLayout = updateGameBoardLayout();
         await i.editReply({
           content: `🤝 ${bold("It's a tie!")} Good game!\n\n` + gameBoardLayout,
           components: [],
@@ -247,6 +249,12 @@ const command: CommandType = {
         collector.stop();
         return;
       }
+
+      // Show user's move and indicate it's AI's turn
+      await i.editReply({
+        content: `Great move! 🎯 Let me think...\n\n` + gameBoardLayout,
+        components: [], // Disable buttons while AI is thinking
+      });
 
       const responseSchema: Schema = {
         type: Type.OBJECT,
@@ -268,25 +276,26 @@ const command: CommandType = {
       // Get available moves for AI
       const availableMoves = getAvailableMoves(gameBoard);
 
-      const aiResult = await gemini.model!.generateContent({
-        model: geminiModel || "gemini-2.5-flash",
-        contents: `This is a game of tic tac toe and you're playing as O. X is represented as 1, O as 0 & undefined are the available slots you can pick from. 
-        
-        Current game board state:
-        ${JSON.stringify(gameBoard)}
-        
-        Available moves: ${JSON.stringify(availableMoves)}
-        
-        From the game data above, where would you place O? Return only the row and element numbers (0-2 for each).`,
-        config: {
-          responseJsonSchema: responseSchema,
-          responseMimeType: "application/json",
-        },
-      });
-
       try {
-        if (!aiResult.text)
+        const aiResult = await gemini.model!.generateContent({
+          model: geminiModel || "gemini-2.5-flash",
+          contents: `This is a game of tic tac toe and you're playing as O. X is represented as 1, O as 0 & undefined are the available slots you can pick from. 
+          
+          Current game board state:
+          ${JSON.stringify(gameBoard)}
+          
+          Available moves: ${JSON.stringify(availableMoves)}
+          
+          From the game data above, where would you place O? Return only the row and element numbers (0-2 for each).`,
+          config: {
+            responseJsonSchema: responseSchema,
+            responseMimeType: "application/json",
+          },
+        });
+
+        if (!aiResult.text) {
           throw new Error("Failed to get play from computer.");
+        }
 
         const aiSpot: { row: number; element: number } = JSON.parse(
           aiResult.text
@@ -312,7 +321,7 @@ const command: CommandType = {
         gameBoard[fallbackMove.row][fallbackMove.element] = 0;
       }
 
-      // Update gameBoardLayout
+      // Update gameBoardLayout after AI move
       gameBoardLayout = updateGameBoardLayout();
 
       // Check if AI won
@@ -338,7 +347,7 @@ const command: CommandType = {
         return;
       }
 
-      // Share updated stats with user
+      // Share updated board with user and re-enable buttons
       await i.editReply({
         content: `Your turn! 🎮\n\n` + gameBoardLayout,
         components: [firstActionRow, secondActionRow, thirdActionRow],
