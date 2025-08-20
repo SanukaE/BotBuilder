@@ -30,6 +30,13 @@ export const client = new Client({
   ],
 });
 
+/**
+ * Clears the terminal and prints the application's ASCII-art welcome banner and a short tagline.
+ *
+ * This is a purely visual helper used at startup to present the project's name and brief description
+ * in the console. It performs side effects via `console.clear()` and `console.log()` and does not
+ * return a value.
+ */
 function logWelcomeMsg() {
   console.clear();
 
@@ -51,6 +58,18 @@ $$$$$$$  |\\$$$$$$  | \\$$$$  |$$$$$$$  |\\$$$$$$  |$$ |$$ |\\$$$$$$$ |\\$$$$$$$
 
 logWelcomeMsg();
 
+/**
+ * Boots and starts the Discord bot: ensures environment setup, registers fonts, initializes handlers, logs in the client, and attaches a graceful shutdown handler.
+ *
+ * This async entrypoint:
+ * - Ensures a .env file exists (runs interactive setup if missing).
+ * - Warns if an outdated .env.template is present and validates required environment variables.
+ * - Initializes event and file handlers and registers fonts found under `public/fonts`.
+ * - Logs the Discord client in using `process.env.APP_TOKEN`.
+ * - Installs a SIGTERM handler that destroys the Discord client, closes MySQL/Redis connections, attempts to remove the runtime `temp` folder, and exits the process.
+ *
+ * @returns A promise that resolves when startup completes (the bot has been started and the SIGTERM handler is attached).
+ */
 async function main() {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
