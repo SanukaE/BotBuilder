@@ -219,7 +219,6 @@ const command: CommandType = {
       filter: (i) =>
         i.user.id === interaction.user.id &&
         i.customId.startsWith("button-game-connect4"),
-      time: 300000, // 5 minutes
     });
 
     let gameEnded = false;
