@@ -1112,6 +1112,28 @@ async function trivia(
   }
 }
 
+/**
+ * Finalizes a finished mini-game: announces winners, reveals the answer, and awards experience.
+ *
+ * Sends channel messages (reply and edit) to mark the event as over, resolves winner display names
+ * (using the module-level `winners` variable), and — if enabled in configuration — awards XP to winners,
+ * updating the `user_levels` MySQL table and sending level-up notifications when applicable.
+ *
+ * Side effects:
+ * - Sends and edits messages in the game's channel.
+ * - Fetches Discord users and guild members.
+ * - Performs SELECT/INSERT/UPDATE queries against `user_levels`.
+ * - May call `sendLevelUpMessage` for level-up notifications.
+ *
+ * Notes:
+ * - Exits early if the original message is not in a guild text channel.
+ * - XP awarding only runs when `eventConfig.rewardExperience` and `experience.enableExperience` are enabled,
+ *   and when there are winners.
+ * - Uses the global `winners` value to determine single or multiple winners.
+ *
+ * @param gameMessage - The original game message used to post and edit the game state.
+ * @param gameAnswer - The correct answer to the completed game (revealed to the channel).
+ */
 async function gameFinished(
   client: Client,
   gameMessage: Message<false> | Message<true>,

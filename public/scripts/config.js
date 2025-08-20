@@ -218,6 +218,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+/**
+ * Perform a module search from the "moduleSearch" input and re-render matching module UIs.
+ *
+ * Reads the lowercase trimmed value from the #moduleSearch input, filters the global `configs`
+ * array by matching the search term against each module's filename, meta.name, meta.description,
+ * and each field's name, description, or key. Updates the #config-container element with a
+ * loading indicator while searching, a "no matches" message if nothing matches, or the rendered
+ * module forms for each match. Each rendered form is populated with current values and wires a
+ * submit handler that converts input values to their typed representations and calls `saveModule`.
+ *
+ * Side effects:
+ * - Modifies DOM elements: #config-container (content replaced) and creates form elements.
+ * - Shows an error popup via `showSaveError` if there are no modules to search.
+ * - Registers submit handlers that invoke `saveModule(filename, formData)`.
+ */
 function handleSearch() {
   const searchValue = document
     .getElementById("moduleSearch")
@@ -458,6 +473,20 @@ document.addEventListener("keypress", (ev) => {
   }
 });
 
+/**
+ * Save a module's configuration: validate the provided form data, POST it to the server,
+ * and update the in-memory configs on success while driving UI popups for loading, validation,
+ * success, and error states.
+ *
+ * Validation is performed per-field using the module's field definitions (types such as
+ * boolean, integer/float/number, string/password, string[]/number[], object, select, date,
+ * time, datetime). If a field fails validation a validation popup is shown and the save is aborted.
+ *
+ * @param {string} moduleName - The module filename/key to save.
+ * @param {Object} formData - Object mapping field keys to values to persist (must conform to field types).
+ * @returns {Promise<void>} Resolves when the save completes (success or handled failure).
+ * @throws {Error} If either `moduleName` or `formData` is not provided.
+ */
 async function saveModule(moduleName, formData) {
   if (!moduleName || !formData) throw new Error("Missing module data.");
 
@@ -743,31 +772,70 @@ class SavePopup {
 // Initialize popup system
 const savePopupInstance = new SavePopup();
 
-// Global functions for easy access
+/**
+ * Show a brief success popup indicating a configuration was saved.
+ * @param {string} message - Optional custom message displayed in the popup. Defaults to "Configuration saved successfully!".
+ */
 function showSaveSuccess(message = "Configuration saved successfully!") {
   savePopupInstance.success("Save Successful", message, { autoClose: 2500 });
 }
 
+/**
+ * Show a save error popup with the title "Save Failed".
+ *
+ * Displays an error modal to inform the user that saving the configuration failed.
+ *
+ * @param {string} [message="Failed to save configuration. Please try again."] - Message displayed inside the popup.
+ */
 function showSaveError(
   message = "Failed to save configuration. Please try again."
 ) {
   savePopupInstance.error("Save Failed", message);
 }
 
+/**
+ * Show a loading popup indicating a save is in progress.
+ *
+ * Displays the global SavePopup in its loading state with a "Saving" title and the provided message.
+ *
+ * @param {string} [message="Saving your configuration..."] - Message text shown in the loading popup.
+ */
 function showSaveLoading(message = "Saving your configuration...") {
   savePopupInstance.loading("Saving", message);
 }
 
+/**
+ * Show a validation error to the user via the global SavePopup.
+ *
+ * If `fieldName` is provided the popup title will be `Invalid <fieldName>`; otherwise the title will be `Validation Error`.
+ *
+ * @param {string|null} fieldName - Optional field name to include in the title.
+ * @param {string} message - Human-readable error message shown in the popup.
+ */
 function showValidationError(fieldName, message) {
   const title = fieldName ? `Invalid ${fieldName}` : "Validation Error";
   savePopupInstance.error(title, message);
 }
 
+/**
+ * Hides the global save popup overlay and restores page interaction.
+ *
+ * Uses the shared SavePopup instance to close the popup if it's currently shown.
+ */
 function closeSavePopup() {
   savePopupInstance.hide();
 }
 
-// Demo functions
+/**
+ * Demo helper that shows the SavePopup in one of three predefined states.
+ *
+ * Shows a loading, success, or error demo flow based on `type`. Valid values:
+ * - "loading": displays a loading state then automatically transitions to a success state after ~3s (success popup auto-closes).
+ * - "success": displays a success popup.
+ * - "error": displays an error popup.
+ *
+ * @param {("loading"|"success"|"error")} type - Which demo popup flow to display.
+ */
 function showSavePopup(type) {
   switch (type) {
     case "loading":
@@ -799,6 +867,12 @@ function showSavePopup(type) {
   }
 }
 
+/**
+ * Display a validation error popup indicating the "Server Port" field is out of range.
+ *
+ * Uses the global savePopupInstance to show an error titled "Invalid Input" with the
+ * message: 'The field "Server Port" must be a number between 1 and 65535.'
+ */
 function showValidationError() {
   savePopupInstance.error(
     "Invalid Input",

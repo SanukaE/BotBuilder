@@ -20,7 +20,22 @@ interface FunctionCall {
   originalIndex: number;
 }
 
-// Function to analyze dependencies and sort function calls
+/**
+ * Reorders a list of function calls to satisfy inter-call data dependencies.
+ *
+ * This performs a dependency analysis by scanning each call's `args` for placeholders
+ * of the form `functionName::...::N` (where `N` is a zero-based index referring to the
+ * Nth prior call of `functionName`). It builds a dependency graph and returns the
+ * calls topologically sorted so that each call appears after any calls it depends on.
+ *
+ * Placeholders that reference a non-existent instance of a function type emit a
+ * warning but do not stop sorting. If a circular dependency is detected, the function
+ * throws an Error.
+ *
+ * @param functionCalls - Array of call-like objects with at least `name` and `args` properties.
+ * @returns The input calls converted to FunctionCall objects and ordered to respect dependencies.
+ * @throws Error if circular dependencies are found during topological sorting.
+ */
 function sortFunctionCallsByDependencies(functionCalls: any[]): FunctionCall[] {
   const calls: FunctionCall[] = functionCalls.map((call, index) => ({
     name: call.name,
@@ -134,6 +149,25 @@ function sortFunctionCallsByDependencies(functionCalls: any[]): FunctionCall[] {
   return sorted;
 }
 
+/**
+ * Orchestrates assistant function discovery, planning via Gemini, dependency-aware execution of functions, and returns the final assistant response.
+ *
+ * This function:
+ * - Loads assistant function modules from build/assistantFunctions and collects their declarations and execution scripts.
+ * - Uploads available support files (ticket transcripts and public/faqAnswers.txt) to Gemini and includes them in the AI request.
+ * - Builds a comprehensive system instruction describing placeholder syntax and execution expectations.
+ * - Requests planning from Gemini (which may return an ordered set of function calls).
+ * - Reorders function calls to satisfy inter-call dependencies, executes each function in sequence, accumulates results, and captures the final response from a `response` function (if present).
+ *
+ * @param channelID - ID of the channel where the request originated; provided to invoked functions as context.
+ * @param userID - ID of the requesting user; provided to invoked functions as context.
+ * @param query - The user's natural-language request to the assistant.
+ * @returns The assistant's final textual response (from the `response` function) or the raw AI text if no functions were invoked. Promise resolves to a string or null when a response function was invoked but produced no message.
+ * @throws Error if Gemini is disabled.
+ * @throws Error if the assistant function directory cannot be found or contains no functions.
+ * @throws Error if a planned function call references a function that wasn't loaded.
+ * @throws Error if an invoked function reports failure (its returned `success` is false).
+ */
 export default async function Assistant(
   client: Client,
   channelID: string,
