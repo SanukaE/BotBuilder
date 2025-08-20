@@ -282,10 +282,10 @@ export default async function setup() {
 
   console.log("You can always change these settings later in the .env file.");
 
-  fs.renameSync(
-    path.join(process.cwd(), "configs.template"),
-    path.join(process.cwd(), "configs")
-  );
+  const templateConfigPath = path.join(process.cwd(), "configs.template");
+  const destPath = path.join(process.cwd(), "configs");
+  fs.cpSync(templateConfigPath, destPath, { recursive: true });
+  fs.rmSync(templateConfigPath, { recursive: true, force: true });
 
   console.log(
     "Your almost set to run BotBuilder! Please head over to your config files (located in configs folder) & configure how you would like BotBuilder to work.\n"
@@ -557,8 +557,10 @@ function saveEnvironmentToFile() {
     environmentContent = environmentContent.replace(`YOUR_${key}`, value);
   });
 
-  const envFilePath = path.join(__dirname, "..", "..", ".env");
-  fs.renameSync(templateFilePath, envFilePath);
+  const templateEnvFilePath = path.join(process.cwd(), ".env.template");
+  const envFilePath = path.join(process.cwd(), ".env");
+  fs.copyFileSync(templateEnvFilePath, envFilePath);
+  fs.rmSync(templateEnvFilePath);
 
   fs.writeFileSync(envFilePath, environmentContent, "utf-8");
   console.log(`Environment saved to ${envFilePath}`);

@@ -2,14 +2,12 @@ FROM node:22
 
 WORKDIR /app
 
-COPY package*.json ./
-
-RUN npm install
-
 COPY . .
 
-RUN npm run build
+RUN npm install -g pnpm
 
-EXPOSE 3000
+RUN pnpm install
 
-CMD ["npm", "start"]
+RUN pnpm run build
+
+CMD ["pnpm", "start"]
