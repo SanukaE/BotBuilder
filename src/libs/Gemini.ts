@@ -16,7 +16,7 @@ export default function () {
     createWarning(
       "geminiModel is not set",
       'All AI required features will be using "gemini-2.5-flash" model',
-      "Please set a model to use in config.json",
+      "Please set a model to use in the ai config",
       "Gemini-libs"
     );
 

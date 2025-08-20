@@ -15,9 +15,9 @@ export default async function (client: Client) {
 
   if (!productionGuildID) {
     createWarning(
-      "Missing productionGuildID in config.json",
+      "Missing productionGuildID in config",
       "AutoMod rules will not be set up",
-      "Add productionGuildID to config.json",
+      "Add productionGuildID in application config",
       "setupAutoMod-readyEvent"
     );
     return;
@@ -34,9 +34,9 @@ export default async function (client: Client) {
 
     if (autoModEnvProtection)
       createWarning(
-        "AutoMod Env Protection is enabled in config.json",
+        "AutoMod Env Protection is enabled in config",
         "Your environment variables has a risk of being leaked",
-        "Set autoModEnvProtection to false in config.json",
+        "Set autoModEnvProtection to false in moderation config",
         "setupAutoMod-readyEvent"
       );
 

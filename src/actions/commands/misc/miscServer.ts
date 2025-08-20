@@ -25,7 +25,7 @@ const command: CommandType = {
   ],
 
   async script(_, interaction, debugLogger) {
-    debugLogger.write("Getting serverIP & bedrock from config.json...");
+    debugLogger.write("Getting serverIP & bedrock from config...");
     const { serverIP, bedrock } = getConfig("minecraft") as {
       serverIP: string;
       bedrock: boolean;
