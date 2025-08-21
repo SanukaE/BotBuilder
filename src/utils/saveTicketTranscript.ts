@@ -55,7 +55,7 @@ export default async function (
     formData += "The user did not fill in a form when opening the ticket.";
   }
 
-  let messages = `Ticket Conversation:\n\n`;
+  let messages = `Ticket Conversation\n\n`;
 
   // Fetch all messages from the ticket channel (no limit)
   let allMessages = [];
@@ -92,12 +92,13 @@ export default async function (
   // Format messages according to a format
   for (const message of messagesToProcess) {
     if (
-      !message.content ||
-      !(message.embeds && message.embeds.length > 0) ||
-      !(message.attachments && message.attachments.size > 0) ||
-      !(message.stickers && message.stickers.size > 0)
-    )
-      continue;
+      !message.content &&
+      !message.embeds.length &&
+      !message.attachments.size &&
+      !message.stickers.size
+    ) {
+      continue; // Skip empty messages
+    }
 
     const author =
       message.member?.displayName ||
@@ -141,7 +142,7 @@ export default async function (
 
   const { geminiModel } = getConfig("ai") as { geminiModel: string };
   const gemini = Gemini();
-  let ticketSummary = `Ticket Summary:\n\n`;
+  let ticketSummary = `Ticket Summary\n\n`;
 
   if (gemini.enabled) {
     const result = await gemini.model!.generateContent({
