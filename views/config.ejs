@@ -1,17 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A dashboard to control your Discord bot powered by BotBuilder.">
-    <meta name="keywords" content="BotBuilder, Sanuka's Projects, Discord Bot, Free, Setup">
-    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A dashboard to control your Discord bot powered by BotBuilder."
+    />
+    <meta
+      name="keywords"
+      content="BotBuilder, Sanuka's Projects, Discord Bot, Free, Setup"
+    />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
     <title>BotBuilder Dashboard | Config</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/styles/global.css">
-    <link rel="stylesheet" href="/styles/config.css">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/styles/global.css" />
+    <link rel="stylesheet" href="/styles/config.css" />
+  </head>
+  <body>
     <!-- Header with Hamburger Menu -->
     <header>
         <a class="header-left" href="https://github.com/SanukaE/BotBuilder" style="text-decoration: none; color: inherit;">
@@ -94,45 +103,20 @@
 
     <div class="break-line"></div>
 
-    <!-- Config Modules -->
-    <section id="config-container" class="config-section">
-
-        <i class="fa-solid fa-clock"></i> Loading Configurations Modules...
-
-    </section>
-
-    <!-- Save Popup Modal -->
-    <div class="save-popup-overlay" id="savePopupOverlay">
-        <div class="save-popup" id="savePopup">
-            <button class="save-popup-close" id="savePopupClose">
-                <i class="fas fa-times"></i>
-            </button>
-        
-            <div class="save-popup-icon" id="savePopupIcon">
-                <i class="fas fa-spinner" id="savePopupIconContent"></i>
-            </div>
-        
-            <h3 class="save-popup-title" id="savePopupTitle">Saving...</h3>
-            <p class="save-popup-message" id="savePopupMessage">Please wait while we save your configuration.</p>
-        
-            <div class="save-popup-progress" id="savePopupProgress" style="display: none;">
-                <div class="save-popup-progress-bar"></div>
-            </div>
-        
-            <div class="save-popup-actions" id="savePopupActions">
-                <button class="save-popup-btn" id="savePopupPrimary" onclick="closeSavePopup()">
-                    OK
-                </button>
-            </div>
-        </div>
+    <!-- Config Container -->
+    <div id="config-container" class="config-container">
+      <div class="config-loading">
+        <div class="loading-spinner"></div>
+        Loading Configuration Modules...
+      </div>
     </div>
-    
+
     <!-- Footer -->
     <footer>
-        <p>© 2025 BotBuilder - All Rights Reserved</p>
+      <p>© 2025 BotBuilder - All Rights Reserved</p>
     </footer>
 
-    <script src="/scripts/global.js"></script>
-    <script src="/scripts/config.js"></script>
-</body>
+    <script src="scripts/global.js"></script>
+    <script src="scripts/config.js"></script>
+  </body>
 </html>
