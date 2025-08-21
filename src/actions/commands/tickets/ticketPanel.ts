@@ -69,7 +69,7 @@ const command: CommandType = {
       fields: embedData.fields ? embedData.fields : undefined,
       author: embedData.author ? embedData.author : undefined,
       footer: embedData.footer ? embedData.footer : undefined,
-      image: embedData.image_url ? embedData.image_url : undefined,
+      image: embedData.image_url ? { url: embedData.image_url } : undefined,
       thumbnail: embedData.thumbnail_url
         ? { url: embedData.thumbnail_url }
         : undefined,

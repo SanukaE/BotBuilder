@@ -75,7 +75,7 @@ async function main() {
   const __dirname = path.dirname(__filename);
 
   const envFilePath = path.join(__dirname, "../.env");
-  const tempEnvFilePath = path.join(__dirname, "../.env.template");
+  const configFile = path.join(__dirname, "../app.json");
 
   if (!fs.existsSync(envFilePath)) {
     console.log("[System] Running setup...");
@@ -83,13 +83,34 @@ async function main() {
   }
 
   async function startBot() {
-    if (fs.existsSync(tempEnvFilePath)) {
-      createWarning(
-        "Possible outdated config/env variables found.",
-        "Some features might not work or could break the bot.",
-        "To update your server variables, delete the .env file and config folder from your server files. Before deleting these files, make a copy so you can save time resetting them. Then, restart your server.",
-        "main-index"
+    const currentVersion = JSON.parse(
+      fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8")
+    ).version;
+
+    if (fs.existsSync(configFile)) {
+      const config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
+      if (config.name) {
+        console.log(
+          `[System] Welcome back ${config.name}! BotBuilder is starting...`
+        );
+      } else {
+        console.log("[System] BotBuilder is starting...");
+      }
+
+      if (config.version !== currentVersion) {
+        createWarning(
+          "Possible outdated config/env variables found.",
+          "Some features might not work or could break the bot.",
+          "To update your server variables, delete the .env file and config folder from your server files. Before deleting these files, make a copy so you can save time resetting them. Then, restart your server.",
+          "main-index"
+        );
+      }
+    } else {
+      fs.writeFileSync(
+        configFile,
+        JSON.stringify({ name: null, version: currentVersion }, null, 2)
       );
+      console.log("[System] BotBuilder is starting...");
     }
 
     checkEnvVariables();
@@ -132,7 +153,22 @@ async function main() {
         null;
       }
 
-      console.log("[System] Have a nice day!");
+      if (fs.existsSync(configFile)) {
+        const config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
+
+        if (config.name) {
+          console.log(`[System] Goodbye ${config.name}!`);
+        } else {
+          console.log("[System] Have a nice day!");
+        }
+      } else {
+        fs.writeFileSync(
+          configFile,
+          JSON.stringify({ name: null, version: currentVersion }, null, 2)
+        );
+        console.log("[System] Have a nice day!");
+      }
+
       process.exit(0);
     };
 
