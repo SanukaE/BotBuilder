@@ -1,7 +1,7 @@
 import Gemini from "#libs/Gemini.js";
 import getAllFiles from "#utils/getAllFiles.js";
 import getConfig from "#utils/getConfig.js";
-import { createPartFromUri, createUserContent } from "@google/genai";
+import { createUserContent } from "@google/genai";
 import { Client } from "discord.js";
 import fs from "fs";
 import path from "path";
@@ -79,14 +79,6 @@ async function handleUpdate(filePath: string) {
 
   const extractedPrompts = prompt.map((p) => p.trim());
 
-  const fileUploadResult = await gemini.fileManager!.upload({
-    file: filePath,
-    config: {
-      mimeType: "text/typescript",
-      displayName: "Source File",
-    },
-  });
-
   for (const helpPrompt of extractedPrompts) {
     fileContent = fileContent.replace(
       /\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//,
@@ -99,7 +91,9 @@ async function handleUpdate(filePath: string) {
       const result = await gemini.model!.generateContent({
         model: geminiModel || "gemini-2.5-flash",
         contents: createUserContent([
-          createPartFromUri(fileUploadResult.uri!, fileUploadResult.mimeType!),
+          {
+            text: fileContent,
+          },
           helpPrompt,
           "Your response is used to replace the '//Processing...' comment with a multi line comment containing your response. So do not use markdown & try responding in text only.",
         ]),
@@ -111,7 +105,7 @@ async function handleUpdate(filePath: string) {
 
       const solution = result.text;
 
-      if (solution === "") {
+      if (!solution) {
         fileContent = fileContent.replace(
           /\/\/Processing\.\.\./,
           "//A solution cannot be found"
