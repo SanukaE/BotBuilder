@@ -43,7 +43,7 @@ export default async function (_: Client) {
 
       if (isOutdated) {
         console.log(
-          `[System] A new version of BotBuilder is available: ${latestVersion}. You are currently using version ${localVersion}.${autoUpdateEnabled ? ' Updating now...' : ' Please consider updating.'}`
+          `[System] A new version of BotBuilder is available: v${latestVersion}. You are currently using version ${localVersion}.${autoUpdateEnabled ? ' Updating now...' : ' Please consider updating.'}`
         );
         updateFound = true;
 
