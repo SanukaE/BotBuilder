@@ -144,7 +144,7 @@ async function main() {
       await MySQL.end();
       await Redis.disconnect();
 
-      //closeWatchers(); //!WIP
+      closeWatchers();
 
       try {
         const tempFolder = path.join(process.cwd(), "temp");
