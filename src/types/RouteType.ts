@@ -33,5 +33,5 @@ export type RouteType = {
   isDevOnly?: boolean;
   isDisabled?: boolean;
   isGuildOnly?: boolean;
-  script: (req: Request, res: Response) => Promise<Response>;
+  script: (req: Request, res: Response) => any;
 };

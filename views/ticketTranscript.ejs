@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A dashboard to control your Discord bot powered by BotBuilder."
+    />
+    <meta
+      name="keywords"
+      content="BotBuilder, Sanuka's Projects, Discord Bot, Free, Setup"
+    />
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+    <title>BotBuilder Dashboard | Ticket Transcript</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/styles/global.css" />
+    <link rel="stylesheet" href="/styles/ticketTranscript.css" />
+  </head>
+  <body>
+    <!-- Header with Hamburger Menu -->
+    <header>
+        <a class="header-left" href="https://github.com/SanukaE/BotBuilder" style="text-decoration: none; color: inherit;">
+            <img src="https://i.postimg.cc/wB6FR8PP/Bot-Builder-Logo.webp" alt="Logo of BotBuilder" class="header-logo">
+            <div>
+                <p class="header-title">Powered By BotBuilder!</p>
+                <p class="header-subtitle">A project by Sanuka.</p>
+            </div>
+        </a>
+
+        <button class="mobile-menu-btn" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="header-nav">
+            <a href="/stats" class="header-link">Server Statistics</a>
+            <a href="/api" class="header-link">API Endpoints</a>
+            <a href="/config" class="header-link">Configurations</a>
+            <a href="https://buy.stripe.com/aEU1567wDeEE5XyaEI" class="header-support">
+                <i class="fas fa-heart"></i>
+                <span>Support</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-nav">
+            <button class="mobile-menu-close" id="menuClose" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <a href="/stats" class="mobile-link">
+                <i class="fas fa-chart-line"></i> Server Statistics
+            </a>
+            <a href="/api" class="mobile-link">
+                <i class="fas fa-code"></i> API Endpoints
+            </a>
+            <a href="/config" class="mobile-link">
+                <i class="fas fa-cog"></i> Configurations
+            </a>
+            <a href="<%= locals.serverInvite || "https://discord.gg/HUCE56pP" %>" class="mobile-link">
+                <i class="fab fa-discord"></i> Join Discord
+            </a>
+            <a href="https://buy.stripe.com/aEU1567wDeEE5XyaEI" class="mobile-link" style="background: var(--accent-gradient);">
+                <i class="fas fa-heart"></i> Support Project
+            </a>
+        </div>
+    </div>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Main Content -->
+    <main>
+      <section id="ticketTranscript" class="transcript">
+        <div class="transcript-header">
+          <h1 class="transcript-title">Ticket Transcript</h1>
+          <p class="transcript-description">Loading ticket data...</p>
+        </div>
+
+        <div id="loadingState" class="loading">
+          <i
+            class="fas fa-spinner fa-spin"
+            style="font-size: 2rem; margin-bottom: 1rem"
+          ></i>
+          <p>Loading transcript data...</p>
+        </div>
+
+        <div id="errorState" class="error" style="display: none">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>
+            Failed to load transcript. Please check the ticket ID and try again.
+          </p>
+        </div>
+
+        <div id="transcriptContent" style="display: none">
+          <!-- Action buttons -->
+          <div
+            style="
+              margin-bottom: 2rem;
+              display: flex;
+              gap: 1rem;
+              flex-wrap: wrap;
+              justify-content: center;
+            "
+          >
+            <button onclick="refreshTranscript()" class="action-btn">
+              <i class="fas fa-refresh"></i> Refresh
+            </button>
+            <button onclick="downloadTranscript()" class="action-btn">
+              <i class="fas fa-download"></i> Download
+            </button>
+            <button
+              onclick="searchMessages(prompt('Search in messages:'))"
+              class="action-btn"
+            >
+              <i class="fas fa-search"></i> Search
+            </button>
+          </div>
+
+          <!-- General Information -->
+          <div class="general-info">
+            <h3><i class="fas fa-info-circle"></i> General Information</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Category</span>
+                <span class="info-value" id="ticketCategory">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Opened At</span>
+                <span class="info-value" id="ticketOpenAt">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Saved At</span>
+                <span class="info-value" id="ticketSaveAt">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Opened By</span>
+                <span class="info-value" id="ticketOpenedBy">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Closed By</span>
+                <span class="info-value" id="ticketClosedBy">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Status</span>
+                <span class="status-badge" id="ticketStatus">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Information -->
+          <div class="form-info">
+            <h3><i class="fas fa-clipboard"></i> Form Information</h3>
+            <div class="issue-text" id="ticketIssue">-</div>
+          </div>
+
+          <!-- Summary -->
+          <div class="summary">
+            <h3><i class="fas fa-file-text"></i> Ticket Summary</h3>
+            <div class="summary-text" id="ticketSummary">-</div>
+          </div>
+
+          <!-- Conversation -->
+          <div class="conversation">
+            <h3><i class="fas fa-comments"></i> Ticket Conversation</h3>
+            <div id="conversationMessages"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>© 2025 BotBuilder - All Rights Reserved</p>
+    </footer>
+
+    <script src="/scripts/global.js"></script>
+    <script src="/scripts/ticketTranscript.js"></script>
+  </body>
+</html>

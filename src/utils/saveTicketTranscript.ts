@@ -13,6 +13,7 @@ export default async function (
   staffID?: string
 ) {
   const ticketChannel = (await client.channels.fetch(channelID)) as TextChannel;
+  const supportConfig = getConfig("support") as any;
 
   const [rows] = await MySQL.query<RowDataPacket[]>(
     "SELECT * FROM tickets WHERE channelID = ?",
@@ -98,6 +99,22 @@ export default async function (
       !message.stickers.size
     ) {
       continue; // Skip empty messages
+    }
+
+    if (message.author.id === client.user?.id) {
+      if (
+        message.content &&
+        message.content === supportConfig.ticketWelcomeMessage
+      )
+        continue;
+
+      if (message.embeds.length > 0) {
+        const embed = message.embeds[0];
+        const [_, __, formTitle] = supportConfig.ticketCategories
+          .find((cat: string) => cat.includes(ticketData.category))
+          ?.split(":");
+        if (embed.title === formTitle) continue;
+      }
     }
 
     const author =

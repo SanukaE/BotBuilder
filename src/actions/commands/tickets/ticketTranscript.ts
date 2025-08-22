@@ -72,10 +72,6 @@ const command: CommandType = {
     }
 
     const fileData = transcriptFiles.map((file) => {
-      const attachment = new AttachmentBuilder(file, {
-        name: path.basename(file),
-      });
-
       const ticketContent = fs.readFileSync(file, "utf-8");
       const ticketSections = ticketContent.split("\n\n\n");
 
@@ -88,8 +84,19 @@ const command: CommandType = {
       if (Gemini().enabled)
         summary = ticketSections[2].replace("Ticket Summary", "").trim();
 
+      const channelID =
+        file.split("/").pop()?.split(".")[0].split("-").pop() || "unknown";
+      const button = new ButtonBuilder({
+        label: "View Transcript",
+        style: ButtonStyle.Link,
+        url: `http://${process.env.WEB_SERVER_IP}:${process.env.WEB_SERVER_PORT}/tickets/transcript/${channelID}`,
+      });
+      const viewButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        button
+      );
+
       return {
-        attachment,
+        viewButton,
         summary,
         info,
       };
@@ -126,8 +133,7 @@ const command: CommandType = {
 
     const followUp = await interaction.followUp({
       embeds: [embedMessage],
-      components: [pageButtons],
-      files: [firstFile.attachment],
+      components: [pageButtons, firstFile.viewButton],
     });
 
     const collector = followUp.createMessageComponentCollector({
@@ -145,7 +151,7 @@ const command: CommandType = {
       );
 
       currentPageIndex = result.currentPageIndex;
-      const { attachment, summary, info } = result.data;
+      const { viewButton, summary, info } = result.data;
 
       embedMessage.setDescription(summary);
       embedMessage.setFields(
@@ -161,8 +167,7 @@ const command: CommandType = {
 
       await i.update({
         embeds: [embedMessage],
-        components: [pageButtons],
-        files: [attachment],
+        components: [pageButtons, viewButton],
       });
     });
   },
