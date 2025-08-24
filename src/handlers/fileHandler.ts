@@ -1,37 +1,35 @@
 import Gemini from "#libs/Gemini.js";
 import getAllFiles from "#utils/getAllFiles.js";
 import getConfig from "#utils/getConfig.js";
-import { createPartFromUri, createUserContent } from "@google/genai";
+import { createUserContent } from "@google/genai";
 import { Client } from "discord.js";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-const filesInProcess = new Set<string>();
 const { geminiModel } = getConfig("ai") as { geminiModel: string };
 
 export default function (client: Client) {
-  return; //!WIP
   let actionFilePaths: string[] = [];
 
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-
   const actionTypes = getAllFiles(
-    path.join(__dirname, "../../src/actions"),
+    path.join(process.cwd(), "/src/actions"),
     true
   );
 
-  for (const actionType of actionTypes) {
-    const actionCategories = getAllFiles(actionType, true);
-
-    for (const actionCategory of actionCategories) {
-      actionFilePaths.push(...getAllFiles(actionCategory));
-
-      getAllFiles(actionCategory, true).forEach((cat) => {
-        actionFilePaths.push(...getAllFiles(cat));
-      });
+  function collectFilesRecursively(dir: string) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        collectFilesRecursively(fullPath);
+      } else {
+        actionFilePaths.push(fullPath);
+      }
     }
+  }
+
+  for (const actionType of actionTypes) {
+    collectFilesRecursively(actionType);
   }
 
   let watchers: fs.FSWatcher[] = [];
@@ -53,8 +51,6 @@ export default function (client: Client) {
 }
 
 async function handleUpdate(filePath: string) {
-  if (filesInProcess.has(filePath)) return;
-
   if (!(fs.existsSync(filePath) && fs.statSync(filePath).isFile()))
     throw new Error(
       `The specified path "${filePath}" either does not exist or is not a valid file.`
@@ -65,12 +61,8 @@ async function handleUpdate(filePath: string) {
   let fileContent = fs.readFileSync(filePath, "utf-8");
   if (fileContent === "") return;
 
-  const matches = fileContent.matchAll(/\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//g);
-  const prompts = Array.from(matches);
-
-  if (prompts.length === 0) return;
-
-  filesInProcess.add(filePath);
+  const prompt = fileContent.match(/\/\*\s*AI Help:\s*([\s\S]*?)\s*\*\//g);
+  if (!prompt) return;
 
   const gemini = Gemini();
 
@@ -82,19 +74,10 @@ async function handleUpdate(filePath: string) {
         "//AI is disabled"
       )
     );
-    filesInProcess.delete(filePath);
     return;
   }
 
-  const extractedPrompts = prompts.map((match) => match[1].trim());
-
-  const fileUploadResult = await gemini.fileManager!.upload({
-    file: filePath,
-    config: {
-      mimeType: "text/typescript",
-      displayName: "Source File",
-    },
-  });
+  const extractedPrompts = prompt.map((p) => p.trim());
 
   for (const helpPrompt of extractedPrompts) {
     fileContent = fileContent.replace(
@@ -108,9 +91,11 @@ async function handleUpdate(filePath: string) {
       const result = await gemini.model!.generateContent({
         model: geminiModel || "gemini-2.5-flash",
         contents: createUserContent([
-          createPartFromUri(fileUploadResult.uri!, fileUploadResult.mimeType!),
+          {
+            text: fileContent,
+          },
           helpPrompt,
-          "Your response is used to replace the '//Processing...' comment with a multi line comment containing your response. So do not use markdown & try responding in text only. Ignore comments with prefix 'AI Help:', 'AI Solution:' or 'Processing...'.",
+          "Your response is used to replace the '//Processing...' comment with a multi line comment containing your response. So do not use markdown & try responding in text only.",
         ]),
         config: {
           tools: [{ urlContext: {} }, { googleSearch: {} }],
@@ -120,7 +105,7 @@ async function handleUpdate(filePath: string) {
 
       const solution = result.text;
 
-      if (solution === "") {
+      if (!solution) {
         fileContent = fileContent.replace(
           /\/\/Processing\.\.\./,
           "//A solution cannot be found"
@@ -145,8 +130,6 @@ async function handleUpdate(filePath: string) {
       );
 
       fs.writeFileSync(filePath, fileContent);
-    } finally {
-      filesInProcess.delete(filePath);
     }
   }
 }

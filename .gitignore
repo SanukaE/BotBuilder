@@ -4,6 +4,7 @@ node_modules
 ApplicationLogs
 temp
 localData
+app.json
 
 #Variables
 .env

@@ -317,6 +317,14 @@ export default async function setup() {
   console.log("Stopping the server since configuration is required...");
   console.log(`Have a great day ${userName}! :)`);
 
+  const currentVersion = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8")
+  ).version;
+  fs.writeFileSync(
+    path.join(process.cwd(), "app.json"),
+    JSON.stringify({ name: userName, version: currentVersion }, null, 2)
+  );
+
   rl.close();
   await new Promise((resolve) => setTimeout(resolve, 20_000)); //20sec delay for reading time
   process.exit(0);

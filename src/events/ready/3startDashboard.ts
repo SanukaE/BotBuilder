@@ -8,6 +8,7 @@ import { createLogger, LoggerOptions } from "#utils/createLogger.js";
 import { HTTPMethod, RouteType } from "#types/RouteType.js";
 import MySQL from "#libs/MySQL.js";
 import { RowDataPacket } from "mysql2";
+import { match } from "path-to-regexp";
 
 export default async function startDashboard(client: Client) {
   console.log("[System] Starting dashboard...");
@@ -129,9 +130,18 @@ export default async function startDashboard(client: Client) {
       return res.status(500).send("Database error.");
     }
 
-    const [_, __, ___, [filePath, route]] = routes.find(([, , , [, route]]) =>
-      req.path.endsWith(route.path)
-    )!;
+    const foundRoute = routes.find(([, , , [, route]]) => {
+      const matcher = match("/api" + route.path, {
+        decode: decodeURIComponent,
+      });
+      return matcher(req.path) !== false;
+    });
+
+    if (!foundRoute) {
+      return res.status(404).send("API route not found.");
+    }
+
+    const [_, __, ___, [filePath, route]] = foundRoute;
     const { productionGuildID, developmentGuildID } = getConfig(
       "application"
     ) as {
@@ -418,6 +428,10 @@ export default async function startDashboard(client: Client) {
     return res.render("levelingLeaderboard", {
       leaderboard,
     });
+  });
+
+  app.get("/tickets/transcript/:channelID", (req, res) => {
+    return res.render("ticketTranscript");
   });
 
   console.log("[System] Registering API routes...");

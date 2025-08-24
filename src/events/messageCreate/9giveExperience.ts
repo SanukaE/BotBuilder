@@ -12,6 +12,9 @@ export default async function (
   if (!message.deletable) return;
   if (message.author.bot || !message.inGuild()) return;
 
+  if (message.guildId !== (getConfig("application") as any).productionGuildID)
+    return;
+
   const { channelID: countChannelID } = getConfig("counting") as {
     channelID: string;
   };

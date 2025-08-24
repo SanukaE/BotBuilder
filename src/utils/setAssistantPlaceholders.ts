@@ -94,16 +94,16 @@ export default function (
   // Validate all placeholders before processing
   const missingPlaceholders = checkForMissingPlaceholders(updatableData);
   if (missingPlaceholders.length > 0) {
-    console.error("Missing placeholder dependencies:", missingPlaceholders); //!DEBUG
-    console.error(
-      "Available function results:",
-      functionResults.map(
-        (r, index) =>
-          `${r.functionName}[${index}] (callIndex: ${
-            r.callIndex || "undefined"
-          }): ${JSON.stringify(Object.keys(r.data || {}))}`
-      )
-    ); //!DEBUG
+    // console.error("Missing placeholder dependencies:", missingPlaceholders); //!DEBUG
+    // console.error(
+    //   "Available function results:",
+    //   functionResults.map(
+    //     (r, index) =>
+    //       `${r.functionName}[${index}] (callIndex: ${
+    //         r.callIndex || "undefined"
+    //       }): ${JSON.stringify(Object.keys(r.data || {}))}`
+    //   )
+    // ); //!DEBUG
     throw new Error(
       `Cannot resolve placeholders: ${missingPlaceholders.join(", ")}`
     );
@@ -151,19 +151,19 @@ export default function (
             }
 
             if (extractedValue !== undefined) {
-              console.log(`Resolved placeholder ${match} -> ${extractedValue}`); //!DEBUG
+              //console.log(`Resolved placeholder ${match} -> ${extractedValue}`); //!DEBUG
               return extractedValue;
             } else {
-              console.error(
-                `Failed to extract value from path: ${actualPath} in result:`,
-                targetResult.data
-              ); //!DEBUG
+              // console.error(
+              //   `Failed to extract value from path: ${actualPath} in result:`,
+              //   targetResult.data
+              // ); //!DEBUG
             }
           } else {
-            console.error(
-              `Not enough results for ${functionName}[${index}]. Available: ${matchingResults.length}`,
-              matchingResults.map((r, i) => `[${i}] callIndex: ${r.callIndex}`)
-            ); //!DEBUG
+            // console.error(
+            //   `Not enough results for ${functionName}[${index}]. Available: ${matchingResults.length}`,
+            //   matchingResults.map((r, i) => `[${i}] callIndex: ${r.callIndex}`)
+            // ); //!DEBUG
           }
 
           return match; // Return original if no match found
@@ -190,10 +190,10 @@ export default function (
 
   updatableData = processObjectRecursively(updatableData);
 
-  console.log(
-    "Placeholder processing completed. Final data:",
-    JSON.stringify(updatableData, null, 2)
-  ); //!DEBUG
+  // console.log(
+  //   "Placeholder processing completed. Final data:",
+  //   JSON.stringify(updatableData, null, 2)
+  // ); //!DEBUG
 
   return updatableData;
 }

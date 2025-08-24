@@ -88,9 +88,9 @@ function sortFunctionCallsByDependencies(functionCalls: any[]): FunctionCall[] {
           const dependentCallIndex = calls.indexOf(dependentCall);
           deps.add(dependentCallIndex);
         } else {
-          console.warn(
-            `Warning: Placeholder references ${functionName}[${dependencyIndex}] but only ${matchingCalls.length} calls of that type exist`
-          ); //!DEBUG
+          // console.warn(
+          //   `Warning: Placeholder references ${functionName}[${dependencyIndex}] but only ${matchingCalls.length} calls of that type exist`
+          // ); //!DEBUG
         }
       }
     });
@@ -99,14 +99,14 @@ function sortFunctionCallsByDependencies(functionCalls: any[]): FunctionCall[] {
   });
 
   // Debug logging
-  console.log("Dependency analysis:"); //!DEBUG
+  //console.log("Dependency analysis:"); //!DEBUG
   calls.forEach((call, index) => {
     const deps = dependencies.get(index);
-    console.log(
-      `  ${call.name}[${index}] depends on: [${Array.from(deps || []).join(
-        ", "
-      )}]`
-    ); //!DEBUG
+    // console.log(
+    //   `  ${call.name}[${index}] depends on: [${Array.from(deps || []).join(
+    //     ", "
+    //   )}]`
+    // ); //!DEBUG
   });
 
   // Topological sort
@@ -396,12 +396,12 @@ Current context:
       sortedFunctionCalls = sortFunctionCallsByDependencies(
         response.functionCalls
       );
-      console.log(
-        "Function execution order:",
-        sortedFunctionCalls.map((fc) => fc.name)
-      ); //!DEBUG
+      // console.log(
+      //   "Function execution order:",
+      //   sortedFunctionCalls.map((fc) => fc.name)
+      // ); //!DEBUG
     } catch (error) {
-      console.error("Error sorting function calls:", error); //!DEBUG
+      //console.error("Error sorting function calls:", error); //!DEBUG
       // Fallback to original order if sorting fails
       sortedFunctionCalls = response.functionCalls.map((call, index) => ({
         name: call.name!,
@@ -423,7 +423,7 @@ Current context:
         );
       }
 
-      console.log(`Executing function ${i}: ${functionCall.name}`); //!DEBUG
+      //console.log(`Executing function ${i}: ${functionCall.name}`); //!DEBUG
 
       const functionResult = await script(
         client,

@@ -38,6 +38,16 @@ const command: CommandType = {
   permissions: [PermissionFlagsBits.Administrator],
 
   async script(client, interaction, debugStream) {
+    if (
+      interaction.guildId !==
+      (getConfig("application") as any).productionGuildID
+    ) {
+      await interaction.editReply(
+        "This can only be used in the production server."
+      );
+      return;
+    }
+
     const type = interaction.options.getString("type", true);
     const user = interaction.options.getUser("user", true);
     const value = interaction.options.getInteger("value", true);
