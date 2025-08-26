@@ -106,6 +106,8 @@ function parseTranscriptData(rawData) {
   return data;
 }
 
+let botDisplayName = "BotBuilder";
+
 function parseMessage(messageLines) {
   if (!messageLines || messageLines.length === 0) {
     return null;
@@ -125,7 +127,7 @@ function parseMessage(messageLines) {
     timestamp: timestamp.trim(),
     content: "",
     embeds: [],
-    type: author === "BotBuilder" ? "bot" : "user",
+    type: author === botDisplayName ? "bot" : "user",
   };
 
   for (let i = 1; i < messageLines.length; i++) {
@@ -218,7 +220,7 @@ function renderMessages(messages) {
     if (!message) return;
 
     const messageDiv = document.createElement("div");
-    const isBot = message.type === "bot" || message.author === "BotBuilder";
+    const isBot = message.type === "bot" || message.author === botDisplayName;
     messageDiv.className = `message ${isBot ? "message-bot" : "message-user"}`;
     messageDiv.dataset.messageIndex = index;
 
@@ -323,7 +325,9 @@ async function loadTranscript() {
       }
     }
 
-    const rawData = await response.text();
+    const data = await response.json();
+    const rawData = data.transcriptContent;
+    const botDisplayName = data.botDisplayName || "BotBuilder";
 
     if (!rawData || rawData.trim().length === 0) {
       throw new Error("Empty transcript data received.");
