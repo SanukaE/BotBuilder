@@ -55,12 +55,14 @@
         .title {
             font-size: 4rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            background: linear-gradient(90deg, #f8fafc 25%, #06d6a0 50%, #f8fafc 75%);
+            background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 20px;
             text-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+            animation: shimmer 3s linear infinite;
         }
         
         .subtitle {
@@ -90,6 +92,30 @@
             font-weight: 500;
             color: #06d6a0;
             backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(6, 214, 160, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(6, 214, 160, 0.2);
+            border-color: rgba(6, 214, 160, 0.5);
+        }
+        
+        .badge:hover::before {
+            left: 100%;
         }
         
         .section {
@@ -101,6 +127,7 @@
             backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
         
         .section::before {
@@ -111,6 +138,24 @@
             right: 0;
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(6, 214, 160, 0.5), transparent);
+        }
+        
+        .section::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 4s ease-in-out infinite reverse;
+            pointer-events: none;
+        }
+        
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
         
         .section-title {
@@ -129,6 +174,11 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover .section-icon {
+            transform: scale(1.1) rotate(5deg);
         }
         
         .feature-grid {
@@ -174,6 +224,11 @@
             font-size: 2.5rem;
             margin-bottom: 15px;
             display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
         }
         
         .feature-title {
@@ -263,6 +318,20 @@
             border-radius: 15px;
             border-left: 4px solid #06d6a0;
             margin: 25px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .highlight::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(6, 214, 160, 0.05);
+            animation: glow 2s ease-in-out infinite;
+            pointer-events: none;
         }
         
         .highlight-title {
@@ -275,6 +344,10 @@
         .warning {
             background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
             border-left: 4px solid #ef4444;
+        }
+        
+        .warning::before {
+            background: rgba(239, 68, 68, 0.05);
         }
         
         .warning .highlight-title {
@@ -295,6 +368,19 @@
             padding: 20px;
             text-align: center;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .support-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(6, 214, 160, 0.1), transparent);
+            transition: left 0.6s ease;
         }
         
         .support-item:hover {
@@ -302,10 +388,19 @@
             border-color: rgba(6, 214, 160, 0.4);
         }
         
+        .support-item:hover::before {
+            left: 100%;
+        }
+        
         .support-icon {
             font-size: 2rem;
             margin-bottom: 15px;
             display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .support-item:hover .support-icon {
+            transform: scale(1.1) rotate(5deg);
         }
         
         .support-title {
@@ -350,6 +445,76 @@
         @keyframes heartbeat {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
+        }
+        
+        /* Link Styles */
+        a {
+            color: #06d6a0;
+            text-decoration: none;
+            position: relative;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        a:hover {
+            color: #34d399;
+            transform: translateY(-1px);
+        }
+        
+        /* Animated underline for text links */
+        p a, .step-content a, .highlight a {
+            background: linear-gradient(135deg, #06d6a0, #34d399);
+            background-size: 0% 2px;
+            background-repeat: no-repeat;
+            background-position: left bottom;
+            transition: all 0.4s ease;
+        }
+        
+        p a:hover, .step-content a:hover, .highlight a:hover {
+            background-size: 100% 2px;
+            color: #f8fafc;
+            text-shadow: 0 0 10px rgba(6, 214, 160, 0.5);
+        }
+        
+        /* Card link animations */
+        .support-item a, a .support-item {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Background animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-10px) rotate(1deg); }
+            66% { transform: translateY(5px) rotate(-1deg); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        /* Floating elements for background */
+        .container::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(6, 214, 160, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            pointer-events: none;
         }
         
         /* Responsive Design */
