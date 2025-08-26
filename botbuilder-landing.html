@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BotBuilder - Discord Bot Resource</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #e2e8f0;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+        }
+        
+        /* Background Effects */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #64748b, #06d6a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+        }
+        
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .badge {
+            padding: 8px 16px;
+            background: rgba(100, 116, 139, 0.2);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #06d6a0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 214, 160, 0.5), transparent);
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section-icon {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #06d6a0, #64748b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(6, 214, 160, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(6, 214, 160, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 10px;
+        }
+        
+        .feature-description {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .installation-steps {
+            counter-reset: step-counter;
+        }
+        
+        .step {
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            counter-increment: step-counter;
+        }
+        
+        .step::before {
+            content: counter(step-counter);
+            position: absolute;
+            top: -15px;
+            left: 25px;
+            background: linear-gradient(135deg, #06d6a0, #64748b);
+            color: #0f0f23;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 15px;
+            margin-left: 20px;
+        }
+        
+        .step-content {
+            margin-left: 20px;
+            color: #cbd5e1;
+        }
+        
+        .code {
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: #06d6a0;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        
+        .code-block {
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: #06d6a0;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, rgba(6, 214, 160, 0.1), rgba(100, 116, 139, 0.1));
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid #06d6a0;
+            margin: 25px 0;
+        }
+        
+        .highlight-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #06d6a0;
+            margin-bottom: 10px;
+        }
+        
+        .warning {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            border-left: 4px solid #ef4444;
+        }
+        
+        .warning .highlight-title {
+            color: #fca5a5;
+        }
+        
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .support-item {
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .support-item:hover {
+            transform: translateY(-3px);
+            border-color: rgba(6, 214, 160, 0.4);
+        }
+        
+        .support-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .support-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 8px;
+        }
+        
+        .support-description {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 40px;
+            background: rgba(30, 41, 59, 0.3);
+            border-radius: 20px;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+        
+        .footer-text {
+            font-size: 1.2rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .footer-signature {
+            font-size: 1rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+        
+        .heart {
+            color: #ef4444;
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .section {
+                padding: 25px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .badges {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">BotBuilder</h1>
+            <p class="subtitle">Your Free, Open-Source, All-In-One Discord Companion</p>
+            <div class="badges">
+                <span class="badge">🆓 Free & Open Source</span>
+                <span class="badge">🚀 Easy Setup</span>
+                <span class="badge">🧠 AI-Powered</span>
+                <span class="badge">📊 Modern Dashboard</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">📖</span>
+                About The Project
+            </h2>
+            <p><strong>BotBuilder</strong> is your ultimate All-In-One Discord bot, crafted to empower server owners with an extensive suite of features designed to enhance and streamline server management. Whether you're managing a small community or running a large-scale server, <strong>BotBuilder</strong> has got you covered.</p>
+            <br>
+            <p>Built with passion and dedication, this open-source project combines essential Discord functionality with cutting-edge AI capabilities, all wrapped in an intuitive modern interface that makes bot management a breeze.</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">✨</span>
+                Key Features
+            </h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🔧</span>
+                    <h3 class="feature-title">Basic Bot Features</h3>
+                    <p class="feature-description">All the essential commands and functionality you need for server management</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🧠</span>
+                    <h3 class="feature-title">Helpful AI Assistant</h3>
+                    <p class="feature-description">Powered by advanced AI to assist your community with intelligent responses</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h3 class="feature-title">Modern Dashboard</h3>
+                    <p class="feature-description">Sleek, user-friendly web interface for easy management and configuration</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">⚙️</span>
+                    <h3 class="feature-title">Easy Configuration</h3>
+                    <p class="feature-description">Simple setup process with clear documentation and intuitive controls</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔌</span>
+                    <h3 class="feature-title">Developer-Friendly API</h3>
+                    <p class="feature-description">Easy to use API for custom integrations and extended functionality</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🚀</span>
+                    <h3 class="feature-title">Continuous Development</h3>
+                    <p class="feature-description">Regular updates with new features and improvements coming soon!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="highlight warning">
+                <h3 class="highlight-title">⚠️ Important Disclaimer</h3>
+                <p>All AI-powered features are built using <strong>Gemini API</strong>, which may have limited availability depending on your location. Ensure you understand any potential billing implications before enabling AI features. The bot functions perfectly without AI features enabled if preferred.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">🛠</span>
+                Installation Guide
+            </h2>
+            <p>Getting BotBuilder up and running is straightforward! Follow these simple steps:</p>
+            
+            <div class="installation-steps">
+                <div class="step">
+                    <h3 class="step-title">Upload & Extract</h3>
+                    <div class="step-content">
+                        <p>Upload the <span class="code">BotBuilder v2.x.x.zip</span> file to your server's file manager. Once uploaded, unarchive/unzip the file. You can delete the zip file afterwards.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3 class="step-title">Configure Server Settings</h3>
+                    <div class="step-content">
+                        <p>Set these values for your server variables:</p>
+                        <div class="code-block">Main File: build/index.js<br>Start File: start.sh</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3 class="step-title">Setup Configuration Files</h3>
+                    <div class="step-content">
+                        <p>Rename the template files:</p>
+                        <p>• <span class="code">.env.template</span> → <span class="code">.env</span></p>
+                        <p>• <span class="code">config.template</span> folder → <span class="code">config</span> folder</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3 class="step-title">Configure Your Bot</h3>
+                    <div class="step-content">
+                        <p>Fill in the values in the <span class="code">.env</span> file and configure settings in the <span class="code">config</span> folder according to your needs.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3 class="step-title">Invite Your Bot</h3>
+                    <div class="step-content">
+                        <p>Add your bot to both your development and production Discord servers with the necessary permissions.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3 class="step-title">Launch!</h3>
+                    <div class="step-content">
+                        <p>Start your bot and you're ready to go! 🎉</p>
+                        <div class="highlight">
+                            <h4 class="highlight-title">Need Help?</h4>
+                            <p>Join our Discord server for support and community assistance.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">💬</span>
+                Message From Sanuka
+            </h2>
+            <p>Hey there! 👋</p>
+            <br>
+            <p>I'm thrilled to introduce <strong>BotBuilder</strong>, but keep in mind, it's still in its early stages. While it might not yet embody the full vision of an "all-in-one" bot, I'm committed to improving it with every update.</p>
+            <br>
+            <p>This project is a labor of love, and I develop it entirely for free. With your support—whether through feedback, sharing, or donations—I can continue adding amazing features to make this bot truly exceptional.</p>
+            <br>
+            <p><strong>Let's build something awesome together!</strong> 🚀</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <span class="section-icon">💖</span>
+                Support The Project
+            </h2>
+            <p>Want to help me keep this project alive and growing?</p>
+            
+            <div class="support-grid">
+                <div class="support-item">
+                    <span class="support-icon">🎁</span>
+                    <h3 class="support-title">Make a Donation</h3>
+                    <p class="support-description">Every contribution, big or small, makes a difference!</p>
+                </div>
+                <div class="support-item">
+                    <span class="support-icon">📢</span>
+                    <h3 class="support-title">Spread the Word</h3>
+                    <p class="support-description">Share the project or leave a positive rating to help others discover it</p>
+                </div>
+                <div class="support-item">
+                    <span class="support-icon">⭐</span>
+                    <h3 class="support-title">Star on GitHub</h3>
+                    <p class="support-description">Show your support and help increase visibility</p>
+                </div>
+                <div class="support-item">
+                    <span class="support-icon">🐛</span>
+                    <h3 class="support-title">Report & Suggest</h3>
+                    <p class="support-description">Help make BotBuilder even better with bug reports and feature suggestions</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">A project by <strong>Sanuka</strong> <span class="heart">❤️</span></p>
+            <p class="footer-signature">Built with passion for the Discord community</p>
+        </div>
+    </div>
+</body>
+</html>
