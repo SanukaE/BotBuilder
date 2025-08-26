@@ -86,7 +86,8 @@ export default async function (_: Client) {
           'configs',
           'faqAnswers.txt',
           'update.zip',
-          'build'
+          'build',
+          'app.json'
         ];
 
         // Remove old files (except preserved items)

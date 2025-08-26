@@ -98,12 +98,21 @@ async function main() {
       }
 
       if (config.version !== currentVersion) {
-        createWarning(
-          "Possible outdated config/env variables found.",
-          "Some features might not work or could break the bot.",
-          "To update your server variables, delete the .env file and config folder from your server files. Before deleting these files, make a copy so you can save time resetting them. Then, restart your server.",
-          "main-index"
-        );
+        const tempConfigFolder = path.join(process.cwd(), "configs.template");
+        const tempEnvFile = path.join(process.cwd(), ".env.template");
+
+        if (fs.existsSync(tempConfigFolder) || fs.existsSync(tempEnvFile)) {
+          createWarning(
+            "Possible outdated config/env variables found.",
+            "Some features might not work or could break the bot.",
+            "To update your server variables, delete the .env file and config folder from your server files. Before deleting these files, make a copy so you can save time resetting them. Then, restart your server.",
+            "main-index"
+          );
+        } else
+          fs.writeFileSync(
+            configFile,
+            JSON.stringify({ ...config, version: currentVersion }, null, 2)
+          );
       }
     } else {
       fs.writeFileSync(
