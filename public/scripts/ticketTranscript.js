@@ -327,7 +327,7 @@ async function loadTranscript() {
 
     const data = await response.json();
     const rawData = data.transcriptContent;
-    const botDisplayName = data.botDisplayName || "BotBuilder";
+    botDisplayName = data.botDisplayName || "BotBuilder";
 
     if (!rawData || rawData.trim().length === 0) {
       throw new Error("Empty transcript data received.");
