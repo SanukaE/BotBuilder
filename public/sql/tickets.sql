@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS tickets (
     channelID VARCHAR(255) NOT NULL,
     ownerID VARCHAR(255) NOT NULL,
     claimedBy VARCHAR(255),
-    formData JSON
+    formData JSON,
+    PRIMARY KEY (channelID)
 );
