@@ -1,6 +1,6 @@
 import { EmbedBuilder, APIEmbed } from "discord.js";
 import getConfig from "./getConfig.js";
-import { client } from "../index.js";
+import client from "#libs/Client.js";
 
 /**
  * Creates a Discord embed with default BotBuilder branding

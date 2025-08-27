@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS embeds (
     image_url VARCHAR(512),
     thumbnail_url VARCHAR(512),
     author JSON,
-    fields JSON
+    fields JSON,
+    PRIMARY KEY (title)
 );

@@ -83,14 +83,18 @@ const command: CommandType = {
       await ticketChannel.send("A transcript of this ticket has been saved!");
     }
 
-    const ticketOwner = await client.users.fetch(ticketData.ownerID);
-    const ownerDMChannel = await ticketOwner.createDM();
+    try {
+      const ticketOwner = await client.users.fetch(ticketData.ownerID);
+      const ownerDMChannel = await ticketOwner.createDM();
 
-    if (ownerDMChannel.isSendable()) {
-      await ownerDMChannel.sendTyping();
-      await ownerDMChannel.send(
-        `Hey ${ticketOwner.displayName}, just want to update on your ${ticketData.category} ticket. It has been closed for "${closeReason}". If your problem hasn't been resolved yet please open a new ticket.`
-      );
+      if (ownerDMChannel.isSendable()) {
+        await ownerDMChannel.sendTyping();
+        await ownerDMChannel.send(
+          `Hey ${ticketOwner.displayName}, just want to update on your ${ticketData.category} ticket. It has been closed for "${closeReason}". If your problem hasn't been resolved yet please open a new ticket.`
+        );
+      }
+    } catch (err) {
+      null;
     }
 
     await MySQL.query("DELETE FROM tickets WHERE channelID = ?", [

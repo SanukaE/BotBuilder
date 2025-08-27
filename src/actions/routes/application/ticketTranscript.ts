@@ -1,6 +1,7 @@
 import { RouteType, HTTPMethod } from "#types/RouteType.js";
 import path from "path";
 import fs from "fs";
+import client from "#libs/Client.js";
 
 export const ResDataType = {
   configs: "object[]",
@@ -49,7 +50,12 @@ const route: RouteType = {
       transcriptCategory,
       transcriptFile
     );
-    return res.sendFile(transcriptFilePath);
+
+    return res.json({
+      success: true,
+      transcriptContent: fs.readFileSync(transcriptFilePath, "utf-8"),
+      botDisplayName: client.user?.displayName || "BotBuilder",
+    });
   },
 };
 

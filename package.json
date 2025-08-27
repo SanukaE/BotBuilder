@@ -1,11 +1,11 @@
 {
   "name": "botbuilder",
-  "version": "v2.2.0",
+  "version": "v2.2.1",
   "description": "A discord bot setup that has anything a server owner could wish for.",
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node build/index.js"
+    "start": "node ."
   },
   "author": "SanukaE",
   "license": "GPL-3.0-only",
