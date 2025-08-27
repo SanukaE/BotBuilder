@@ -1,7 +1,7 @@
 import { RouteType, HTTPMethod } from "#types/RouteType.js";
 import path from "path";
 import fs from "fs";
-import { client } from "../../../index.js";
+import client from "#libs/Client.js";
 
 export const ResDataType = {
   configs: "object[]",

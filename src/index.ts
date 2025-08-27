@@ -1,4 +1,3 @@
-import { Client, GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 import eventHandler from "./handlers/eventHandler.js";
 import fileHandler from "./handlers/fileHandler.js";
@@ -13,22 +12,7 @@ import getAllFiles from "#utils/getAllFiles.js";
 import { registerFont } from "canvas";
 import canvacord from "canvacord";
 import { createWarning } from "#utils/createLogger.js";
-
-export const client = new Client({
-  intents: [
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.DirectMessages,
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildMessageTyping,
-    GatewayIntentBits.GuildModeration,
-    GatewayIntentBits.AutoModerationConfiguration,
-    GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildScheduledEvents,
-  ],
-});
+import client from "#libs/Client.js";
 
 /**
  * Clears the terminal and prints the application's ASCII-art welcome banner and a short tagline.
@@ -103,7 +87,7 @@ async function main() {
 
         if (fs.existsSync(tempConfigFolder) || fs.existsSync(tempEnvFile)) {
           createWarning(
-            "Possible outdated config/env variables found.",
+            "Possible outdated config/env variables found",
             "Some features might not work or could break the bot.",
             "To update your server variables, delete the .env file and config folder from your server files. Before deleting these files, make a copy so you can save time resetting them. Then, restart your server.",
             "main-index"
