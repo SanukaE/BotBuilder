@@ -186,11 +186,8 @@ function displayTranscriptData(data) {
           : "status-open");
     }
 
-    const issueElement = document.getElementById("ticketIssue");
-    if (issueElement) {
-      issueElement.textContent =
-        data.formInfo["Issue"] || "No issue description provided.";
-    }
+    // Updated form info display to handle all fields dynamically
+    renderFormInfo(data.formInfo || {});
 
     const summaryElement = document.getElementById("ticketSummary");
     if (summaryElement) {
@@ -201,6 +198,77 @@ function displayTranscriptData(data) {
   } catch (error) {
     console.error("Error displaying transcript data:", error);
     showError("Error displaying transcript data");
+  }
+}
+
+function renderFormInfo(formInfo) {
+  const formContainer = document.getElementById("formInfoContainer");
+  if (!formContainer) return;
+
+  // Clear existing content
+  formContainer.innerHTML = "";
+
+  // Check if there's any form data
+  const formEntries = Object.entries(formInfo);
+
+  if (formEntries.length === 0) {
+    formContainer.innerHTML =
+      '<div class="form-field-empty">No form data available.</div>';
+    return;
+  }
+
+  // Add multi-column class if there are many fields
+  if (formEntries.length > 3) {
+    formContainer.className = "multi-column";
+  } else {
+    formContainer.className = "";
+  }
+
+  // Create form fields dynamically
+  formEntries.forEach(([key, value]) => {
+    const fieldDiv = document.createElement("div");
+    fieldDiv.className = "form-field";
+
+    const labelDiv = document.createElement("div");
+    labelDiv.className = "form-field-label";
+    labelDiv.textContent = key;
+
+    const valueDiv = document.createElement("div");
+    valueDiv.className = "form-field-value";
+
+    // Handle empty or null values
+    if (!value || value.trim() === "") {
+      valueDiv.textContent = "No information provided";
+      valueDiv.style.opacity = "0.6";
+      valueDiv.style.fontStyle = "italic";
+    } else {
+      valueDiv.textContent = value;
+
+      // Add scrolling for very long text
+      if (value.length > 300) {
+        valueDiv.classList.add("long-text");
+      }
+    }
+
+    fieldDiv.appendChild(labelDiv);
+    fieldDiv.appendChild(valueDiv);
+    formContainer.appendChild(fieldDiv);
+  });
+
+  // Add a summary count for many fields
+  if (formEntries.length > 5) {
+    const summaryDiv = document.createElement("div");
+    summaryDiv.style.cssText = `
+      text-align: center; 
+      padding: 12px; 
+      color: var(--text-secondary); 
+      font-size: 0.9rem; 
+      border-top: 1px solid var(--border-color); 
+      margin-top: 12px;
+      opacity: 0.8;
+    `;
+    summaryDiv.innerHTML = `<i class="fas fa-clipboard-list"></i> Total Form Fields: ${formEntries.length}`;
+    formContainer.appendChild(summaryDiv);
   }
 }
 
@@ -325,9 +393,24 @@ async function loadTranscript() {
       }
     }
 
-    const data = await response.json();
-    const rawData = data.transcriptContent;
-    botDisplayName = data.botDisplayName || "BotBuilder";
+    const rawData = await response.text();
+
+    try {
+      const response = await fetch(`/api/info`, {
+        headers: {
+          Authorization: getCookie("apiKey") || "",
+        },
+      });
+
+      if (!response.ok)
+        throw new Error(`Failed to fetch bot info: ${response.statusText}`);
+
+      const infoData = await response.json();
+      botDisplayName = infoData.displayName || "BotBuilder";
+    } catch (e) {
+      console.warn("Could not fetch bot info, using default name.", e);
+      botDisplayName = "BotBuilder";
+    }
 
     if (!rawData || rawData.trim().length === 0) {
       throw new Error("Empty transcript data received.");
@@ -482,6 +565,17 @@ function generateTranscriptText() {
 }
 
 function getCurrentTranscriptData() {
+  // Get form data dynamically from rendered form fields
+  const formInfo = {};
+  const formFields = document.querySelectorAll(".form-field");
+  formFields.forEach((field) => {
+    const label = field.querySelector(".form-field-label")?.textContent;
+    const value = field.querySelector(".form-field-value")?.textContent;
+    if (label && value && value !== "No information provided") {
+      formInfo[label] = value;
+    }
+  });
+
   return {
     generalInfo: {
       "Ticket Category":
@@ -495,9 +589,7 @@ function getCurrentTranscriptData() {
       "Close Reason":
         document.getElementById("ticketStatus")?.textContent || "",
     },
-    formInfo: {
-      Issue: document.getElementById("ticketIssue")?.textContent || "",
-    },
+    formInfo: formInfo,
     summary: document.getElementById("ticketSummary")?.textContent || "",
     messages: Array.from(document.querySelectorAll(".message")).map(
       (messageEl) => {

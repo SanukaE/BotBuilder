@@ -220,15 +220,108 @@ main {
   letter-spacing: 0.5px;
 }
 
-.issue-text {
+/* Dynamic Form Fields */
+#formInfoContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-field {
   background: rgba(255, 255, 255, 0.04);
-  padding: 7px 14px;
-  border-radius: 7px;
+  border-radius: 8px;
   border: 1.2px solid var(--border-color);
-  font-style: italic;
-  color: var(--text-secondary);
+  padding: 14px 16px;
+  transition: all 0.15s ease;
+}
+
+.form-field:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--secondary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.form-field-label {
+  font-weight: 700;
+  color: var(--secondary-color);
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+}
+
+.form-field-label::before {
+  content: "▶";
+  font-size: 0.7em;
+  color: var(--accent-color);
+  transition: transform 0.15s ease;
+}
+
+.form-field:hover .form-field-label::before {
+  transform: rotate(90deg);
+}
+
+.form-field-value {
+  color: var(--text-color);
   line-height: 1.5;
   font-size: 1rem;
+  font-weight: 500;
+  padding-left: 14px;
+  border-left: 2px solid var(--accent-color);
+  margin-left: 4px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.form-field-empty {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1.2px solid var(--border-color);
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* Multi-column layout for many form fields */
+@media (min-width: 900px) {
+  #formInfoContainer.multi-column {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 16px 24px;
+  }
+}
+
+/* Special styling for long form values */
+.form-field-value.long-text {
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) transparent;
+}
+
+.form-field-value.long-text::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-field-value.long-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.form-field-value.long-text::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 3px;
+}
+
+.form-field-value.long-text::-webkit-scrollbar-thumb:hover {
+  background: var(--warning-color);
 }
 
 /* Summary */
